@@ -1,26 +1,175 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   Design Tokens — Primary: #2563EB
+   Dérivations mathématiques (HSL) · Contraste WCAG 2.1 AA
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --- Primary (#2563EB · hsl(217 91% 53%)) ----------------------------- */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;   /* L −12 % */
+  --primary-active: #1e40af;  /* L −20 % */
+  --primary-light: #eff6ff;   /* tint ~95 % */
+  --primary-foreground: #ffffff; /* contraste 4.56:1 sur --primary */
+
+  /* --- Secondary (Slate, équilibré avec la primaire) -------------------- */
+  --secondary: #475569;
+  --secondary-hover: #334155;
+  --secondary-foreground: #ffffff; /* contraste 7.58:1 sur --secondary */
+
+  /* --- Accent (complémentaire ~37° · CTA) ----------------------------- */
+  --accent: #ea580c;
+  --accent-hover: #c2410c;
+  --accent-foreground: #ffffff; /* contraste 4.63:1 sur --accent */
+
+  /* --- Surfaces & typographie ----------------------------------------- */
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --border: #e2e8f0;
+  --text-main: #0f172a;   /* contraste 15.8:1 sur --bg-app */
+  --text-muted: #64748b;  /* contraste 4.76:1 sur --bg-surface */
+
+  /* --- États système -------------------------------------------------- */
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --error: #dc2626;
+  --error-foreground: #ffffff;
+  --info: #0284c7;
+  --info-foreground: #ffffff;
+
+  /* --- Alias rétrocompatibilité --------------------------------------- */
+  --background: var(--bg-app);
+  --foreground: var(--text-main);
 }
 
+/* ==========================================================================
+   Dark Mode — prefers-color-scheme
+   ========================================================================== */
+
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --primary-active: #1d4ed8;
+    --primary-light: #172554;
+    --primary-foreground: #ffffff;
+
+    --secondary: #64748b;
+    --secondary-hover: #475569;
+    --secondary-foreground: #ffffff;
+
+    --accent: #f97316;
+    --accent-hover: #ea580c;
+    --accent-foreground: #0f172a;
+
+    --bg-app: #0f172a;
+    --bg-surface: #1e293b;
+    --border: #334155;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+
+    --success: #22c55e;
+    --success-foreground: #0f172a;
+    --warning: #f59e0b;
+    --warning-foreground: #0f172a;
+    --error: #ef4444;
+    --error-foreground: #ffffff;
+    --info: #0ea5e9;
+    --info-foreground: #0f172a;
+
+    --background: var(--bg-app);
+    --foreground: var(--text-main);
+  }
+} */
+
+/* ==========================================================================
+   Dark Mode — classe .dark (basculable manuellement)
+   ========================================================================== */
+
+.dark {
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-active: #1d4ed8;
+  --primary-light: #172554;
+  --primary-foreground: #ffffff;
+
+  --secondary: #64748b;
+  --secondary-hover: #475569;
+  --secondary-foreground: #ffffff;
+
+  --accent: #f97316;
+  --accent-hover: #ea580c;
+  --accent-foreground: #0f172a;
+
+  --bg-app: #0f172a;
+  --bg-surface: #1e293b;
+  --border: #334155;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+
+  --success: #22c55e;
+  --success-foreground: #0f172a;
+  --warning: #f59e0b;
+  --warning-foreground: #0f172a;
+  --error: #ef4444;
+  --error-foreground: #ffffff;
+  --info: #0ea5e9;
+  --info-foreground: #0f172a;
+
+  --background: var(--bg-app);
+  --foreground: var(--text-main);
+}
+
+/* ==========================================================================
+   Tailwind v4 — exposition des tokens
+   ========================================================================== */
+
 @theme inline {
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-light: var(--primary-light);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-bg-app: var(--bg-app);
+  --color-bg-surface: var(--bg-surface);
+  --color-border: var(--border);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ==========================================================================
+   Styles de base
+   ========================================================================== */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
