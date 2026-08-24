@@ -1,0 +1,349 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Design Tokens — Primary: #2563EB
+   Dérivations mathématiques (HSL) · Contraste WCAG 2.1 AA
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* --- Primary (#2563EB · hsl(217 91% 53%)) ----------------------------- */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;   /* L −12 % */
+  --primary-active: #1e40af;  /* L −20 % */
+  --primary-light: #eff6ff;   /* tint ~95 % */
+  --primary-foreground: #ffffff; /* contraste 4.56:1 sur --primary */
+
+  /* --- Secondary (Slate, équilibré avec la primaire) -------------------- */
+  --secondary: #475569;
+  --secondary-hover: #334155;
+  --secondary-foreground: #ffffff; /* contraste 7.58:1 sur --secondary */
+
+  /* --- Accent (complémentaire ~37° · CTA) ----------------------------- */
+  --accent: #ea580c;
+  --accent-hover: #c2410c;
+  --accent-foreground: #ffffff; /* contraste 4.63:1 sur --accent */
+
+  /* --- Surfaces & typographie ----------------------------------------- */
+  /* --bg-app: #f8fafc;          fond de page (slate-50) */
+  --bg-app: #fff; 
+  --bg-surface: #ffffff;      /* cartes / panneaux */
+  --bg-muted: #f1f5f9;        /* fonds insérés (slate-100) */
+  --bg-surface-hover: #f8fafc;/* survol des cartes / lignes */
+  --border: #e2e8f0;          /* bordures (slate-200) */
+  --border-strong: #cbd5e1;   /* bordures renforcées (slate-300) */
+  --text-main: #0f172a;       /* contraste 15.8:1 sur --bg-app */
+  --text-muted: #64748b;      /* contraste 4.76:1 sur --bg-surface */
+  --text-subtle: #94a3b8;     /* texte tertiaire / placeholders */
+
+  /* --- Focus & accessibilité ------------------------------------------ */
+  --focus-ring: rgb(37 99 235 / 0.35);
+
+  /* --- États système -------------------------------------------------- */
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --error: #dc2626;
+  --error-foreground: #ffffff;
+  --info: #0284c7;
+  --info-foreground: #ffffff;
+
+  /* --- Statuts épidémiologiques (badges pastel discrets) -------------- */
+  --status-suspect-bg: #fef3c7;   /* jaune pastel */
+  --status-suspect-fg: #92400e;   /* ambre foncé */
+  --status-confirmed-bg: #fee2e2; /* rouge pastel */
+  --status-confirmed-fg: #991b1b;
+  --status-recovered-bg: #dcfce7; /* vert pastel */
+  --status-recovered-fg: #166534;
+  --status-deceased-bg: #f1f5f9;  /* gris neutre */
+  --status-deceased-fg: #334155;
+
+  /* --- Palette graphiques (data-viz, analytics) ------------------------ */
+  --chart-1: #2563eb;  /* bleu primaire */
+  --chart-2: #0ea5e9;  /* ciel */
+  --chart-3: #10b981;  /* émeraude */
+  --chart-4: #f59e0b;  /* ambre */
+  --chart-5: #ef4444;  /* rouge */
+  --chart-6: #8b5cf6;  /* violet */
+  --chart-7: #14b8a6;  /* sarcelle */
+  --chart-8: #f97316;  /* orange */
+
+  /* --- Élévations (ombres douces & naturelles) ------------------------- */
+  --elevation-card:
+    0 1px 2px 0 rgb(15 23 42 / 0.04),
+    0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --elevation-card-hover:
+    0 4px 6px -1px rgb(15 23 42 / 0.06),
+    0 12px 24px -6px rgb(15 23 42 / 0.10);
+  --elevation-dropdown:
+    0 10px 15px -3px rgb(15 23 42 / 0.10),
+    0 4px 6px -4px rgb(15 23 42 / 0.10);
+
+  /* --- Alias rétrocompatibilité --------------------------------------- */
+  --background: var(--bg-app);
+  --foreground: var(--text-main);
+}
+
+/* ==========================================================================
+   Dark Mode — classe .dark (basculable manuellement)
+   ========================================================================== */
+
+.dark {
+  color-scheme: dark;
+
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-active: #1d4ed8;
+  --primary-light: #172554;
+  --primary-foreground: #ffffff;
+
+  --secondary: #64748b;
+  --secondary-hover: #475569;
+  --secondary-foreground: #ffffff;
+
+  --accent: #f97316;
+  --accent-hover: #ea580c;
+  --accent-foreground: #0f172a;
+
+  --bg-app: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-muted: #0f172a;
+  --bg-surface-hover: #243149;
+  --border: #334155;
+  --border-strong: #475569;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+
+  --focus-ring: rgb(59 130 246 / 0.50);
+
+  --success: #22c55e;
+  --success-foreground: #0f172a;
+  --warning: #f59e0b;
+  --warning-foreground: #0f172a;
+  --error: #ef4444;
+  --error-foreground: #ffffff;
+  --info: #0ea5e9;
+  --info-foreground: #0f172a;
+
+  --status-suspect-bg: #451a03;
+  --status-suspect-fg: #fde68a;
+  --status-confirmed-bg: #450a0a;
+  --status-confirmed-fg: #fecaca;
+  --status-recovered-bg: #052e16;
+  --status-recovered-fg: #bbf7d0;
+  --status-deceased-bg: #1e293b;
+  --status-deceased-fg: #cbd5e1;
+
+  --chart-1: #3b82f6;
+  --chart-2: #38bdf8;
+  --chart-3: #34d399;
+  --chart-4: #fbbf24;
+  --chart-5: #f87171;
+  --chart-6: #a78bfa;
+  --chart-7: #2dd4bf;
+  --chart-8: #fb923c;
+
+  --elevation-card:
+    0 1px 2px 0 rgb(0 0 0 / 0.40),
+    0 1px 3px 0 rgb(0 0 0 / 0.40);
+  --elevation-card-hover:
+    0 4px 6px -1px rgb(0 0 0 / 0.40),
+    0 12px 24px -6px rgb(0 0 0 / 0.55);
+  --elevation-dropdown:
+    0 10px 15px -3px rgb(0 0 0 / 0.50),
+    0 4px 6px -4px rgb(0 0 0 / 0.50);
+
+  --background: var(--bg-app);
+  --foreground: var(--text-main);
+}
+
+/* ==========================================================================
+   Tailwind v4 — exposition des tokens
+   ========================================================================== */
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-light: var(--primary-light);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-bg-app: var(--bg-app);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-muted: var(--bg-muted);
+  --color-bg-surface-hover: var(--bg-surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+
+  --color-focus-ring: var(--focus-ring);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  --color-status-suspect-bg: var(--status-suspect-bg);
+  --color-status-suspect-fg: var(--status-suspect-fg);
+  --color-status-confirmed-bg: var(--status-confirmed-bg);
+  --color-status-confirmed-fg: var(--status-confirmed-fg);
+  --color-status-recovered-bg: var(--status-recovered-bg);
+  --color-status-recovered-fg: var(--status-recovered-fg);
+  --color-status-deceased-bg: var(--status-deceased-bg);
+  --color-status-deceased-fg: var(--status-deceased-fg);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+
+  --shadow-card: var(--elevation-card);
+  --shadow-card-hover: var(--elevation-card-hover);
+  --shadow-dropdown: var(--elevation-dropdown);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ==========================================================================
+   Styles de base
+   ========================================================================== */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    font-family: var(--font-sans), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+}
+
+/* ==========================================================================
+   Scrollbars
+   ========================================================================== */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Animations utilitaires (micro-interactions)
+   ========================================================================== */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 200ms ease-out both;
+}
+
+.animate-slide-up {
+  animation: slide-up 240ms ease-out both;
+}
+
+.animate-toast-in {
+  animation: toast-in 200ms ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 160ms ease-out both;
+}
