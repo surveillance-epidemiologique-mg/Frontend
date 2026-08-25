@@ -2,12 +2,15 @@ import type { InputHTMLAttributes } from "react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+type InputVariant = "default" | "glass";
+
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   icon?: LucideIcon;
   rightSlot?: React.ReactNode;
   error?: string;
   hint?: string;
+  variant?: InputVariant;
 }
 
 export function Input({
@@ -16,6 +19,7 @@ export function Input({
   rightSlot,
   error,
   hint,
+  variant = "default",
   id,
   className,
   ...props
@@ -41,19 +45,24 @@ export function Input({
 
       <div className="relative">
         {Icon ? (
-          <Icon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-text-muted" />
+          <Icon
+            className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-text-muted"
+            strokeWidth={1.75}
+          />
         ) : null}
         <input
           id={inputId}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedById}
           className={cn(
-            "w-full rounded-lg border bg-bg-surface px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted transition-colors duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60",
+            "w-full rounded-xl border bg-bg-surface px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60",
             Icon && "pl-10",
             rightSlot ? "pr-10" : false,
+            variant === "glass" &&
+              "border-white/60 bg-white/55 shadow-sm backdrop-blur-sm placeholder:text-text-subtle focus:bg-white/80",
             error
               ? "border-error focus:border-error focus:ring-error/20"
-              : "border-border focus:border-primary focus:ring-primary/20",
+              : "focus:border-primary focus:ring-primary/20",
             className,
           )}
           {...props}

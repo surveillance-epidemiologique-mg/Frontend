@@ -138,9 +138,8 @@ export function UsersTab({
         title: toggleTarget.nextActive
           ? "Utilisateur activé"
           : "Utilisateur désactivé",
-        description: `${toggleTarget.user.name} est maintenant ${
-          toggleTarget.nextActive ? "actif" : "inactif"
-        }.`,
+        description: `${toggleTarget.user.name} est maintenant ${toggleTarget.nextActive ? "actif" : "inactif"
+          }.`,
         variant: toggleTarget.nextActive ? "success" : "warning",
       });
       setToggleTarget(null);
@@ -227,18 +226,18 @@ export function UsersTab({
             },
             row.isActive
               ? {
-                  label: "Désactiver",
-                  icon: UserX,
-                  danger: true,
-                  onClick: () =>
-                    setToggleTarget({ user: row, nextActive: false }),
-                }
+                label: "Désactiver",
+                icon: UserX,
+                danger: true,
+                onClick: () =>
+                  setToggleTarget({ user: row, nextActive: false }),
+              }
               : {
-                  label: "Activer",
-                  icon: UserCheck,
-                  onClick: () =>
-                    setToggleTarget({ user: row, nextActive: true }),
-                },
+                label: "Activer",
+                icon: UserCheck,
+                onClick: () =>
+                  setToggleTarget({ user: row, nextActive: true }),
+              },
           ]}
         />
       ),
@@ -343,9 +342,8 @@ export function UsersTab({
         }
         description={
           toggleTarget
-            ? `Confirmer la ${
-                toggleTarget.nextActive ? "réactivation" : "désactivation"
-              } du compte de ${toggleTarget.user.name} ?`
+            ? `Confirmer la ${toggleTarget.nextActive ? "réactivation" : "désactivation"
+            } du compte de ${toggleTarget.user.name} ?`
             : ""
         }
         confirmLabel={toggleTarget?.nextActive ? "Activer" : "Désactiver"}

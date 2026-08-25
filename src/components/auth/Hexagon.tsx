@@ -1,67 +1,72 @@
-import React, { CSSProperties } from 'react'; 
-import Image from 'next/image'; 
-import { HexagonItem } from '@/data/hexagons'; 
+import type { CSSProperties } from "react";
+import Image from "next/image";
+import type { HexagonItem } from "@/data/hexagons";
 
-interface HexagonProps { 
-  item: HexagonItem; 
-} 
+// Orientation Hexagone exacte : Pointe en haut & en bas (Flat sides left & right)
+const HEX_CLIP: CSSProperties = {
+  clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+};
 
-export default function Hexagon({ item }: HexagonProps) { 
-  // Conserve le ratio 1:1 tout en s'étirant au maximum
-  const baseHexStyles = "aspect-square w-full h-full relative group"; 
+interface HexagonProps {
+  item: HexagonItem;
+}
 
-  const clipPathStyle: CSSProperties = { 
-    clipPath: 'polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%)', 
-  }; 
+export default function Hexagon({ item }: HexagonProps) {
+  if (item.type === "empty") {
+    return <div className="aspect-[0.866] w-full opacity-0 pointer-events-none" />;
+  }
 
-  if (item.type === 'empty') { 
-    return <div className="aspect-square w-full h-full opacity-0 pointer-events-none" />; 
-  } 
+  return (
+    <div className="group relative aspect-[0.866] w-full">
+      <div className="absolute inset-0 overflow-hidden bg-bg-app/40" style={HEX_CLIP}>
+        {/* --- Image --- */}
+        {item.type === "image" ? (
+          <>
+            <Image
+              src={item.src}
+              alt={item.alt}
+              fill
+              sizes="(max-width: 768px) 100vw, 30vw"
+              priority
+              unoptimized
+              className="object-cover brightness-[0.95] contrast-[1.05] transition-transform duration-700 ease-out group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-bg-app/20 transition-opacity duration-300 group-hover:bg-transparent" />
+          </>
+        ) : null}
 
-  return ( 
-    <div className={baseHexStyles}> 
-      {/* Outer Hexagon (Bordure) */} 
-      <div 
-        className="absolute inset-1 bg-primary" 
-        style={clipPathStyle} 
-      > 
-        {/* Inner Hexagon (Contenu) */} 
-        <div 
-          className="absolute inset-1 overflow-hidden" 
-          style={clipPathStyle} 
-        > 
-          {item.type === 'image' && ( 
-            <> 
-              <Image 
-                src={item.src} 
-                alt={item.alt} 
-                fill 
-                sizes="(max-width: 768px) 100vw, 50vw" 
-                className="object-cover transition-transform duration-700 group-hover:scale-110" 
-                priority={true} 
-                unoptimized={true} 
-              /> 
-              <div className="absolute inset-0 z-10 bg-primary/10 transition-colors duration-500 group-hover:bg-transparent" /> 
-            </> 
-          )} 
+        {/* --- Block Texte Bleu Principal --- */}
+        {item.type === "text" ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-primary p-4 text-center text-primary-foreground">
+            {item.live ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold tracking-wide text-white backdrop-blur-md">
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+                  <span className="relative inline-flex size-2 rounded-full bg-success" />
+                </span>
+                EN DIRECT
+              </span>
+            ) : null}
+            <p className="mt-1 text-sm font-bold leading-tight md:text-base">
+              {item.content}
+            </p>
+            {item.sub ? (
+              <p className="text-[11px] font-medium text-primary-light">
+                {item.sub}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
-          {item.type === 'text' && ( 
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary to-primary-active p-4 text-center text-primary-foreground md:p-8"> 
-              <p className="text-base font-bold leading-snug tracking-tight drop-shadow-lg md:text-xl lg:text-2xl">
-                {item.content}
-              </p> 
-            </div> 
-          )} 
-
-          {item.type === 'dark' && ( 
-            <div className={`absolute inset-0 ${item.variant === 'blue' ? 'bg-gradient-to-br from-secondary to-secondary-hover' : 'bg-gradient-to-br from-chart-7 to-info'}`}> 
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-500 group-hover:opacity-100"> 
-                <div className="h-1.5 w-1/3 rounded-full bg-white/30" /> 
-              </div> 
-            </div> 
-          )} 
-        </div> 
-      </div> 
-    </div> 
-  ); 
+        {/* --- Hexagone Sombre / Motif --- */}
+        {item.type === "dark" ? (
+          <div className="absolute inset-0 bg-bg-app/80 backdrop-blur-md">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="size-2 rounded-full bg-primary/20 ring-4 ring-primary/10" />
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
 }
