@@ -2,21 +2,26 @@
 
 import { useState } from "react";
 import { useActionState } from "react";
-import Link from "next/link";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { loginAction, type ActionState } from "@/app/actions/auth";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ForgotPasswordForm } from "@/features/auth/components/forgot-password-form";
 
 const initialState: ActionState = {};
 
 export function LoginForm() {
+  const [view, setView] = useState<"login" | "forgot">("login");
   const [state, formAction, pending] = useActionState(
     loginAction,
     initialState,
   );
   const [showPassword, setShowPassword] = useState(false);
+
+  if (view === "forgot") {
+    return <ForgotPasswordForm onBack={() => setView("login")} />;
+  }
 
   return (
     <form action={formAction} className="space-y-4">
@@ -30,7 +35,7 @@ export function LoginForm() {
         variant="glass"
         autoComplete="email"
         required
-        placeholder="prenom.nom@exemple.mg"
+        placeholder="exemple@gmail.com"
       />
 
       <div className="space-y-1.5">
@@ -63,12 +68,13 @@ export function LoginForm() {
           }
         />
         <div className="flex justify-end">
-          <Link
-            href="#"
-            className="text-xs font-medium text-primary transition-colors hover:text-primary-hover"
+          <button
+            type="button"
+            onClick={() => setView("forgot")}
+            className="cursor-pointer text-xs font-medium text-primary transition-colors hover:text-primary-hover"
           >
             Mot de passe oublié ?
-          </Link>
+          </button>
         </div>
       </div>
 

@@ -16,7 +16,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <div className="flex min-h-dvh w-full overflow-hidden bg-bg-app">
 
       {/* ================= PANNEAU GAUCHE ================= */}
-      <div className="relative hidden w-[62%] flex-col justify-between p-10 lg:flex bg-bg-surface" style={{ background: "linear-gradient(145deg, var(--bg-app) 0%, var(--bg-surface) 50%, var(--bg-app) 100%)" }}>
+      <div className="relative hidden w-[62%] flex-col justify-between p-10 lg:flex bg-bg-muted" style={{ background: "linear-gradient(145deg, var(--bg-muted) 0%, var(--bg-surface) 50%, var(--bg-muted) 100%)" }}>
 
         {/* Ambient glow blobs */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -30,16 +30,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           />
           {/* Grid overlay */}
           <div
-            className="absolute inset-0 opacity-[0.03]"
+            className="absolute inset-0 opacity-[0.1]"
             style={{
-              backgroundImage: "linear-gradient(var(--primary) 1px, transparent 1px), linear-gradient(90deg, var(--primary) 1px, transparent 1px)",
-              backgroundSize: "40px 40px",
+              backgroundImage: "linear-gradient(var(--primary) 2px, transparent 1px), linear-gradient(90deg, var(--primary) 2px, transparent 1px)",
+              backgroundSize: "70px 70px",
             }}
           />
         </div>
 
         {/* En-tête gauche */}
-        <div className="relative z-10 flex items-center justify-between">
+        {/* <div className="relative z-10 flex items-center">
           <div className="flex items-center gap-3">
             <div
               className="flex size-10 items-center justify-center rounded-xl shadow-lg shadow-primary/30 animate-float"
@@ -54,12 +54,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </p>
             </div>
           </div>
-          <span
-            className="rounded-full px-4 py-1.5 text-xs font-medium backdrop-blur-sm border border-border bg-bg-muted text-text-muted"
-          >
-            Portail Sécurisé
-          </span>
-        </div>
+        </div> */}
 
         {/* Mosaïque d'Hexagones Emboîtés */}
         <div className="relative z-10 my-auto flex items-center justify-center py-4">
@@ -82,7 +77,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </div>
 
         {/* Pied de page statistiques gauche */}
-        <div
+        {/* <div
           className="relative z-10 rounded-2xl p-5 backdrop-blur-md border border-border bg-bg-surface"
         >
           <div className="grid grid-cols-3 divide-x divide-border">
@@ -97,7 +92,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* ================= PANNEAU DROIT ================= */}
@@ -105,21 +100,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         className="relative flex w-full flex-col justify-between px-8 py-10 lg:w-[38%] lg:px-14"
         style={{ backgroundColor: "var(--bg-surface)" }}
       >
-        {/* Subtle top accent line */}
-        <div
-          className="absolute top-0 left-0 right-0 h-[3px]"
-          style={{ background: "linear-gradient(90deg, var(--primary), var(--accent))" }}
-        />
 
         <div className="my-auto mx-auto w-full max-w-sm">
-
-          {/* Badge top */}
-          <div
-            className="mb-7 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold bg-primary-light text-primary border border-primary/20"
-          >
-            <Shield className="size-3.5" />
-            Authentification Requise
-          </div>
 
           {/* Titre */}
           <div className="mb-8">
@@ -138,27 +120,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           ) : null}
 
           <LoginForm />
-
-          {/* Cartouche sécurité */}
-          <div
-            className="mt-8 space-y-3 rounded-2xl p-4 bg-bg-muted border border-border"
-          >
-            {[
-              "Accès restreint au personnel habilité",
-              "Chiffrement TLS 1.3 de bout en bout",
-            ].map((label, i) => (
-              <div key={i} className="flex items-center gap-2.5">
-                <span
-                  className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary-light"
-                >
-                  <Check className="size-3 text-primary" />
-                </span>
-                <span className="text-xs font-medium text-text-muted">
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Footer droit */}
