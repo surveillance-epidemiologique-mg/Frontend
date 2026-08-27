@@ -18,12 +18,18 @@ export const CENTRE_TYPES: CentreType[] = [
   "CHU",
 ];
 
-export const INVITABLE_ROLE_NAMES = ["Medecin", "Laboratoire"] as const;
+export const INVITABLE_ROLE_NAMES = [
+  "Responsable national",
+  "Responsable régional",
+  "Agent de santé",
+  "Observateur",
+] as const;
 
 export interface Maladie {
   id: number;
   name: string;
   icd10Code: string | null;
+  iconName: string | null;
   alertThreshold: number;
   description: string | null;
 }

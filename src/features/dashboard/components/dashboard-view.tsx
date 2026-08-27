@@ -1,32 +1,75 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Activity,
   ArrowRight,
-  Bell,
+  BellRing,
   ClipboardList,
+  Database,
   FileDown,
   FlaskConical,
-  HeartPulse,
   Plus,
   Radio,
-  SearchCheck,
+  Settings2,
   ShieldCheck,
+  Skull,
   Stethoscope,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
+import { DiseaseFilter } from "@/features/dashboard/components/disease-filter";
+import { EvolutionChart } from "@/features/dashboard/components/evolution-chart";
+import { GeographicDistribution } from "@/features/dashboard/components/geographic-distribution";
+import { RecentAlertsList } from "@/features/dashboard/components/recent-alerts-list";
 import { RecentCasesTable } from "@/features/dashboard/components/recent-cases-table";
+import {
+  useDashboardPreferences,
+  type DashboardSection,
+} from "@/features/dashboard/hooks/use-dashboard-preferences";
+import type {
+  DashboardStats,
+  EvolutionPoint,
+  RecentAlert,
+  ZoneDistribution,
+} from "@/services/dashboard";
+import type { Maladie } from "@/features/settings/types";
 import type { SessionUser } from "@/lib/session";
 import { formatDate } from "@/lib/utils";
 import { ROLES } from "@/types/auth";
+import type { CaseRecord } from "@/types/case";
 
 interface DashboardViewProps {
   session: SessionUser;
   user: { name: string; email: string };
+  diseases: Maladie[];
+  stats: DashboardStats | null;
+  evolution: EvolutionPoint[];
+  distribution: ZoneDistribution[];
+  recentAlerts: RecentAlert[];
+  recentCases: CaseRecord[];
+  selectedDiseaseId?: string;
 }
 
-export function DashboardView({ session, user }: DashboardViewProps) {
+export function DashboardView({
+  session,
+  user,
+  diseases,
+  stats,
+  evolution,
+  distribution,
+  recentAlerts,
+  recentCases,
+  selectedDiseaseId,
+}: DashboardViewProps) {
+  const router = useRouter();
+  const [prefsOpen, setPrefsOpen] = useState(false);
+  const { prefs, toggle } = useDashboardPreferences();
   const isAdmin = session.role === ROLES.ADMINISTRATEUR;
   const today = formatDate(new Date(), {
     weekday: "long",
@@ -34,6 +77,18 @@ export function DashboardView({ session, user }: DashboardViewProps) {
     month: "long",
     year: "numeric",
   });
+
+  function handleDiseaseSelect(id: string | undefined) {
+    if (id) {
+      router.replace(`/dashboard?diseaseId=${encodeURIComponent(id)}`);
+    } else {
+      router.replace("/dashboard");
+    }
+  }
+
+  const selectedDisease =
+    diseases.find((disease) => String(disease.id) === selectedDiseaseId) ??
+    null;
 
   return (
     <div className="space-y-6">
@@ -53,42 +108,168 @@ export function DashboardView({ session, user }: DashboardViewProps) {
         </Button>
       </PageHeader>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="flex flex-col gap-3 rounded-2xl border border-border bg-bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-base font-semibold tracking-tight text-text-main">
+            Maladie sélectionnée
+          </h2>
+          <p className="text-sm text-text-muted">
+            {selectedDisease
+              ? `Statistiques et derniers cas pour « ${selectedDisease.name} ».`
+              : "Statistiques et derniers cas pour l'ensemble des maladies."}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPrefsOpen((v) => !v)}
+              aria-expanded={prefsOpen}
+            >
+              <Settings2 className="size-4" />
+              Personnaliser
+            </Button>
+            {prefsOpen ? (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setPrefsOpen(false)}
+                  aria-hidden="true"
+                />
+                <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-border bg-bg-surface p-2 shadow-lg">
+                  <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-text-muted">
+                    Sections du dashboard
+                  </p>
+                  {(
+                    [
+                      ["stats", "Cartes de statistiques"],
+                      ["evolution", "Évolution des cas"],
+                      ["distribution", "Répartition géographique"],
+                      ["alerts", "Alertes récentes"],
+                      ["recentCases", "Derniers cas déclarés"],
+                    ] as [DashboardSection, string][]
+                  ).map(([key, label]) => (
+                    <label
+                      key={key}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-text-main transition-colors hover:bg-bg-app"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={prefs[key]}
+                        onChange={() => toggle(key)}
+                        className="size-4 accent-[var(--primary)]"
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </div>
+          <DiseaseFilter
+            diseases={diseases}
+            selectedId={selectedDiseaseId}
+            onSelect={handleDiseaseSelect}
+          />
+        </div>
+      </section>
+
+      {prefs.stats ? (
+        <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
         <StatCard
-          title="Cas confirmés"
-          value="128"
+          title="Total de cas"
+          value={String(stats?.total ?? 0)}
+          icon={Database}
+          tone="primary"
+          hint="tous statuts confondus"
+        />
+        <StatCard
+          title="Nouveaux cas"
+          value={String(stats?.newCases ?? 0)}
+          icon={TrendingUp}
+          tone="info"
+          hint="7 derniers jours"
+        />
+        <StatCard
+          title="Cas actifs"
+          value={String(stats?.active ?? 0)}
           icon={Activity}
-          tone="danger"
-          trend={12.5}
-          hint="vs mois dernier"
-        />
-        <StatCard
-          title="Cas suspects"
-          value="54"
-          icon={SearchCheck}
           tone="warning"
-          trend={-4.2}
-          hint="vs mois dernier"
+          hint="en cours de suivi"
         />
         <StatCard
-          title="Guérisons"
-          value="342"
-          icon={HeartPulse}
-          tone="success"
-          trend={8.1}
-          hint="vs mois dernier"
+          title="Décès"
+          value={String(stats?.deceased ?? 0)}
+          icon={Skull}
+          tone="danger"
+          hint="issue clinique"
         />
         <StatCard
           title="Alertes actives"
-          value="7"
-          icon={Bell}
-          tone="info"
-          trend={0}
-          hint="aucun changement"
+          value={String(stats?.activeAlerts ?? 0)}
+          icon={BellRing}
+          tone="danger"
+          hint="alertes en cours"
         />
-      </section>
+        </section>
+      ) : null}
 
-      <RecentCasesTable />
+      {prefs.evolution || prefs.distribution ? (
+      <section className="grid gap-4 xl:grid-cols-3">
+        {prefs.evolution ? (
+        <Card className="xl:col-span-2">
+          <CardHeader>
+            <CardTitle>Évolution des cas dans le temps</CardTitle>
+            <CardDescription>
+              Nombre de cas déclarés par jour sur les 14 derniers jours.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <EvolutionChart data={evolution} />
+          </CardContent>
+        </Card>
+        ) : null}
+
+        {prefs.distribution ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Répartition géographique</CardTitle>
+            <CardDescription>
+              Répartition des cas par zone sanitaire.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <GeographicDistribution data={distribution} />
+          </CardContent>
+        </Card>
+        ) : null}
+      </section>
+      ) : null}
+
+      {prefs.alerts || prefs.recentCases ? (
+      <section className="grid gap-4 xl:grid-cols-3">
+        {prefs.alerts ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Alertes récentes</CardTitle>
+            <CardDescription>
+              Dernières alertes sanitaires enregistrées.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RecentAlertsList alerts={recentAlerts} />
+          </CardContent>
+        </Card>
+        ) : null}
+
+        {prefs.recentCases ? (
+        <div className="xl:col-span-2">
+          <RecentCasesTable cases={recentCases} />
+        </div>
+        ) : null}
+      </section>
+      ) : null}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {isAdmin ? (
@@ -108,13 +289,14 @@ export function DashboardView({ session, user }: DashboardViewProps) {
           </>
         ) : null}
 
-        {session.role === ROLES.MEDECIN ? (
+        {session.role === ROLES.AGENT_SANTE ||
+        session.role === ROLES.RESPONSABLE_REGIONAL ? (
           <>
             <QuickAction
               href="/cases"
               icon={Stethoscope}
-              title="Déclarer un cas"
-              description="Signalez un nouveau cas épidémiologique."
+              title="Déclarer un signalement"
+              description="Signalez un nouveau signalement épidémiologique."
             />
             <QuickAction
               href="/alerts"
@@ -125,21 +307,30 @@ export function DashboardView({ session, user }: DashboardViewProps) {
           </>
         ) : null}
 
-        {session.role === ROLES.LABORATOIRE ? (
+        {session.role === ROLES.RESPONSABLE_NATIONAL ? (
           <>
             <QuickAction
               href="/cases"
-              icon={FlaskConical}
-              title="Saisir un résultat"
-              description="Enregistrez les résultats d'analyses."
+              icon={ClipboardList}
+              title="Valider des signalements"
+              description="Examinez et validez les signalements en attente."
             />
             <QuickAction
               href="/alerts"
               icon={Radio}
-              title="Demandes reçues"
-              description="Suivez les demandes d'analyse en attente."
+              title="Gérer les alertes"
+              description="Suivez et prenez en charge les alertes sanitaires."
             />
           </>
+        ) : null}
+
+        {session.role === ROLES.OBSERVATEUR ? (
+          <QuickAction
+            href="/statistiques"
+            icon={FlaskConical}
+            title="Consulter les analyses"
+            description="Visualisez les statistiques épidémiologiques."
+          />
         ) : null}
       </section>
     </div>

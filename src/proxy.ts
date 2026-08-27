@@ -4,7 +4,13 @@ import { verifySession } from "@/lib/session";
 
 const COOKIE_NAME = process.env.JWT_COOKIE_NAME ?? "access_token";
 
-const PUBLIC_PATHS = ["/", "/login", "/activate"];
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/activate",
+  "/forgot-password",
+  "/reset-password",
+];
 
 // Extensions de fichiers statiques servies depuis public/ (jamais protégées)
 const STATIC_FILE_REGEX =

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useActionState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Check, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { loginAction, type ActionState } from "@/app/actions/auth";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -62,9 +62,16 @@ export function LoginForm() {
             </button>
           }
         />
-        <div className="flex justify-end">
+        <div className="flex items-center justify-between pt-1">
+          <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-text-muted transition-colors hover:text-text-main">
+            <input type="checkbox" name="rememberMe" className="peer sr-only" />
+            <span className="grid size-5 shrink-0 place-items-center rounded-md border border-border bg-bg-app text-transparent transition-colors duration-150 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary">
+              <Check className="size-3.5" strokeWidth={2.5} />
+            </span>
+            Se souvenir de moi
+          </label>
           <Link
-            href="#"
+            href="/forgot-password"
             className="text-xs font-medium text-primary transition-colors hover:text-primary-hover"
           >
             Mot de passe oublié ?

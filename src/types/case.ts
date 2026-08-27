@@ -11,4 +11,5 @@ export interface CaseRecord {
   zone: string;
   status: CaseStatus;
   reportedAt: string;
+  maladie?: string;
 }

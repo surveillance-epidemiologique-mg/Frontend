@@ -4,11 +4,13 @@ import { useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  LogOut,
   PanelLeftClose,
   PanelLeftOpen,
   ShieldCheck,
   X,
 } from "lucide-react";
+import { logoutAction } from "@/app/actions/auth";
 import { MAIN_NAV } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 
@@ -185,6 +187,21 @@ export function Sidebar({ isAdmin, mobileOpen, onCloseMobile }: SidebarProps) {
         </nav>
 
         <div className="shrink-0 border-t border-border p-3">
+          <form action={logoutAction} className="mb-3">
+            <button
+              type="submit"
+              aria-label="Déconnexion"
+              className={cn(
+                "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-muted transition-colors hover:bg-error/10 hover:text-error",
+                collapsed && "lg:justify-center lg:px-0",
+              )}
+            >
+              <LogOut className="size-5 shrink-0" />
+              <span className={cn("truncate", collapsed && "lg:hidden")}>
+                Déconnexion
+              </span>
+            </button>
+          </form>
           <div
             className={cn(
               "rounded-xl bg-bg-app p-3",

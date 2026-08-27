@@ -4,12 +4,38 @@ import type { AuthResponse, User } from "@/types/auth";
 export async function login(
   email: string,
   password: string,
+  rememberMe = false,
 ): Promise<AuthResponse> {
   return apiFetch<AuthResponse>(
     "/auth/login",
     {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, rememberMe }),
+    },
+    { withAuth: false },
+  );
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  await apiFetch<{ message: string }>(
+    "/auth/forgot-password",
+    {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    },
+    { withAuth: false },
+  );
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string,
+): Promise<AuthResponse> {
+  return apiFetch<AuthResponse>(
+    "/auth/reset-password",
+    {
+      method: "POST",
+      body: JSON.stringify({ token, newPassword }),
     },
     { withAuth: false },
   );

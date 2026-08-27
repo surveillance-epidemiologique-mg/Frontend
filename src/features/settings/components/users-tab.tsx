@@ -41,7 +41,13 @@ interface UsersTabProps {
   onToggle: (id: number, isActive: boolean) => Promise<void>;
 }
 
-const ROLE_FILTER_OPTIONS = ["Administrateur", "Medecin", "Laboratoire"];
+const ROLE_FILTER_OPTIONS = [
+  "Administrateur",
+  "Responsable national",
+  "Responsable régional",
+  "Agent de santé",
+  "Observateur",
+];
 
 export function UsersTab({
   users,
