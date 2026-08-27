@@ -8,6 +8,7 @@ export interface Zone {
   name: string;
   type: string;
   codePcode: string | null;
+  parentId?: number | null;
 }
 
 export interface CentreSante {
@@ -38,6 +39,7 @@ export interface User {
 export interface AuthResponse {
   token: string;
   user: User;
+  expiresIn?: number;
 }
 
 export interface InviteResponse {
@@ -48,8 +50,10 @@ export interface InviteResponse {
 
 export const ROLES = {
   ADMINISTRATEUR: "Administrateur",
-  MEDECIN: "Medecin",
-  LABORATOIRE: "Laboratoire",
+  RESPONSABLE_NATIONAL: "Responsable national",
+  RESPONSABLE_REGIONAL: "Responsable régional",
+  AGENT_SANTE: "Agent de santé",
+  OBSERVATEUR: "Observateur",
 } as const;
 
 export type RoleName = (typeof ROLES)[keyof typeof ROLES];

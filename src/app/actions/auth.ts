@@ -2,7 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { deleteSessionToken, setSessionToken } from "@/lib/session";
-import { activate, changePassword, login } from "@/services/auth";
+import {
+  activate,
+  changePassword,
+  forgotPassword,
+  login,
+  resetPassword,
+} from "@/services/auth";
 
 export interface ActionState {
   error?: string;
@@ -17,6 +23,7 @@ export async function loginAction(
 ): Promise<ActionState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const rememberMe = formData.get("rememberMe") === "on";
 
   if (!email || !password) {
     return {
@@ -27,9 +34,12 @@ export async function loginAction(
   let temporaryPassword = false;
 
   try {
-    const result = await login(email, password);
+    const result = await login(email, password, rememberMe);
 
-    await setSessionToken(result.token, COOKIE_MAX_AGE);
+    await setSessionToken(
+      result.token,
+      result.expiresIn ?? COOKIE_MAX_AGE,
+    );
     temporaryPassword = result.user.temporaryPassword;
   } catch (error) {
     return {
@@ -67,6 +77,65 @@ export async function activateAction(
         error instanceof Error
           ? error.message
           : "Impossible d'activer le compte.",
+    };
+  }
+
+  redirect("/dashboard");
+}
+
+export async function forgotPasswordAction(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!email) {
+    return { error: "Veuillez renseigner votre adresse e-mail." };
+  }
+
+  try {
+    await forgotPassword(email);
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Impossible d'envoyer l'e-mail de réinitialisation.",
+    };
+  }
+
+  return {
+    success:
+      "Si un compte est associé à cette adresse e-mail, un lien de réinitialisation vient d'être envoyé.",
+  };
+}
+
+export async function resetPasswordAction(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const token = String(formData.get("token") ?? "").trim();
+  const newPassword = String(formData.get("newPassword") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  if (!token) {
+    return { error: "Lien de réinitialisation invalide." };
+  }
+
+  if (newPassword !== confirmPassword) {
+    return { error: "Les deux mots de passe ne correspondent pas." };
+  }
+
+  try {
+    const result = await resetPassword(token, newPassword);
+
+    await setSessionToken(result.token, COOKIE_MAX_AGE);
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Impossible de réinitialiser le mot de passe.",
     };
   }
 

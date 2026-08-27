@@ -348,6 +348,15 @@
   animation: scale-in 160ms ease-out both;
 }
 
+@keyframes route-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* ==========================================================================
    Login — effets immersifs (glassmorphism, profondeur, ambiance médicale)
    ========================================================================== */
