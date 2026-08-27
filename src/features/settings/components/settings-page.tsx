@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Building2, Pill, RefreshCw, Users } from "lucide-react";
+import {
+  Building2,
+  Globe,
+  Pill,
+  RefreshCw,
+  ScrollText,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
@@ -9,6 +17,10 @@ import { Tabs } from "@/components/ui/tabs";
 import { CentresTab } from "@/features/settings/components/centres-tab";
 import { MaladiesTab } from "@/features/settings/components/maladies-tab";
 import { UsersTab } from "@/features/settings/components/users-tab";
+import { ZonesTab } from "@/features/settings/components/zones-tab";
+import { RolesTab } from "@/features/settings/components/roles-tab";
+import { JournalTab } from "@/features/settings/components/journal-tab";
+import { SessionsTab } from "@/features/settings/components/sessions-tab";
 import {
   createCentre,
   createMaladie,
@@ -34,12 +46,23 @@ import type {
   Zone,
 } from "@/features/settings/types";
 
-type TabValue = "users" | "maladies" | "centres";
+type TabValue =
+  | "users"
+  | "maladies"
+  | "centres"
+  | "zones"
+  | "roles"
+  | "journal"
+  | "sessions";
 
 const TABS: { value: TabValue; label: string; icon: typeof Users }[] = [
   { value: "users", label: "Utilisateurs", icon: Users },
-  { value: "maladies", label: "Dictionnaire des maladies", icon: Pill },
-  { value: "centres", label: "Centres de santé", icon: Building2 },
+  { value: "maladies", label: "Maladies", icon: Pill },
+  { value: "centres", label: "Établissements", icon: Building2 },
+  { value: "zones", label: "Zones", icon: Globe },
+  { value: "roles", label: "Rôles & permissions", icon: ShieldCheck },
+  { value: "journal", label: "Journal", icon: ScrollText },
+  { value: "sessions", label: "Sessions", icon: ShieldCheck },
 ];
 
 export function SettingsPage() {
@@ -201,6 +224,11 @@ export function SettingsPage() {
           onUpdate={handleUpdateCentre}
         />
       ) : null}
+
+      {activeTab === "zones" ? <ZonesTab /> : null}
+      {activeTab === "roles" ? <RolesTab /> : null}
+      {activeTab === "journal" ? <JournalTab /> : null}
+      {activeTab === "sessions" ? <SessionsTab /> : null}
     </div>
   );
 }

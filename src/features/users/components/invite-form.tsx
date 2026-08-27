@@ -10,7 +10,12 @@ import {
 } from "@/features/users/services/invite";
 import type { InviteResponse } from "@/types/auth";
 
-const INVITABLE_ROLES = ["Medecin", "Laboratoire"];
+const INVITABLE_ROLES = [
+  "Responsable national",
+  "Responsable régional",
+  "Agent de santé",
+  "Observateur",
+];
 
 interface FormState {
   name: string;

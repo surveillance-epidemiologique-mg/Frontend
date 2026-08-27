@@ -1,19 +1,14 @@
-import { Bell } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
+import { redirect } from "next/navigation";
+import { AlertsPage } from "@/features/alerts/components/alerts-page";
+import { verifySession } from "@/lib/session";
+import { ROLES } from "@/types/auth";
 
-export default function AlertsPage() {
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Alertes"
-        description="Surveillance des alertes sanitaires."
-      />
-      <EmptyState
-        icon={Bell}
-        title="Aucune alerte pour le moment"
-        description="Les alertes sanitaires et les notifications épidémiologiques seront affichées ici dès leur activation."
-      />
-    </div>
-  );
+export default async function AlertsPageRoute() {
+  const session = await verifySession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  return <AlertsPage isAdmin={session.role === ROLES.ADMINISTRATEUR} />;
 }

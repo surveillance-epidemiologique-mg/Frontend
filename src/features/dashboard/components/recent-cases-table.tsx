@@ -16,7 +16,6 @@ import {
   type Column,
 } from "@/components/ui/data-table";
 import { CaseStatusBadge } from "@/features/cases/components/case-status-badge";
-import { RECENT_CASES } from "@/features/dashboard/data/recent-cases";
 import { formatDate } from "@/lib/utils";
 import type { CaseRecord } from "@/types/case";
 
@@ -79,7 +78,11 @@ const columns: Column<CaseRecord>[] = [
   },
 ];
 
-export function RecentCasesTable() {
+interface RecentCasesTableProps {
+  cases: CaseRecord[];
+}
+
+export function RecentCasesTable({ cases }: RecentCasesTableProps) {
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
@@ -99,10 +102,15 @@ export function RecentCasesTable() {
       <CardContent>
         <DataTable
           columns={columns}
-          data={RECENT_CASES}
+          data={cases}
           getRowId={(row) => row.id}
           pageSize={5}
           ariaLabel="Derniers cas déclarés"
+          emptyState={
+            <p className="py-8 text-center text-sm text-text-muted">
+              Aucun cas déclaré{/* pour cette maladie */}
+            </p>
+          }
         />
       </CardContent>
     </Card>

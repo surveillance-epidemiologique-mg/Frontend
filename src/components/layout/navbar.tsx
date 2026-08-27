@@ -3,14 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
+  Bell,
   ChevronDown,
+  HelpCircle,
   LogOut,
   Menu,
+  Moon,
+  Presentation,
+  Sun,
   User,
 } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { GlobalSearch } from "@/features/search/components/global-search";
+import { useTheme } from "@/features/theme/theme-provider";
 import { cn } from "@/lib/utils";
 
 export interface NavbarUser {
@@ -22,11 +29,21 @@ export interface NavbarUser {
 interface NavbarProps {
   user: NavbarUser;
   onMenuClick: () => void;
+  presentation: boolean;
+  onTogglePresentation: () => void;
+  onOpenHelp: () => void;
 }
 
-export function Navbar({ user, onMenuClick }: NavbarProps) {
+export function Navbar({
+  user,
+  onMenuClick,
+  presentation,
+  onTogglePresentation,
+  onOpenHelp,
+}: NavbarProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -64,7 +81,54 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
         <Menu className="size-5" />
       </button>
 
-      <div className="ml-auto flex items-center gap-1.5">
+      <div className="hidden flex-1 sm:block">
+        <GlobalSearch />
+      </div>
+      <div className="flex-1 sm:hidden" />
+
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
+          className="grid size-9 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-app hover:text-text-main"
+        >
+          {theme === "dark" ? (
+            <Sun className="size-5" />
+          ) : (
+            <Moon className="size-5" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={onTogglePresentation}
+          aria-pressed={presentation}
+          aria-label="Mode présentation"
+          className={cn(
+            "hidden size-9 place-items-center rounded-lg transition-colors hover:bg-bg-app sm:grid",
+            presentation ? "bg-primary-light text-primary" : "text-text-muted hover:text-text-main",
+          )}
+        >
+          <Presentation className="size-5" />
+        </button>
+
+        <button
+          type="button"
+          onClick={onOpenHelp}
+          aria-label="Aide"
+          className="grid size-9 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-app hover:text-text-main"
+        >
+          <HelpCircle className="size-5" />
+        </button>
+
+        <Link
+          href="/notifications"
+          aria-label="Notifications"
+          className="grid size-9 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-app hover:text-text-main"
+        >
+          <Bell className="size-5" />
+        </Link>
 
         <div ref={menuRef} className="relative">
           <button

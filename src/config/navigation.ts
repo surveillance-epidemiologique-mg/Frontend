@@ -1,7 +1,13 @@
 import {
-  Activity,
+  BarChart3,
+  Bell,
+  BellRing,
+  Building2,
+  ClipboardList,
+  FileText,
   LayoutDashboard,
   Map,
+  Settings,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -15,13 +21,23 @@ export interface NavItem {
 
 export const MAIN_NAV: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Carte Épidémiologiques", href: "/zones", icon: Map },
-  { title: "Cas clinique", href: "/cases", icon: Activity },
-  { title: "Laboratoire", href: "/lab", icon: Activity },
+  { title: "Statistiques", href: "/statistiques", icon: BarChart3 },
+  { title: "Carte épidémiologique", href: "/zones", icon: Map },
+  { title: "Alertes", href: "/alerts", icon: Bell },
+  { title: "Signalements", href: "/cases", icon: ClipboardList },
+  { title: "Établissements", href: "/etablissements", icon: Building2 },
+  { title: "Rapports", href: "/reports", icon: FileText },
+  { title: "Notifications", href: "/notifications", icon: BellRing },
+  {
+    title: "Utilisateurs",
+    href: "/users",
+    icon: Users,
+    adminOnly: true,
+  },
   {
     title: "Paramètres",
     href: "/settings",
-    icon: Users,
+    icon: Settings,
     adminOnly: true,
   },
 ];

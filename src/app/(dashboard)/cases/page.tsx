@@ -1,19 +1,42 @@
-import { Activity } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
+import { redirect } from "next/navigation";
+import { SignalementsPage } from "@/features/cases/components/signalements-page";
+import { verifySession } from "@/lib/session";
+import { getMe } from "@/services/auth";
+import { ROLES } from "@/types/auth";
 
-export default function CasesPage() {
+export default async function CasesPage() {
+  const session = await verifySession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  const isAdmin = session.role === ROLES.ADMINISTRATEUR;
+
+  let lockedCentre: {
+    regionId: number;
+    districtId: number;
+    centreId: number;
+  } | null = null;
+
+  try {
+    const me = await getMe();
+    if (me.centre) {
+      lockedCentre = {
+        regionId: me.centre.zone?.parentId ?? 0,
+        districtId: me.centre.zoneId,
+        centreId: me.centre.id,
+      };
+    }
+  } catch {
+    // API indisponible : on laisse l'utilisateur choisir (le backend vérifie le périmètre)
+  }
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Cas Épidémiologiques"
-        description="Déclarez et suivez les cas épidémiologiques."
-      />
-      <EmptyState
-        icon={Activity}
-        title="Gestion des cas à venir"
-        description="Le module de déclaration et de suivi des cas épidémiologiques sera disponible prochainement."
-      />
-    </div>
+    <SignalementsPage
+      isAdmin={isAdmin}
+      currentUserId={session.id}
+      lockedCentre={lockedCentre}
+    />
   );
 }
