@@ -147,7 +147,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title="Paramètres"
         description="Administration de la plateforme : comptes, maladies et établissements sanitaires."

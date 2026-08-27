@@ -138,8 +138,9 @@ export function UsersTab({
         title: toggleTarget.nextActive
           ? "Utilisateur activé"
           : "Utilisateur désactivé",
-        description: `${toggleTarget.user.name} est maintenant ${toggleTarget.nextActive ? "actif" : "inactif"
-          }.`,
+        description: `${toggleTarget.user.name} est maintenant ${
+          toggleTarget.nextActive ? "actif" : "inactif"
+        }.`,
         variant: toggleTarget.nextActive ? "success" : "warning",
       });
       setToggleTarget(null);
@@ -162,11 +163,11 @@ export function UsersTab({
       key: "user",
       header: "Utilisateur",
       cell: (row) => (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 py-0.5">
           <Avatar name={row.name} size="sm" />
           <div className="min-w-0">
-            <p className="truncate font-medium text-text-main">{row.name}</p>
-            <p className="truncate text-xs text-text-muted">{row.email}</p>
+            <p className="truncate font-medium text-text-main leading-none">{row.name}</p>
+            <p className="truncate text-xs text-text-muted mt-1">{row.email}</p>
           </div>
         </div>
       ),
@@ -175,7 +176,7 @@ export function UsersTab({
       key: "phone",
       header: "Téléphone",
       cell: (row) => (
-        <span className="text-text-muted">{row.phoneNumber || "—"}</span>
+        <span className="text-sm text-text-muted">{row.phoneNumber || "—"}</span>
       ),
     },
     {
@@ -187,7 +188,7 @@ export function UsersTab({
       key: "centre",
       header: "Centre de santé",
       cell: (row) => (
-        <span className="text-text-muted">{row.centre?.name ?? "—"}</span>
+        <span className="text-sm text-text-muted">{row.centre?.name ?? "—"}</span>
       ),
     },
     {
@@ -208,7 +209,7 @@ export function UsersTab({
       key: "createdAt",
       header: "Date de création",
       cell: (row) => (
-        <span className="text-text-muted">{formatDate(row.createdAt)}</span>
+        <span className="text-sm text-text-muted">{formatDate(row.createdAt)}</span>
       ),
     },
     {
@@ -226,18 +227,18 @@ export function UsersTab({
             },
             row.isActive
               ? {
-                label: "Désactiver",
-                icon: UserX,
-                danger: true,
-                onClick: () =>
-                  setToggleTarget({ user: row, nextActive: false }),
-              }
+                  label: "Désactiver",
+                  icon: UserX,
+                  danger: true,
+                  onClick: () =>
+                    setToggleTarget({ user: row, nextActive: false }),
+                }
               : {
-                label: "Activer",
-                icon: UserCheck,
-                onClick: () =>
-                  setToggleTarget({ user: row, nextActive: true }),
-              },
+                  label: "Activer",
+                  icon: UserCheck,
+                  onClick: () =>
+                    setToggleTarget({ user: row, nextActive: true }),
+                },
           ]}
         />
       ),
@@ -245,24 +246,26 @@ export function UsersTab({
   ];
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6 pt-2">
+      {/* En-tête de section */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-border/60">
         <div>
           <h2 className="text-lg font-semibold tracking-tight text-text-main">
             Gestion des utilisateurs
           </h2>
-          <p className="text-sm text-text-muted">
+          <p className="text-xs text-text-muted mt-0.5">
             {users.length} compte{users.length > 1 ? "s" : ""} enregistré
             {users.length > 1 ? "s" : ""}.
           </p>
         </div>
-        <Button onClick={openCreate}>
+        <Button onClick={openCreate} className="shrink-0">
           <Plus className="size-4" />
           Créer un utilisateur
         </Button>
       </div>
 
-      <Card className="p-4">
+      {/* Barre de filtres et recherche */}
+      <Card className="p-3.5 border-border/60 bg-bg-app/30 backdrop-blur-xs">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="flex-1">
             <Input
@@ -273,7 +276,7 @@ export function UsersTab({
               aria-label="Rechercher un utilisateur"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center">
+          <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center">
             <Select
               aria-label="Filtrer par rôle"
               value={roleFilter}
@@ -300,7 +303,8 @@ export function UsersTab({
         </div>
       </Card>
 
-      <Card>
+      {/* Tableau des données */}
+      <Card className="border-border/60 overflow-hidden">
         <DataTable
           columns={columns}
           data={filteredUsers}
@@ -317,6 +321,7 @@ export function UsersTab({
         />
       </Card>
 
+      {/* Modales */}
       <UserFormModal
         key={editingUser ? `edit-${editingUser.id}` : `create-${formOpen}`}
         open={formOpen}
@@ -342,8 +347,9 @@ export function UsersTab({
         }
         description={
           toggleTarget
-            ? `Confirmer la ${toggleTarget.nextActive ? "réactivation" : "désactivation"
-            } du compte de ${toggleTarget.user.name} ?`
+            ? `Confirmer la ${
+                toggleTarget.nextActive ? "réactivation" : "désactivation"
+              } du compte de ${toggleTarget.user.name} ?`
             : ""
         }
         confirmLabel={toggleTarget?.nextActive ? "Activer" : "Désactiver"}
