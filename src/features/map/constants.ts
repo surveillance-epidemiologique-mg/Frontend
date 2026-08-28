@@ -5,7 +5,15 @@ export const NIVEAU_COLORS: Record<NiveauEpidemiologique, string> = {
   Faible: "#22c55e", // vert
   Modere: "#f59e0b", // orange
   Eleve: "#ef4444", // rouge
-  Critique: "#7f1d1d", // rouge foncé
+  Critique: "#7f1d1d", // rouge foncǸ
+};
+
+export const NIVEAU_RANGES: Record<NiveauEpidemiologique, string> = {
+  Aucun: "0",
+  Faible: "1 - 2",
+  Modere: "3 - 5",
+  Eleve: "6 - 10",
+  Critique: "10+",
 };
 
 export const NIVEAUX: NiveauEpidemiologique[] = [

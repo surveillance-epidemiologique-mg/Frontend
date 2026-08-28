@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import {
   getInviteOptions,
   inviteUser,
 } from "@/features/users/services/invite";
+import type { InviteOptions, InvitePayload } from "@/features/users/services/invite";
 import type { InviteResponse } from "@/types/auth";
 
 const INVITABLE_ROLES = [
@@ -18,26 +20,29 @@ const INVITABLE_ROLES = [
 ];
 
 interface FormState {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   roleId: string;
+  regionId: string;
+  districtId: string;
   centreId: string;
   phoneNumber: string;
 }
 
 const EMPTY_FORM: FormState = {
-  name: "",
+  firstName: "",
+  lastName: "",
   email: "",
   roleId: "",
+  regionId: "",
+  districtId: "",
   centreId: "",
   phoneNumber: "",
 };
 
 export function InviteForm() {
-  const [roles, setRoles] = useState<{ id: number; name: string }[]>([]);
-  const [centres, setCentres] = useState<
-    { id: number; name: string; zone?: { name: string } }[]
-  >([]);
+  const [options, setOptions] = useState<InviteOptions | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,18 +53,13 @@ export function InviteForm() {
     let cancelled = false;
 
     async function loadOptions() {
-      const options = await getInviteOptions();
-
+      const data = await getInviteOptions();
       if (!cancelled) {
-        setRoles(
-          options.roles.filter((role) => INVITABLE_ROLES.includes(role.name)),
-        );
-        setCentres(options.centres);
-        if (options.roles.length === 0) {
-          setError("Impossible de charger les rôles et centres de santé.");
+        setOptions(data);
+        if (data.roles.length === 0) {
+          setError("Impossible de charger les rôles et établissements.");
         }
       }
-
       if (!cancelled) {
         setLoading(false);
       }
@@ -72,6 +72,14 @@ export function InviteForm() {
     };
   }, []);
 
+  const selectedRegion = options?.regions.find(
+    (r) => String(r.id) === form.regionId,
+  );
+  const districts = selectedRegion?.districts ?? [];
+  const centresInDistrict = (options?.centres ?? []).filter(
+    (c) => String(c.zoneId) === form.districtId,
+  );
+
   function updateField<K extends keyof FormState>(key: K, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
@@ -82,14 +90,19 @@ export function InviteForm() {
     setSubmitting(true);
 
     try {
-      const response = await inviteUser({
-        name: form.name.trim(),
+      const firstName = form.firstName.trim();
+      const lastName = form.lastName.trim();
+      const payload: InvitePayload = {
+        name: [firstName, lastName].filter(Boolean).join(" "),
+        firstName,
+        lastName,
         email: form.email.trim(),
         roleId: Number(form.roleId),
+        regionId: form.regionId ? Number(form.regionId) : undefined,
         centreId: form.centreId ? Number(form.centreId) : undefined,
         phoneNumber: form.phoneNumber.trim() || undefined,
-      });
-
+      };
+      const response = await inviteUser(payload);
       setResult(response);
       setForm(EMPTY_FORM);
     } catch (e) {
@@ -105,26 +118,29 @@ export function InviteForm() {
     return (
       <div className="space-y-4">
         <Alert variant="success">
-          Compte créé pour <strong>{result.user.name}</strong>.
+          <div className="space-y-1">
+            <p className="font-medium">
+              Utilisateur créé avec succès — {result.user.name}.
+            </p>
+            <p className="text-sm">
+              Le compte est prêt pour sa première connexion. Transmettez à
+              l&apos;utilisateur le lien d&apos;activation ci-dessous : il y
+              définira lui-même son mot de passe.
+            </p>
+          </div>
         </Alert>
 
         <div className="space-y-3 rounded-lg border border-border bg-bg-app p-4 text-sm">
           <div>
-            <div className="font-medium text-text-muted">
-              Mot de passe temporaire
-            </div>
-            <div className="font-mono text-lg font-semibold text-text-main">
-              {result.temporaryPassword}
-            </div>
-          </div>
-          <div>
-            <div className="font-medium text-text-muted">
-              Lien d&apos;activation
-            </div>
+            <div className="font-medium text-text-muted">Lien d&apos;activation</div>
             <div className="break-all font-mono text-xs text-text-main">
               {result.activationLink}
             </div>
           </div>
+          <p className="text-xs text-text-muted">
+            Le mot de passe n&apos;est jamais affiché : il est défini par
+            l&apos;utilisateur lors de l&apos;activation de son compte.
+          </p>
         </div>
 
         <Button
@@ -143,14 +159,25 @@ export function InviteForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {error ? <Alert variant="error">{error}</Alert> : null}
 
-      <Input
-        label="Nom complet"
-        name="name"
-        value={form.name}
-        onChange={(e) => updateField("name", e.target.value)}
-        required
-        placeholder="Dr. RAKOTO Jean"
-      />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Input
+          label="Prénom"
+          name="firstName"
+          value={form.firstName}
+          onChange={(e) => updateField("firstName", e.target.value)}
+          required
+          placeholder="Jean"
+        />
+        <Input
+          label="Nom"
+          name="lastName"
+          value={form.lastName}
+          onChange={(e) => updateField("lastName", e.target.value)}
+          required
+          placeholder="Rakoto"
+        />
+      </div>
+
       <Input
         label="Adresse e-mail"
         name="email"
@@ -180,38 +207,56 @@ export function InviteForm() {
           <option value="">
             {loading ? "Chargement..." : "Sélectionner un rôle"}
           </option>
-          {roles.map((role) => (
-            <option key={role.id} value={role.id}>
-              {role.name}
-            </option>
-          ))}
+          {(options?.roles ?? [])
+            .filter((role) => INVITABLE_ROLES.includes(role.name))
+            .map((role) => (
+              <option key={role.id} value={role.id}>
+                {role.name}
+              </option>
+            ))}
         </select>
       </div>
 
-      <div className="space-y-1.5">
-        <label
-          htmlFor="centreId"
-          className="block text-sm font-medium text-text-main"
-        >
-          Centre de santé{" "}
-          <span className="font-normal text-text-muted">(optionnel)</span>
-        </label>
-        <select
-          id="centreId"
-          name="centreId"
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Select
+          label="Région"
+          value={form.regionId}
+          onChange={(e) => {
+            updateField("regionId", e.target.value);
+            updateField("districtId", "");
+            updateField("centreId", "");
+          }}
+          placeholder="Aucune"
+          options={(options?.regions ?? []).map((r) => ({
+            value: String(r.id),
+            label: r.name,
+          }))}
+        />
+        <Select
+          label="District"
+          value={form.districtId}
+          onChange={(e) => {
+            updateField("districtId", e.target.value);
+            updateField("centreId", "");
+          }}
+          placeholder="Aucun"
+          disabled={!form.regionId}
+          options={districts.map((d) => ({
+            value: String(d.id),
+            label: d.name,
+          }))}
+        />
+        <Select
+          label="Établissement"
           value={form.centreId}
           onChange={(e) => updateField("centreId", e.target.value)}
-          disabled={loading}
-          className="w-full rounded-lg border border-border bg-bg-surface px-3.5 py-2.5 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
-        >
-          <option value="">Aucun centre</option>
-          {centres.map((centre) => (
-            <option key={centre.id} value={centre.id}>
-              {centre.name}
-              {centre.zone?.name ? ` — ${centre.zone.name}` : ""}
-            </option>
-          ))}
-        </select>
+          placeholder="Aucun"
+          disabled={!form.districtId}
+          options={centresInDistrict.map((c) => ({
+            value: String(c.id),
+            label: c.name,
+          }))}
+        />
       </div>
 
       <Input
@@ -224,7 +269,7 @@ export function InviteForm() {
       />
 
       <Button type="submit" className="w-full" disabled={submitting || loading}>
-        {submitting ? "Envoi..." : "Envoyer l'invitation"}
+        {submitting ? "Envoi..." : "Créer le compte"}
       </Button>
     </form>
   );

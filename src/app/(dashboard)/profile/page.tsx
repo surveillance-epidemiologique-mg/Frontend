@@ -3,14 +3,17 @@ import {
   BadgeCheck,
   Building2,
   CalendarDays,
+  KeyRound,
   Mail,
+  MapPin,
   Phone,
   User,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { ChangePasswordForm } from "@/components/auth/change-password-form";
 import { verifySession } from "@/lib/session";
 import { getMe } from "@/services/auth";
 import { formatDate } from "@/lib/utils";
@@ -32,13 +35,24 @@ export default async function ProfilePage() {
   const name = me?.name ?? session.email.split("@")[0] ?? "Utilisateur";
   const email = me?.email ?? session.email;
   const role = me?.role?.name ?? session.role;
+  const firstName = me?.firstName ?? "";
+  const lastName = me?.lastName ?? "";
 
   const infos = [
     { icon: User, label: "Nom complet", value: name },
+    { icon: User, label: "Prénom", value: firstName || "—" },
+    { icon: User, label: "Nom de famille", value: lastName || "—" },
     { icon: Mail, label: "Adresse e-mail", value: email },
     { icon: Phone, label: "Téléphone", value: me?.phoneNumber ?? "—" },
     { icon: BadgeCheck, label: "Rôle", value: role },
-    { icon: Building2, label: "Centre de santé", value: me?.centre?.name ?? "—" },
+    { icon: MapPin, label: "Région", value: me?.region?.name ?? "—" },
+    { icon: MapPin, label: "District", value: me?.centre?.zone?.name ?? "—" },
+    { icon: Building2, label: "Établissement", value: me?.centre?.name ?? "—" },
+    {
+      icon: BadgeCheck,
+      label: "Statut du compte",
+      value: me?.isActive ? "Actif" : "Inactif",
+    },
     {
       icon: CalendarDays,
       label: "Membre depuis le",
@@ -50,7 +64,7 @@ export default async function ProfilePage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <PageHeader
         title="Mes Informations"
-        description="Vos informations personnelles et de compte."
+        description="Vos informations personnelles, votre périmètre et la sécurité de votre compte."
       />
 
       <Card>
@@ -61,19 +75,19 @@ export default async function ProfilePage() {
               {name}
             </h2>
             <p className="truncate text-sm text-text-muted">{email}</p>
-            <Badge variant="secondary" className="mt-2">
-              {role}
-            </Badge>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Badge variant="secondary">{role}</Badge>
+              <Badge variant={me?.isActive === false ? "danger" : "success"}>
+                {me?.isActive === false ? "Inactif" : "Actif"}
+              </Badge>
+            </div>
           </div>
         </div>
 
         <CardContent className="pt-0">
           <dl className="divide-y divide-border">
             {infos.map((info) => (
-              <div
-                key={info.label}
-                className="flex items-start gap-4 py-4"
-              >
+              <div key={info.label} className="flex items-start gap-4 py-3.5">
                 <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-bg-app text-text-muted">
                   <info.icon className="size-4" />
                 </span>
@@ -88,6 +102,22 @@ export default async function ProfilePage() {
               </div>
             ))}
           </dl>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <KeyRound className="size-4 text-primary" />
+            Changer mon mot de passe
+          </CardTitle>
+          <CardDescription>
+            Utilisez un mot de passe d&apos;au moins 8 caractères, difficile à
+            deviner et propre à votre compte.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChangePasswordForm />
         </CardContent>
       </Card>
     </div>

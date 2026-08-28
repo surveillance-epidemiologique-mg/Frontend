@@ -24,16 +24,20 @@ export interface CentreSante {
 export interface User {
   id: number;
   name: string;
+  firstName: string | null;
+  lastName: string | null;
   email: string;
   phoneNumber: string | null;
   temporaryPassword: boolean;
   isActive: boolean;
   roleId: number;
   centreId: number | null;
+  regionId: number | null;
   createdAt: string;
   updatedAt: string;
   role: Role;
   centre: CentreSante | null;
+  region?: Zone | null;
 }
 
 export interface AuthResponse {

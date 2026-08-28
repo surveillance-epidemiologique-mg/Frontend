@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 import {
   Edit,
+  Mail,
   Plus,
   Search,
+  Trash2,
   UserCheck,
   UserX,
   Users,
@@ -22,6 +24,7 @@ import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
 import {
   UserFormModal,
+  type RegionOption,
 } from "@/features/settings/components/user-form-modal";
 import type {
   CentreSante,
@@ -35,10 +38,17 @@ interface UsersTabProps {
   users: User[];
   roles: Role[];
   centres: CentreSante[];
+  regions: RegionOption[];
   loading: boolean;
-  onAdd: (values: UserFormValues) => Promise<void>;
+  onAdd: (values: UserFormValues) => Promise<{
+    user: User;
+    temporaryPassword: string;
+    activationLink: string;
+  }>;
   onUpdate: (id: number, values: UserFormValues) => Promise<void>;
   onToggle: (id: number, isActive: boolean) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
+  onResendInvitation: (id: number) => Promise<void>;
 }
 
 const ROLE_FILTER_OPTIONS = [
@@ -53,10 +63,13 @@ export function UsersTab({
   users,
   roles,
   centres,
+  regions,
   loading,
   onAdd,
   onUpdate,
   onToggle,
+  onDelete,
+  onResendInvitation,
 }: UsersTabProps) {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
@@ -68,6 +81,7 @@ export function UsersTab({
     user: User;
     nextActive: boolean;
   } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
 
   const filteredUsers = useMemo(() => {
@@ -109,10 +123,13 @@ export function UsersTab({
           variant: "success",
         });
       } else {
-        await onAdd(values);
+        const created = await onAdd(values);
         toast({
-          title: "Utilisateur créé",
-          description: `Le compte de ${values.name} a été créé.`,
+          title: "Utilisateur créé avec succès",
+          description:
+            `Le compte de ${created.user.name} est prêt pour sa première connexion. ` +
+            `Transmettez-lui le lien d'activation : ${created.activationLink}. ` +
+            "Le mot de passe est défini par l'utilisateur lors de l'activation.",
           variant: "success",
         });
       }
@@ -163,6 +180,57 @@ export function UsersTab({
     }
   }
 
+  async function confirmDelete() {
+    if (!deleteTarget) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      await onDelete(deleteTarget.id);
+      toast({
+        title: "Utilisateur supprimé",
+        description: `Le compte de ${deleteTarget.name} a été supprimé.`,
+        variant: "success",
+      });
+      setDeleteTarget(null);
+    } catch (error) {
+      toast({
+        title: "Suppression impossible",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Impossible de supprimer cet utilisateur.",
+        variant: "error",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleResendInvitation(user: User) {
+    setBusy(true);
+    try {
+      await onResendInvitation(user.id);
+      toast({
+        title: "Invitation renvoyée",
+        description: `Un nouveau lien d'activation a été envoyé à ${user.email}.`,
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Envoi impossible",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Impossible de renvoyer l'invitation.",
+        variant: "error",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const columns: Column<User>[] = [
     {
       key: "user",
@@ -200,13 +268,17 @@ export function UsersTab({
       key: "status",
       header: "Statut",
       cell: (row) =>
-        row.isActive ? (
-          <Badge variant="success" dot>
-            Actif
+        !row.isActive ? (
+          <Badge variant="danger" dot>
+            Désactivé
+          </Badge>
+        ) : row.temporaryPassword ? (
+          <Badge variant="warning" dot>
+            Invitation en attente
           </Badge>
         ) : (
-          <Badge variant="danger" dot>
-            Inactif
+          <Badge variant="success" dot>
+            Actif
           </Badge>
         ),
     },
@@ -244,6 +316,21 @@ export function UsersTab({
                 onClick: () =>
                   setToggleTarget({ user: row, nextActive: true }),
               },
+            {
+              label: "Supprimer",
+              icon: Trash2,
+              danger: true,
+              onClick: () => setDeleteTarget(row),
+            },
+            ...(row.temporaryPassword && row.isActive
+              ? [
+                {
+                  label: "Renvoyer l'invitation",
+                  icon: Mail,
+                  onClick: () => handleResendInvitation(row),
+                },
+              ]
+              : []),
           ]}
         />
       ),
@@ -334,6 +421,7 @@ export function UsersTab({
         onSubmit={handleSubmit}
         roles={roles}
         centres={centres}
+        regions={regions}
       />
 
       <ConfirmDialog
@@ -354,6 +442,20 @@ export function UsersTab({
         }
         confirmLabel={toggleTarget?.nextActive ? "Activer" : "Désactiver"}
         tone={toggleTarget?.nextActive ? "primary" : "danger"}
+      />
+    <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        loading={busy}
+        title="Supprimer l'utilisateur"
+        description={
+          deleteTarget
+            ? `Supprimer définitivement le compte de ${deleteTarget.name} (${deleteTarget.email}) ? Cette action est irréversible.`
+            : ""
+        }
+        confirmLabel="Supprimer"
+        tone="danger"
       />
     </div>
   );

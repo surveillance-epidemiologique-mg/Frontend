@@ -13,6 +13,12 @@ import {
   type UserFormValues,
 } from "@/features/settings/types";
 
+export interface RegionOption {
+  id: number;
+  name: string;
+  districts: { id: number; name: string }[];
+}
+
 interface UserFormModalProps {
   open: boolean;
   onClose: () => void;
@@ -20,13 +26,17 @@ interface UserFormModalProps {
   user?: User | null;
   roles: Role[];
   centres: CentreSante[];
+  regions: RegionOption[];
 }
 
 const EMPTY: UserFormValues = {
   name: "",
+  firstName: "",
+  lastName: "",
   email: "",
   phoneNumber: "",
   roleId: 0,
+  regionId: null,
   centreId: null,
   isActive: true,
 };
@@ -38,18 +48,28 @@ export function UserFormModal({
   user,
   roles,
   centres,
+  regions,
 }: UserFormModalProps) {
   const [values, setValues] = useState<UserFormValues>(() =>
     user
       ? {
           name: user.name,
+          firstName: user.firstName ?? "",
+          lastName: user.lastName ?? "",
           email: user.email,
           phoneNumber: user.phoneNumber ?? "",
           roleId: user.roleId,
+          regionId: user.region?.id ?? null,
           centreId: user.centreId,
           isActive: user.isActive,
         }
       : EMPTY,
+  );
+  const [districtId, setDistrictId] = useState<string>(
+    () =>
+      user?.centre
+        ? String(centres.find((c) => c.id === user.centreId)?.zoneId ?? "")
+        : "",
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const isEdit = Boolean(user);
@@ -63,6 +83,12 @@ export function UserFormModal({
     return options;
   }, [roles, user]);
 
+  const selectedRegion = regions.find((r) => r.id === values.regionId);
+  const districts = selectedRegion?.districts ?? [];
+  const centresInDistrict = centres.filter(
+    (c) => String(c.zoneId) === districtId,
+  );
+
   function updateField<K extends keyof UserFormValues>(
     key: K,
     value: UserFormValues[K],
@@ -73,9 +99,8 @@ export function UserFormModal({
 
   function validate(): boolean {
     const next: Record<string, string> = {};
-
-    if (!values.name.trim()) {
-      next.name = "Le nom est requis.";
+    if (!values.firstName.trim() && !values.name.trim()) {
+      next.firstName = "Le prénom ou le nom est requis.";
     }
     if (!values.email.trim()) {
       next.email = "L'adresse e-mail est requise.";
@@ -85,7 +110,6 @@ export function UserFormModal({
     if (!values.roleId) {
       next.roleId = "Le rôle est requis.";
     }
-
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -97,9 +121,13 @@ export function UserFormModal({
       return;
     }
 
+    const firstName = values.firstName.trim();
+    const lastName = values.lastName.trim();
     onSubmit({
       ...values,
-      name: values.name.trim(),
+      name: [firstName, lastName].filter(Boolean).join(" ") || values.name.trim(),
+      firstName,
+      lastName,
       email: values.email.trim(),
       phoneNumber: values.phoneNumber.trim(),
     });
@@ -113,8 +141,9 @@ export function UserFormModal({
       description={
         isEdit
           ? "Mettez à jour les informations du compte."
-          : "Renseignez les informations du nouveau compte."
+          : "Le compte sera prêt pour sa première connexion (l'utilisateur définira son mot de passe)."
       }
+      size="lg"
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
@@ -132,31 +161,42 @@ export function UserFormModal({
         className="space-y-4"
         noValidate
       >
-        <Input
-          label="Nom complet"
-          value={values.name}
-          onChange={(e) => updateField("name", e.target.value)}
-          placeholder="Dr. RAKOTO Jean"
-          error={errors.name}
-          autoFocus
-        />
-        <Input
-          label="Adresse e-mail"
-          type="email"
-          value={values.email}
-          onChange={(e) => updateField("email", e.target.value)}
-          placeholder="prenom.nom@surveillance.mg"
-          error={errors.email}
-        />
-        <Input
-          label="Numéro de téléphone"
-          type="tel"
-          value={values.phoneNumber}
-          onChange={(e) => updateField("phoneNumber", e.target.value)}
-          placeholder="+261 34 00 000 00"
-        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            label="Prénom"
+            value={values.firstName}
+            onChange={(e) => updateField("firstName", e.target.value)}
+            placeholder="Jean"
+            error={errors.firstName}
+            autoFocus
+          />
+          <Input
+            label="Nom"
+            value={values.lastName}
+            onChange={(e) => updateField("lastName", e.target.value)}
+            placeholder="Rakoto"
+          />
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            label="Adresse e-mail"
+            type="email"
+            value={values.email}
+            onChange={(e) => updateField("email", e.target.value)}
+            placeholder="prenom.nom@surveillance.mg"
+            error={errors.email}
+          />
+          <Input
+            label="Numéro de téléphone"
+            type="tel"
+            value={values.phoneNumber}
+            onChange={(e) => updateField("phoneNumber", e.target.value)}
+            placeholder="+261 34 00 000 00"
+          />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
           <Select
             label="Rôle"
             value={values.roleId || ""}
@@ -171,19 +211,51 @@ export function UserFormModal({
             error={errors.roleId}
           />
           <Select
-            label="Centre de santé"
+            label="Région"
+            value={values.regionId ? String(values.regionId) : ""}
+            onChange={(e) => {
+              updateField("regionId", e.target.value ? Number(e.target.value) : null);
+              setDistrictId("");
+              updateField("centreId", null);
+            }}
+            placeholder="Aucune"
+            options={regions.map((r) => ({ value: String(r.id), label: r.name }))}
+          />
+          <Select
+            label="District"
+            value={districtId}
+            onChange={(e) => {
+              setDistrictId(e.target.value);
+              updateField("centreId", null);
+            }}
+            placeholder="Aucun"
+            disabled={!values.regionId}
+            options={districts.map((d) => ({ value: String(d.id), label: d.name }))}
+          />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Select
+            label="Établissement"
             value={values.centreId ? String(values.centreId) : ""}
             onChange={(e) =>
-              updateField(
-                "centreId",
-                e.target.value ? Number(e.target.value) : null,
-              )
+              updateField("centreId", e.target.value ? Number(e.target.value) : null)
             }
-            placeholder="Aucun centre"
-            options={centres.map((centre) => ({
+            placeholder="Aucun"
+            disabled={!districtId}
+            options={centresInDistrict.map((centre) => ({
               value: String(centre.id),
               label: centre.name,
             }))}
+          />
+          <Select
+            label="Statut du compte"
+            value={values.isActive ? "active" : "inactive"}
+            onChange={(e) => updateField("isActive", e.target.value === "active")}
+            options={[
+              { value: "active", label: "Actif" },
+              { value: "inactive", label: "Inactif" },
+            ]}
           />
         </div>
       </form>

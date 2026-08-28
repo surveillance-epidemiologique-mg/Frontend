@@ -9,23 +9,29 @@ import { PageHeader } from "@/components/ui/page-header";
 import { UsersTab } from "@/features/settings/components/users-tab";
 import {
   createUser,
+  deleteUser,
   fetchCentres,
   fetchRoles,
   fetchUsers,
+  fetchZones,
+  resendInvitation,
   setUserStatus,
   updateUser,
 } from "@/features/settings/services/settings";
+import { buildRegions } from "@/features/settings/utils";
 import type {
   CentreSante,
   Role,
   User,
   UserFormValues,
+  Zone,
 } from "@/features/settings/types";
 
 export function UsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [centres, setCentres] = useState<CentreSante[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -35,10 +41,11 @@ export function UsersManagement() {
 
     (async () => {
       try {
-        const [usersData, rolesData, centresData] = await Promise.all([
+        const [usersData, rolesData, centresData, zonesData] = await Promise.all([
           fetchUsers(),
           fetchRoles(),
           fetchCentres(),
+          fetchZones(),
         ]);
 
         if (!active) {
@@ -48,6 +55,7 @@ export function UsersManagement() {
         setUsers(usersData);
         setRoles(rolesData);
         setCentres(centresData);
+        setZones(zonesData);
         setError(null);
       } catch (e) {
         if (active) {
@@ -72,6 +80,7 @@ export function UsersManagement() {
   async function handleAddUser(values: UserFormValues) {
     const created = await createUser(values);
     setUsers((prev) => [created.user, ...prev]);
+    return created;
   }
 
   async function handleUpdateUser(id: number, values: UserFormValues) {
@@ -82,6 +91,15 @@ export function UsersManagement() {
   async function handleToggleUser(id: number, isActive: boolean) {
     const updated = await setUserStatus(id, isActive);
     setUsers((prev) => prev.map((user) => (user.id === id ? updated : user)));
+  }
+
+  async function handleDeleteUser(id: number) {
+    await deleteUser(id);
+    setUsers((prev) => prev.filter((user) => user.id !== id));
+  }
+
+  async function handleResendInvitation(id: number) {
+    await resendInvitation(id);
   }
 
   return (
@@ -117,10 +135,13 @@ export function UsersManagement() {
         users={users}
         roles={roles}
         centres={centres}
+        regions={buildRegions(zones)}
         loading={loading}
         onAdd={handleAddUser}
         onUpdate={handleUpdateUser}
         onToggle={handleToggleUser}
+        onDelete={handleDeleteUser}
+        onResendInvitation={handleResendInvitation}
       />
     </div>
   );

@@ -22,15 +22,40 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     initialState,
   );
 
+  if (state.success) {
+    return (
+      <div className="space-y-4">
+        <Alert variant="success">{state.success}</Alert>
+        <Button asChild className="w-full">
+          <Link href="/login">Se connecter</Link>
+        </Button>
+      </div>
+    );
+  }
+
   if (!token) {
     return (
       <div className="space-y-4">
         <Alert variant="error">
-          Ce lien de réinitialisation est invalide ou incomplet. Contactez votre
-          administrateur.
+          Ce lien de réinitialisation est invalide ou incomplet.
         </Alert>
         <Button asChild variant="secondary" className="w-full">
           <Link href="/login">Retour à la connexion</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const expired = Boolean(state.error && state.error.includes("expiré"));
+
+  if (expired) {
+    return (
+      <div className="space-y-4">
+        <Alert variant="error">
+          Ce lien de réinitialisation a expiré.
+        </Alert>
+        <Button asChild className="w-full">
+          <Link href="/forgot-password">Demander un nouveau lien</Link>
         </Button>
       </div>
     );

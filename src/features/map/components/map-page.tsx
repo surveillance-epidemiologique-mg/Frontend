@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -16,8 +17,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { Select } from "@/components/ui/select";
 import { useTheme } from "@/features/theme/theme-provider";
-import { MapView } from "@/features/map/components/map-view";
-import { NIVEAU_COLORS, NIVEAUX } from "@/features/map/constants";
+import { NIVEAU_COLORS, NIVEAU_RANGES, NIVEAUX } from "@/features/map/constants";
 import {
   fetchMapOptions,
   fetchMapStats,
@@ -29,6 +29,19 @@ import {
 import type { SignalementOptions } from "@/features/cases/types";
 
 type PeriodKey = "7d" | "30d" | "90d" | "all";
+
+const MapViewDynamic = dynamic(
+  () =>
+    import("@/features/map/components/map-view").then((m) => m.MapView),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full w-full items-center justify-center">
+        <p className="text-sm text-text-muted">Chargement de la carte…</p>
+      </div>
+    ),
+  },
+);
 
 function periodRange(period: PeriodKey): { from?: string; to?: string } {
   const to = new Date();
@@ -280,7 +293,7 @@ export function MapPage() {
                   <p className="text-sm text-text-muted">Chargement des données…</p>
                 </div>
               ) : null}
-              <MapView
+              <MapViewDynamic
                 regionsData={filteredRegions}
                 establishments={establishments}
                 selectedRegionId={selectedRegionId}
@@ -296,6 +309,7 @@ export function MapPage() {
           <Card>
             <CardHeader>
               <CardTitle>Légende</CardTitle>
+              <CardDescription>Nombre de cas par région</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               {NIVEAUX.map((niveau) => (
@@ -304,7 +318,10 @@ export function MapPage() {
                     className="size-4 rounded-full border border-black/10"
                     style={{ backgroundColor: NIVEAU_COLORS[niveau] }}
                   />
-                  <span className="text-text-main">{niveauLabel[niveau]}</span>
+                  <span className="w-12 tabular-nums text-text-main">
+                    {NIVEAU_RANGES[niveau]}
+                  </span>
+                  <span className="text-text-muted">{niveauLabel[niveau]}</span>
                 </div>
               ))}
               <div className="pt-2 text-xs text-text-muted">
