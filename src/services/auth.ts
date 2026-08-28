@@ -16,8 +16,15 @@ export async function login(
   );
 }
 
-export async function forgotPassword(email: string): Promise<void> {
-  await apiFetch<{ message: string }>(
+export interface ForgotPasswordResult {
+  success: boolean;
+  message?: string;
+}
+
+export async function forgotPassword(
+  email: string,
+): Promise<ForgotPasswordResult> {
+  return apiFetch<ForgotPasswordResult>(
     "/auth/forgot-password",
     {
       method: "POST",

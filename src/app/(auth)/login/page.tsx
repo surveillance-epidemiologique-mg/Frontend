@@ -1,4 +1,4 @@
-import { Activity, Check, HelpCircle, Lock, Shield } from "lucide-react";
+import { Lock } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { LoginForm } from "@/components/auth/login-form";
 import Hexagon from "@/components/auth/Hexagon";

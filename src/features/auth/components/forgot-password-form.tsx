@@ -33,6 +33,30 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
     setInfo(null);
   }
 
+  async function requestCode(): Promise<boolean> {
+    setLoading(true);
+    try {
+      const result = await forgotPassword(email.trim());
+
+      if (!result.success) {
+        setError(
+          result.message ??
+            "Aucun compte n'est associé à cette adresse e-mail.",
+        );
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Impossible d'envoyer le code.",
+      );
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleSendCode(event: React.FormEvent) {
     event.preventDefault();
     clearMessages();
@@ -42,19 +66,9 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
       return;
     }
 
-    setLoading(true);
-    try {
-      await forgotPassword(email.trim());
-      setInfo(
-        "Si un compte existe pour cette adresse, un code à 6 chiffres vous a été envoyé.",
-      );
+    if (await requestCode()) {
+      setInfo("Un code à 6 chiffres vous a été envoyé.");
       setStep("code");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Impossible d'envoyer le code.",
-      );
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -81,16 +95,8 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
 
   async function handleResendCode() {
     clearMessages();
-    setLoading(true);
-    try {
-      await forgotPassword(email.trim());
+    if (await requestCode()) {
       setInfo("Un nouveau code à 6 chiffres vous a été envoyé.");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Impossible d'envoyer le code.",
-      );
-    } finally {
-      setLoading(false);
     }
   }
 

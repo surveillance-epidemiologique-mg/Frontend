@@ -46,10 +46,15 @@ export async function logout(): Promise<void> {
   await clearSession();
 }
 
+export interface ForgotPasswordResult {
+  success: boolean;
+  message?: string;
+}
+
 export async function forgotPassword(
   email: string,
-): Promise<{ success: boolean }> {
-  return apiFetch<{ success: boolean }>("/auth/forgot-password", {
+): Promise<ForgotPasswordResult> {
+  return apiFetch<ForgotPasswordResult>("/auth/forgot-password", {
     method: "POST",
     body: JSON.stringify({ email }),
   });

@@ -94,7 +94,15 @@ export async function forgotPasswordAction(
   }
 
   try {
-    await forgotPassword(email);
+    const result = await forgotPassword(email);
+
+    if (!result.success) {
+      return {
+        error:
+          result.message ??
+          "Aucun compte n'est associé à cette adresse e-mail.",
+      };
+    }
   } catch (error) {
     return {
       error:
@@ -106,7 +114,7 @@ export async function forgotPasswordAction(
 
   return {
     success:
-      "Si un compte est associé à cette adresse e-mail, un lien de réinitialisation vient d'être envoyé.",
+      "Un code à 6 chiffres a été envoyé à votre adresse e-mail.",
   };
 }
 

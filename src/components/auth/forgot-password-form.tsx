@@ -36,7 +36,7 @@ export function ForgotPasswordForm() {
 
       <p className="text-sm leading-relaxed text-text-muted">
         Saisissez l&apos;adresse e-mail associée à votre compte. Nous vous
-        enverrons un lien pour réinitialiser votre mot de passe.
+        enverrons un code à 6 chiffres pour réinitialiser votre mot de passe.
       </p>
 
       <Input
@@ -51,7 +51,7 @@ export function ForgotPasswordForm() {
       />
 
       <Button type="submit" size="lg" className="mt-2 w-full" loading={pending}>
-        {pending ? "Envoi en cours…" : "Envoyer le lien"}
+        {pending ? "Envoi en cours…" : "Envoyer le code"}
       </Button>
 
       <div className="text-center">
