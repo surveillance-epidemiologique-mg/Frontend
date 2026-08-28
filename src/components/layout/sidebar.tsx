@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
-import { MAIN_NAV } from "@/config/navigation";
+import { MAIN_NAV, type NavItem } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 
 const COLLAPSE_STORAGE_KEY = "sidebar-collapsed";
@@ -72,7 +72,8 @@ export function Sidebar({ isAdmin, mobileOpen, onCloseMobile }: SidebarProps) {
     emitChange();
   }
 
-  const navItems = MAIN_NAV.filter((item) => !item.adminOnly || isAdmin);
+  const mainItems = MAIN_NAV.filter((item) => !item.adminOnly);
+  const adminItems = MAIN_NAV.filter((item) => item.adminOnly && isAdmin);
 
   return (
     <>
@@ -135,55 +136,38 @@ export function Sidebar({ isAdmin, mobileOpen, onCloseMobile }: SidebarProps) {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          <p
-            className={cn(
-              "mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted",
-              collapsed && "lg:hidden",
-            )}
-          >
-            Navigation
-          </p>
-
-          {navItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              pathname.startsWith(`${item.href}/`);
-
-            return (
-              <Link
+        <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
+          <NavGroup label="Navigation" collapsed={collapsed}>
+            {mainItems.map((item) => (
+              <NavLink
                 key={item.href}
-                href={item.href}
-                aria-current={isActive ? "page" : undefined}
+                item={item}
+                collapsed={collapsed}
+                pathname={pathname}
+              />
+            ))}
+          </NavGroup>
+
+          {adminItems.length > 0 ? (
+            <div>
+              <div
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200",
-                  collapsed && "lg:justify-center lg:px-0",
-                  isActive
-                    ? "bg-primary-light text-primary"
-                    : "text-text-muted hover:bg-bg-app hover:text-text-main",
+                  "mx-3 my-3 border-t border-border",
+                  collapsed && "lg:mx-4",
                 )}
-              >
-                {isActive ? (
-                  <span
-                    className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary"
-                    aria-hidden="true"
+              />
+              <NavGroup label="Administration" collapsed={collapsed}>
+                {adminItems.map((item) => (
+                  <NavLink
+                    key={item.href}
+                    item={item}
+                    collapsed={collapsed}
+                    pathname={pathname}
                   />
-                ) : null}
-
-                <item.icon className="size-5 shrink-0" />
-
-                <span className={cn("truncate", collapsed && "lg:hidden")}>
-                  {item.title}
-                </span>
-
-                {collapsed ? (
-                  <span className="pointer-events-none absolute left-full z-50 ml-3 hidden whitespace-nowrap rounded-lg bg-text-main px-2.5 py-1.5 text-xs font-medium text-bg-surface opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 lg:block">
-                    {item.title}
-                  </span>
-                ) : null}
-              </Link>
-            );
-          })}
+                ))}
+              </NavGroup>
+            </div>
+          ) : null}
         </nav>
 
         <div className="shrink-0 border-t border-border p-3">
@@ -233,5 +217,75 @@ export function Sidebar({ isAdmin, mobileOpen, onCloseMobile }: SidebarProps) {
         </div>
       </aside>
     </>
+  );
+}
+
+function NavGroup({
+  label,
+  collapsed,
+  children,
+}: {
+  label: string;
+  collapsed: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1">
+      <p
+        className={cn(
+          "mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted",
+          collapsed && "lg:hidden",
+        )}
+      >
+        {label}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function NavLink({
+  item,
+  collapsed,
+  pathname,
+}: {
+  item: NavItem;
+  collapsed: boolean;
+  pathname: string;
+}) {
+  const isActive =
+    pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+  return (
+    <Link
+      href={item.href}
+      aria-current={isActive ? "page" : undefined}
+      className={cn(
+        "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200",
+        collapsed && "lg:justify-center lg:px-0",
+        isActive
+          ? "bg-primary-light text-primary"
+          : "text-text-muted hover:bg-bg-app hover:text-text-main",
+      )}
+    >
+      {isActive ? (
+        <span
+          className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary"
+          aria-hidden="true"
+        />
+      ) : null}
+
+      <item.icon className="size-5 shrink-0" />
+
+      <span className={cn("truncate", collapsed && "lg:hidden")}>
+        {item.title}
+      </span>
+
+      {collapsed ? (
+        <span className="pointer-events-none absolute left-full z-50 ml-3 hidden whitespace-nowrap rounded-lg bg-text-main px-2.5 py-1.5 text-xs font-medium text-bg-surface opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 lg:block">
+          {item.title}
+        </span>
+      ) : null}
+    </Link>
   );
 }

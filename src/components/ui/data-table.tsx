@@ -67,13 +67,13 @@ export function DataTable<T>({
           aria-label={ariaLabel}
         >
           <thead>
-            <tr className="border-b border-border">
+            <tr className="border-b border-border bg-bg-muted/60">
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
                   className={cn(
-                    "whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wider text-text-muted",
+                    "whitespace-nowrap px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted",
                     ALIGN_CLASSES[column.align ?? "left"],
                     column.headerClassName,
                   )}
@@ -101,7 +101,7 @@ export function DataTable<T>({
                       onRowClick ? () => onRowClick(row) : undefined
                     }
                     className={cn(
-                      "transition-colors duration-150 hover:bg-bg-app",
+                      "transition-colors duration-150 hover:bg-bg-surface-hover",
                       onRowClick && "cursor-pointer",
                     )}
                   >
@@ -197,7 +197,7 @@ function PaginationButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      className="grid size-8 place-items-center rounded-lg text-text-muted transition-colors duration-150 hover:bg-bg-app hover:text-text-main disabled:cursor-not-allowed disabled:opacity-40"
+      className="grid size-8 place-items-center rounded-lg border border-border text-text-muted transition-colors duration-150 hover:border-primary/30 hover:bg-bg-app hover:text-text-main disabled:cursor-not-allowed disabled:opacity-40"
     >
       {children}
     </button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Navbar, type NavbarUser } from "@/components/layout/navbar";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ToastProvider } from "@/components/ui/toast";
@@ -21,6 +21,7 @@ interface AppShellProps {
 export function AppShell({ isAdmin, user, children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const pathname = usePathname();
   const router = useRouter();
   const { presentation, toggle: togglePresentation } = usePresentationMode();
   const { toggleTheme } = useTheme();
@@ -44,7 +45,9 @@ export function AppShell({ isAdmin, user, children }: AppShellProps) {
 
         {presentation ? (
           <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            {children}
+            <div key={pathname} className="animate-fade-in-up">
+              {children}
+            </div>
           </main>
         ) : (
           <div className="flex min-h-dvh w-full">

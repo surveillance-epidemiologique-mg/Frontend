@@ -73,13 +73,15 @@
   /* --- Élévations (ombres douces & naturelles) ------------------------- */
   --elevation-card:
     0 1px 2px 0 rgb(15 23 42 / 0.04),
-    0 1px 3px 0 rgb(15 23 42 / 0.06);
+    0 1px 3px 0 rgb(15 23 42 / 0.04);
   --elevation-card-hover:
-    0 4px 6px -1px rgb(15 23 42 / 0.06),
-    0 12px 24px -6px rgb(15 23 42 / 0.10);
+    0 1px 2px 0 rgb(15 23 42 / 0.04),
+    0 4px 6px -2px rgb(15 23 42 / 0.04),
+    0 10px 20px -8px rgb(15 23 42 / 0.08);
   --elevation-dropdown:
-    0 10px 15px -3px rgb(15 23 42 / 0.10),
-    0 4px 6px -4px rgb(15 23 42 / 0.10);
+    0 2px 4px -1px rgb(15 23 42 / 0.06),
+    0 8px 16px -4px rgb(15 23 42 / 0.10),
+    0 20px 40px -12px rgb(15 23 42 / 0.12);
 
   /* --- Alias rétrocompatibilité --------------------------------------- */
   --background: var(--bg-app);
@@ -147,14 +149,16 @@
   --chart-8: #fb923c;
 
   --elevation-card:
-    0 1px 2px 0 rgb(0 0 0 / 0.40),
-    0 1px 3px 0 rgb(0 0 0 / 0.40);
+    0 1px 2px 0 rgb(0 0 0 / 0.30),
+    0 1px 3px 0 rgb(0 0 0 / 0.28);
   --elevation-card-hover:
-    0 4px 6px -1px rgb(0 0 0 / 0.40),
-    0 12px 24px -6px rgb(0 0 0 / 0.55);
+    0 1px 2px 0 rgb(0 0 0 / 0.30),
+    0 4px 8px -2px rgb(0 0 0 / 0.35),
+    0 12px 24px -8px rgb(0 0 0 / 0.45);
   --elevation-dropdown:
-    0 10px 15px -3px rgb(0 0 0 / 0.50),
-    0 4px 6px -4px rgb(0 0 0 / 0.50);
+    0 2px 4px -1px rgb(0 0 0 / 0.40),
+    0 8px 16px -4px rgb(0 0 0 / 0.45),
+    0 24px 48px -12px rgb(0 0 0 / 0.60);
 
   --background: var(--bg-app);
   --foreground: var(--text-main);
@@ -241,10 +245,35 @@
 
   body {
     background-color: var(--bg-app);
+    background-image: radial-gradient(
+        1100px 480px at 50% -12%,
+        color-mix(in srgb, var(--primary) 5%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 420px at 100% 0%,
+        color-mix(in srgb, var(--info) 3%, transparent),
+        transparent 55%
+      );
+    background-attachment: fixed;
     color: var(--text-main);
     font-family: var(--font-sans), system-ui, sans-serif;
+    font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  html.dark body {
+    background-image: radial-gradient(
+        1100px 480px at 50% -12%,
+        color-mix(in srgb, var(--primary) 7%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 420px at 100% 0%,
+        color-mix(in srgb, var(--info) 4%, transparent),
+        transparent 55%
+      );
   }
 
   ::selection {
@@ -332,6 +361,17 @@
   }
 }
 
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 200ms ease-out both;
 }
@@ -346,6 +386,20 @@
 
 .animate-scale-in {
   animation: scale-in 160ms ease-out both;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 240ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @keyframes route-progress {
@@ -402,4 +456,19 @@
     0 24px 60px -12px rgb(37 99 235 / 0.18),
     0 2px 8px rgb(15 23 42 / 0.04),
     inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+
+.dashboard-select {
+  height: 40px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #071523;
+  color: white;
+  padding: 0 12px;
+  font-size: 13px;
+  outline: none;
+}
+
+.dashboard-select:focus {
+  border-color: #22c55e;
 }

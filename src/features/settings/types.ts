@@ -36,9 +36,12 @@ export interface Maladie {
 
 export interface UserFormValues {
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phoneNumber: string;
   roleId: number;
+  regionId: number | null;
   centreId: number | null;
   isActive: boolean;
 }

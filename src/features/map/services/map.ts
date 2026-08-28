@@ -55,6 +55,7 @@ export interface MapQuery {
   maladieId?: number;
   regionId?: number;
   districtId?: number;
+  centreId?: number;
   from?: string;
   to?: string;
   typeEtablissement?: string;
@@ -78,6 +79,7 @@ export function fetchMapStats(query: MapQuery): Promise<MapStats> {
   if (query.maladieId) params.set("maladieId", String(query.maladieId));
   if (query.regionId) params.set("regionId", String(query.regionId));
   if (query.districtId) params.set("districtId", String(query.districtId));
+  if (query.centreId) params.set("centreId", String(query.centreId));
   if (query.from) params.set("from", query.from);
   if (query.to) params.set("to", query.to);
   if (query.typeEtablissement)

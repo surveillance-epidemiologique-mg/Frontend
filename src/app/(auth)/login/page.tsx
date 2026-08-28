@@ -129,28 +129,24 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <span>© 2026 ÉpiSuivi</span>
           <div className="flex gap-4">
             <a
-              href="#"
+              href="/forgot-password"
               className="text-text-subtle transition-colors hover:text-text-muted"
             >
-              Support
+              Aide à la connexion
             </a>
-            <a
-              href="#"
-              className="text-text-subtle transition-colors hover:text-text-muted"
-            >
-              Mentions légales
-            </a>
+            <span className="text-text-subtle">Mentions légales</span>
           </div>
         </div>
 
         {/* Bouton aide flottant */}
-        <button
+        <a
+          href="/forgot-password"
           className="fixed bottom-5 right-5 flex size-10 items-center justify-center rounded-full text-primary-foreground shadow-xl transition-all duration-200 hover:scale-105 hover:shadow-2xl bg-primary"
           style={{ boxShadow: "0 8px 24px var(--focus-ring)" }}
-          aria-label="Aide"
+          aria-label="Aide à la connexion"
         >
           <Lock className="size-4" />
-        </button>
+        </a>
       </div>
     </div>
   );

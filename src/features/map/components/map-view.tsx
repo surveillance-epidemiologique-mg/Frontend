@@ -24,6 +24,14 @@ interface MapViewProps {
   theme: "light" | "dark";
 }
 
+const SATELLITE_URL =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+
+function tileUrl(): string {
+  const override = process.env.NEXT_PUBLIC_MAP_TILE_URL;
+  return override && override.length > 0 ? override : SATELLITE_URL;
+}
+
 function FitBounds() {
   const map = useMap();
   useEffect(() => {
@@ -42,7 +50,6 @@ export function MapView({
   selectedRegionId,
   onSelectRegion,
   onSelectEstablishment,
-  theme,
 }: MapViewProps) {
   const regionByName = useMemo(() => {
     const map = new Map<string, RegionMapData>();
@@ -52,21 +59,16 @@ export function MapView({
     return map;
   }, [regionsData]);
 
-  const tileUrl =
-    theme === "dark"
-      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-      : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-
   const geoStyle = (feature?: GeoJSON.Feature) => {
     const name = String(feature?.properties?.name ?? "");
     const region = regionByName.get(name);
     const niveau = region?.niveau ?? "Aucun";
     const selected = region?.regionId === selectedRegionId;
     return {
-      color: selected ? "#2563eb" : "#475569",
-      weight: selected ? 2 : 1,
+      color: selected ? "#2563eb" : "rgba(255,255,255,0.85)",
+      weight: selected ? 2.5 : 1.25,
       fillColor: NIVEAU_COLORS[niveau],
-      fillOpacity: selected ? 0.7 : 0.55,
+      fillOpacity: selected ? 0.75 : 0.6,
     };
   };
 
@@ -98,7 +100,10 @@ export function MapView({
       style={{ minHeight: 480 }}
     >
       <FitBounds />
-      <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' url={tileUrl} />
+      <TileLayer
+        attribution='&copy; <a href="https://www.esri.com/en-us/home">Esri</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+        url={tileUrl()}
+      />
 
       <GeoJSON data={madagascarRegions as GeoJSON.FeatureCollection} style={geoStyle} onEachFeature={onEachFeature} />
 

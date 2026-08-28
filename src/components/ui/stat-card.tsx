@@ -18,10 +18,11 @@ interface StatCardProps {
   tone?: StatTone;
   trend?: number;
   hint?: string;
+  compact?: boolean;
 }
 
 const TONE_CLASSES: Record<StatTone, string> = {
-  primary: "bg-primary-light text-primary",
+  primary: "bg-primary/10 text-primary",
   secondary: "bg-secondary/10 text-secondary",
   success: "bg-success/10 text-success",
   warning: "bg-warning/10 text-warning",
@@ -36,6 +37,7 @@ export function StatCard({
   tone = "primary",
   trend,
   hint,
+  compact = false,
 }: StatCardProps) {
   const trendIsPositive = (trend ?? 0) > 0;
   const trendIsNeutral = (trend ?? 0) === 0;
@@ -46,44 +48,57 @@ export function StatCard({
       : ArrowDownRight;
 
   return (
-    <Card className="group p-6 transition-all duration-200 hover:shadow-md">
-      <div className="flex items-start justify-between">
-        <span className="text-sm font-medium text-text-muted">{title}</span>
+    <Card
+      className={cn(
+        "group transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover",
+        compact ? "p-3.5" : "p-5",
+      )}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+          {title}
+        </span>
         <span
           className={cn(
-            "grid size-10 shrink-0 place-items-center rounded-xl transition-transform duration-200 group-hover:scale-105",
+            "grid shrink-0 place-items-center rounded-lg transition-transform duration-200 group-hover:scale-105",
             TONE_CLASSES[tone],
+            compact ? "size-8" : "size-9",
           )}
         >
-          <Icon className="size-5" />
+          <Icon className={compact ? "size-4" : "size-[18px]"} strokeWidth={1.75} />
         </span>
       </div>
 
-      <div className="mt-3 text-3xl font-semibold tracking-tight text-text-main">
+      <div
+        className={cn(
+          "mt-1 font-semibold leading-tight tabular-nums tracking-tight text-text-main",
+          compact ? "text-2xl" : "mt-2 text-[28px]",
+        )}
+      >
         {value}
       </div>
 
-      {trend !== undefined ? (
-        <div className="mt-2 flex items-center gap-2">
+      <div className={cn("flex items-center gap-2", compact ? "mt-1" : "mt-2")}>
+        {trend !== undefined ? (
           <span
             className={cn(
-              "inline-flex items-center gap-0.5 text-xs font-semibold",
+              "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold",
               trendIsNeutral
-                ? "text-text-muted"
+                ? "bg-bg-app text-text-muted"
                 : trendIsPositive
-                  ? "text-success"
-                  : "text-error",
+                  ? "bg-success/10 text-success"
+                  : "bg-error/10 text-error",
             )}
           >
-            <TrendIcon className="size-3.5" />
+            <TrendIcon className="size-3" />
             {trend > 0 ? "+" : ""}
             {trend}%
           </span>
-          {hint ? (
-            <span className="text-xs text-text-muted">{hint}</span>
-          ) : null}
-        </div>
-      ) : null}
+        ) : null}
+        {hint ? (
+          <span className="truncate text-xs text-text-muted">{hint}</span>
+        ) : null}
+      </div>
     </Card>
   );
 }

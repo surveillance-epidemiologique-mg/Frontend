@@ -71,10 +71,14 @@ export function createUser(values: UserFormValues): Promise<InviteResponse> {
     method: "POST",
     body: JSON.stringify({
       name: values.name,
+      firstName: values.firstName || undefined,
+      lastName: values.lastName || undefined,
       email: values.email,
       phoneNumber: values.phoneNumber || undefined,
       roleId: values.roleId,
+      regionId: values.regionId ?? undefined,
       centreId: values.centreId ?? undefined,
+      isActive: values.isActive,
     }),
   });
 }
@@ -100,6 +104,21 @@ export function setUserStatus(id: number, isActive: boolean): Promise<User> {
     method: "PATCH",
     body: JSON.stringify({ isActive }),
   });
+}
+
+export function deleteUser(id: number): Promise<{ message: string }> {
+  return request<{ message: string }>(`/api/users/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export function resendInvitation(
+  id: number,
+): Promise<{ message: string; activationLink: string }> {
+  return request<{ message: string; activationLink: string }>(
+    `/api/users/${id}/resend-invitation`,
+    { method: "POST" },
+  );
 }
 
 // ---- Maladies ----

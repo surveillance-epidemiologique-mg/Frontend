@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Bell,
   ChevronDown,
@@ -26,6 +27,20 @@ export interface NavbarUser {
   role?: string;
 }
 
+const PAGE_TITLES: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/statistiques": "Statistiques",
+  "/zones": "Carte épidémiologique",
+  "/alerts": "Alertes",
+  "/cases": "Signalements",
+  "/etablissements": "Établissements",
+  "/reports": "Rapports",
+  "/notifications": "Notifications",
+  "/users": "Utilisateurs",
+  "/settings": "Paramètres",
+  "/profile": "Profil",
+};
+
 interface NavbarProps {
   user: NavbarUser;
   onMenuClick: () => void;
@@ -44,6 +59,8 @@ export function Navbar({
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { theme, toggleTheme } = useTheme();
+  const pathname = usePathname();
+  const pageTitle = PAGE_TITLES[pathname] ?? "Tableau de bord";
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -81,10 +98,22 @@ export function Navbar({
         <Menu className="size-5" />
       </button>
 
-      <div className="hidden flex-1 sm:block">
+      <div className="hidden min-w-0 items-center gap-3 lg:flex">
+        <span className="h-9 w-px shrink-0 bg-border" aria-hidden="true" />
+        <div className="min-w-0 leading-tight">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+            Surveillance épidémiologique
+          </p>
+          <p className="truncate text-sm font-semibold text-text-main">
+            {pageTitle}
+          </p>
+        </div>
+      </div>
+
+      <div className="hidden flex-1 justify-center px-4 lg:block">
         <GlobalSearch />
       </div>
-      <div className="flex-1 sm:hidden" />
+      <div className="flex-1 lg:hidden" />
 
       <div className="flex items-center gap-1.5">
         <button

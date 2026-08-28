@@ -25,11 +25,13 @@ import {
   createCentre,
   createMaladie,
   createUser,
+  deleteUser,
   fetchCentres,
   fetchMaladies,
   fetchRoles,
   fetchUsers,
   fetchZones,
+  resendInvitation,
   setUserStatus,
   updateCentre,
   updateMaladie,
@@ -45,6 +47,7 @@ import type {
   UserFormValues,
   Zone,
 } from "@/features/settings/types";
+import { buildRegions } from "@/features/settings/utils";
 
 type TabValue =
   | "users"
@@ -131,6 +134,7 @@ export function SettingsPage() {
   async function handleAddUser(values: UserFormValues) {
     const created = await createUser(values);
     setUsers((prev) => [created.user, ...prev]);
+    return created;
   }
 
   async function handleUpdateUser(id: number, values: UserFormValues) {
@@ -141,6 +145,15 @@ export function SettingsPage() {
   async function handleToggleUser(id: number, isActive: boolean) {
     const updated = await setUserStatus(id, isActive);
     setUsers((prev) => prev.map((user) => (user.id === id ? updated : user)));
+  }
+
+  async function handleDeleteUser(id: number) {
+    await deleteUser(id);
+    setUsers((prev) => prev.filter((user) => user.id !== id));
+  }
+
+  async function handleResendInvitation(id: number) {
+    await resendInvitation(id);
   }
 
   // ---- Maladies ----
@@ -199,10 +212,13 @@ export function SettingsPage() {
           users={users}
           roles={roles}
           centres={centres}
+          regions={buildRegions(zones)}
           loading={loading}
           onAdd={handleAddUser}
           onUpdate={handleUpdateUser}
           onToggle={handleToggleUser}
+          onDelete={handleDeleteUser}
+          onResendInvitation={handleResendInvitation}
         />
       ) : null}
 

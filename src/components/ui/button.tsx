@@ -21,11 +21,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    "bg-gradient-to-b from-primary to-primary-hover text-primary-foreground shadow-md shadow-primary/25 hover:-translate-y-px hover:shadow-lg hover:shadow-primary/30 active:translate-y-0 active:shadow-sm focus-visible:outline-primary",
+    "bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary-hover hover:shadow-md hover:shadow-primary/25 active:bg-primary-active focus-visible:outline-primary",
   secondary:
     "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary-hover focus-visible:outline-secondary",
   outline:
-    "border border-border bg-bg-surface text-text-main shadow-sm hover:bg-bg-app hover:text-text-main focus-visible:outline-border",
+    "border border-border bg-bg-surface text-text-main shadow-sm hover:border-primary/30 hover:bg-bg-app hover:text-text-main focus-visible:outline-border",
   danger:
     "bg-error text-error-foreground shadow-sm hover:opacity-90 focus-visible:outline-error",
   ghost:

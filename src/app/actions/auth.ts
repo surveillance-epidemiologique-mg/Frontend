@@ -7,6 +7,7 @@ import {
   changePassword,
   forgotPassword,
   login,
+  resendActivation,
   resetPassword,
 } from "@/services/auth";
 
@@ -67,10 +68,12 @@ export async function activateAction(
     return { error: "Les deux mots de passe ne correspondent pas." };
   }
 
-  try {
-    const result = await activate(token, newPassword);
+  if (newPassword.length < 8) {
+    return { error: "Le mot de passe doit contenir au moins 8 caractères." };
+  }
 
-    await setSessionToken(result.token, COOKIE_MAX_AGE);
+  try {
+    await activate(token, newPassword);
   } catch (error) {
     return {
       error:
@@ -80,7 +83,36 @@ export async function activateAction(
     };
   }
 
-  redirect("/dashboard");
+  return {
+    success: "Votre compte a été activé avec succès.",
+  };
+}
+
+export async function resendActivationAction(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!email) {
+    return { error: "Veuillez renseigner votre adresse e-mail." };
+  }
+
+  try {
+    await resendActivation(email);
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Impossible de renvoyer le lien d'activation.",
+    };
+  }
+
+  return {
+    success:
+      "Si un compte en attente d'activation est associé à cette adresse, un nouveau lien vient d'être envoyé.",
+  };
 }
 
 export async function forgotPasswordAction(
@@ -134,10 +166,12 @@ export async function resetPasswordAction(
     return { error: "Les deux mots de passe ne correspondent pas." };
   }
 
-  try {
-    const result = await resetPassword(token, newPassword);
+  if (newPassword.length < 8) {
+    return { error: "Le mot de passe doit contenir au moins 8 caractères." };
+  }
 
-    await setSessionToken(result.token, COOKIE_MAX_AGE);
+  try {
+    await resetPassword(token, newPassword);
   } catch (error) {
     return {
       error:
@@ -147,7 +181,9 @@ export async function resetPasswordAction(
     };
   }
 
-  redirect("/dashboard");
+  return {
+    success: "Votre mot de passe a été réinitialisé avec succès.",
+  };
 }
 
 export async function changePasswordAction(

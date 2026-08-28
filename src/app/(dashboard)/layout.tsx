@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { verifySession } from "@/lib/session";
 import { getMe } from "@/services/auth";
-import { ROLES } from "@/types/auth";
 
-export default async function DashboardLayout({
+export default async function DashboardLayoutRoot({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -29,11 +28,8 @@ export default async function DashboardLayout({
   }
 
   return (
-    <AppShell
-      isAdmin={session.role === ROLES.ADMINISTRATEUR}
-      user={user}
-    >
+    <DashboardLayout user={user}>
       {children}
-    </AppShell>
+    </DashboardLayout>
   );
 }

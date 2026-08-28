@@ -62,6 +62,30 @@ export async function activate(
   );
 }
 
+export async function activateInfo(
+  token: string,
+): Promise<{ email: string }> {
+  return apiFetch<{ email: string }>(
+    "/auth/activate-info",
+    {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    },
+    { withAuth: false },
+  );
+}
+
+export async function resendActivation(email: string): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(
+    "/auth/resend-activation",
+    {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    },
+    { withAuth: false },
+  );
+}
+
 export async function changePassword(
   currentPassword: string,
   newPassword: string,

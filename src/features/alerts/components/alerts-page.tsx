@@ -13,6 +13,7 @@ import { AlertForm } from "@/features/alerts/components/alert-form";
 import { AlertStatusBadge, RiskBadge } from "@/features/alerts/components/alert-badges";
 import { DataFreshness } from "@/features/alerts/components/data-freshness";
 import { RulesPanel } from "@/features/alerts/components/rules-panel";
+import { cn } from "@/lib/utils";
 import {
   createAlerte,
   detectAlertes,
@@ -41,6 +42,13 @@ const ACTION_LABEL: Record<string, string> = {
   Resolution: "Résolution",
   Reouverture: "Réouverture",
   MiseAJour: "Mise à jour",
+};
+
+const NIVEAU_ROW: Record<string, { accent: string; icon: string }> = {
+  Normal: { accent: "border-l-text-subtle", icon: "bg-bg-app text-text-muted" },
+  Surveillance: { accent: "border-l-info", icon: "bg-info/10 text-info" },
+  Alerte: { accent: "border-l-warning", icon: "bg-warning/10 text-warning" },
+  Critique: { accent: "border-l-error", icon: "bg-error/10 text-error" },
 };
 
 export function AlertsPage({ isAdmin }: AlertsPageProps) {
@@ -262,13 +270,24 @@ export function AlertsPage({ isAdmin }: AlertsPageProps) {
           ) : (
             <div className="divide-y divide-border">
               {alerts.map((alert) => (
-                <div key={alert.id} className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center">
+                <div
+                  key={alert.id}
+                  className={cn(
+                    "flex flex-col gap-3 border-l-2 py-3 pl-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center",
+                    NIVEAU_ROW[alert.niveauRisque]?.accent ?? "border-l-text-subtle",
+                  )}
+                >
                   <button
                     type="button"
                     onClick={() => openDetail(alert)}
                     className="flex min-w-0 flex-1 items-center gap-3 text-left"
                   >
-                    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-warning/10 text-warning">
+                    <span
+                      className={cn(
+                        "grid size-9 shrink-0 place-items-center rounded-lg",
+                        NIVEAU_ROW[alert.niveauRisque]?.icon ?? "bg-bg-app text-text-muted",
+                      )}
+                    >
                       <AlertTriangle className="size-4" />
                     </span>
                     <span className="min-w-0 flex-1">

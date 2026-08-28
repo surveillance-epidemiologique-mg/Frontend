@@ -4,24 +4,36 @@ import { useCallback, useEffect, useState } from "react";
 
 export type DashboardSection =
   | "stats"
+  | "map"
   | "evolution"
   | "distribution"
+  | "diseases"
   | "alerts"
+  | "priorityZones"
+  | "establishments"
   | "recentCases";
 
 export interface DashboardPreferences {
   stats: boolean;
+  map: boolean;
   evolution: boolean;
   distribution: boolean;
+  diseases: boolean;
   alerts: boolean;
+  priorityZones: boolean;
+  establishments: boolean;
   recentCases: boolean;
 }
 
 export const DEFAULT_PREFERENCES: DashboardPreferences = {
   stats: true,
+  map: true,
   evolution: true,
   distribution: true,
+  diseases: true,
   alerts: true,
+  priorityZones: true,
+  establishments: true,
   recentCases: true,
 };
 
