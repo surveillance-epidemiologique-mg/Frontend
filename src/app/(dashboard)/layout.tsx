@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { AppShell } from "@/components/layout/app-shell";
 import { verifySession } from "@/lib/session";
 import { getMe } from "@/services/auth";
 
@@ -22,14 +22,14 @@ export default async function DashboardLayoutRoot({
 
   try {
     const me = await getMe();
-    user = { name: me.name, email: me.email, role: me.role?.name ?? session.role };
+    user = {
+      name: me.name,
+      email: me.email,
+      role: me.role?.name ?? session.role,
+    };
   } catch {
     // L'API peut être indisponible : on retombe sur les données de session
   }
 
-  return (
-    <DashboardLayout user={user}>
-      {children}
-    </DashboardLayout>
-  );
+  return <AppShell user={user}>{children}</AppShell>;
 }

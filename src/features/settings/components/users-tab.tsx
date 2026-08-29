@@ -1,16 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Edit,
-  Mail,
-  Plus,
-  Search,
-  Trash2,
-  UserCheck,
-  UserX,
-  Users,
-} from "lucide-react";
+import { Edit, Plus, Search, UserCheck, UserX, Users } from "lucide-react";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -22,10 +13,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
-import {
-  UserFormModal,
-  type RegionOption,
-} from "@/features/settings/components/user-form-modal";
+import { UserFormModal } from "@/features/settings/components/user-form-modal";
 import type {
   CentreSante,
   Role,
@@ -38,7 +26,6 @@ interface UsersTabProps {
   users: User[];
   roles: Role[];
   centres: CentreSante[];
-  regions: RegionOption[];
   loading: boolean;
   onAdd: (values: UserFormValues) => Promise<{
     user: User;
@@ -47,29 +34,22 @@ interface UsersTabProps {
   }>;
   onUpdate: (id: number, values: UserFormValues) => Promise<void>;
   onToggle: (id: number, isActive: boolean) => Promise<void>;
-  onDelete: (id: number) => Promise<void>;
-  onResendInvitation: (id: number) => Promise<void>;
 }
 
 const ROLE_FILTER_OPTIONS = [
   "Administrateur",
-  "Responsable national",
-  "Responsable régional",
-  "Agent de santé",
-  "Observateur",
+  "Medecin",
+  "Laboratoire",
 ];
 
 export function UsersTab({
   users,
   roles,
   centres,
-  regions,
   loading,
   onAdd,
   onUpdate,
   onToggle,
-  onDelete,
-  onResendInvitation,
 }: UsersTabProps) {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
@@ -81,7 +61,6 @@ export function UsersTab({
     user: User;
     nextActive: boolean;
   } | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
 
   const filteredUsers = useMemo(() => {
@@ -181,57 +160,6 @@ export function UsersTab({
     }
   }
 
-  async function confirmDelete() {
-    if (!deleteTarget) {
-      return;
-    }
-
-    setBusy(true);
-    try {
-      await onDelete(deleteTarget.id);
-      toast({
-        title: "Utilisateur supprimé",
-        description: `Le compte de ${deleteTarget.name} a été supprimé.`,
-        variant: "success",
-      });
-      setDeleteTarget(null);
-    } catch (error) {
-      toast({
-        title: "Suppression impossible",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Impossible de supprimer cet utilisateur.",
-        variant: "error",
-      });
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleResendInvitation(user: User) {
-    setBusy(true);
-    try {
-      await onResendInvitation(user.id);
-      toast({
-        title: "Invitation renvoyée",
-        description: `Un nouveau lien d'activation a été envoyé à ${user.email}.`,
-        variant: "success",
-      });
-    } catch (error) {
-      toast({
-        title: "Envoi impossible",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Impossible de renvoyer l'invitation.",
-        variant: "error",
-      });
-    } finally {
-      setBusy(false);
-    }
-  }
-
   const columns: Column<User>[] = [
     {
       key: "user",
@@ -240,8 +168,10 @@ export function UsersTab({
         <div className="flex items-center gap-3 py-0.5">
           <Avatar name={row.name} size="sm" />
           <div className="min-w-0">
-            <p className="truncate font-medium text-text-main leading-none">{row.name}</p>
-            <p className="truncate text-xs text-text-muted mt-1">{row.email}</p>
+            <p className="truncate font-medium text-text-main leading-none">
+              {row.name}
+            </p>
+            <p className="mt-1 truncate text-xs text-text-muted">{row.email}</p>
           </div>
         </div>
       ),
@@ -250,7 +180,9 @@ export function UsersTab({
       key: "phone",
       header: "Téléphone",
       cell: (row) => (
-        <span className="text-sm text-text-muted">{row.phoneNumber || "—"}</span>
+        <span className="text-sm text-text-muted">
+          {row.phoneNumber || "—"}
+        </span>
       ),
     },
     {
@@ -262,7 +194,9 @@ export function UsersTab({
       key: "centre",
       header: "Centre de santé",
       cell: (row) => (
-        <span className="text-sm text-text-muted">{row.centre?.name ?? "—"}</span>
+        <span className="text-sm text-text-muted">
+          {row.centre?.name ?? "—"}
+        </span>
       ),
     },
     {
@@ -287,7 +221,9 @@ export function UsersTab({
       key: "createdAt",
       header: "Date de création",
       cell: (row) => (
-        <span className="text-sm text-text-muted">{formatDate(row.createdAt)}</span>
+        <span className="text-sm text-text-muted">
+          {formatDate(row.createdAt)}
+        </span>
       ),
     },
     {
@@ -312,26 +248,11 @@ export function UsersTab({
                     setToggleTarget({ user: row, nextActive: false }),
                 }
               : {
-                label: "Activer",
-                icon: UserCheck,
-                onClick: () =>
-                  setToggleTarget({ user: row, nextActive: true }),
-              },
-            {
-              label: "Supprimer",
-              icon: Trash2,
-              danger: true,
-              onClick: () => setDeleteTarget(row),
-            },
-            ...(row.temporaryPassword && row.isActive
-              ? [
-                {
-                  label: "Renvoyer l'invitation",
-                  icon: Mail,
-                  onClick: () => handleResendInvitation(row),
+                  label: "Activer",
+                  icon: UserCheck,
+                  onClick: () =>
+                    setToggleTarget({ user: row, nextActive: true }),
                 },
-              ]
-              : []),
           ]}
         />
       ),
@@ -340,13 +261,12 @@ export function UsersTab({
 
   return (
     <div className="space-y-6 pt-2">
-      {/* En-tête de section */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-border/60">
+      <div className="flex flex-col gap-4 border-b border-border/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold tracking-tight text-text-main">
             Gestion des utilisateurs
           </h2>
-          <p className="text-xs text-text-muted mt-0.5">
+          <p className="mt-0.5 text-xs text-text-muted">
             {users.length} compte{users.length > 1 ? "s" : ""} enregistré
             {users.length > 1 ? "s" : ""}.
           </p>
@@ -357,8 +277,7 @@ export function UsersTab({
         </Button>
       </div>
 
-      {/* Barre de filtres et recherche */}
-      <Card className="p-3.5 border-border/60 bg-bg-app/30 backdrop-blur-xs">
+      <Card className="border-border/60 bg-bg-app/30 p-3.5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="flex-1">
             <Input
@@ -396,8 +315,7 @@ export function UsersTab({
         </div>
       </Card>
 
-      {/* Tableau des données */}
-      <Card className="border-border/60 overflow-hidden">
+      <Card className="overflow-hidden border-border/60">
         <DataTable
           columns={columns}
           data={filteredUsers}
@@ -414,7 +332,6 @@ export function UsersTab({
         />
       </Card>
 
-      {/* Modales */}
       <UserFormModal
         key={editingUser ? `edit-${editingUser.id}` : `create-${formOpen}`}
         open={formOpen}
@@ -426,7 +343,7 @@ export function UsersTab({
         onSubmit={handleSubmit}
         roles={roles}
         centres={centres}
-        regions={regions}
+        loading={busy}
       />
 
       <ConfirmDialog
@@ -448,20 +365,6 @@ export function UsersTab({
         }
         confirmLabel={toggleTarget?.nextActive ? "Activer" : "Désactiver"}
         tone={toggleTarget?.nextActive ? "primary" : "danger"}
-      />
-    <ConfirmDialog
-        open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-        loading={busy}
-        title="Supprimer l'utilisateur"
-        description={
-          deleteTarget
-            ? `Supprimer définitivement le compte de ${deleteTarget.name} (${deleteTarget.email}) ? Cette action est irréversible.`
-            : ""
-        }
-        confirmLabel="Supprimer"
-        tone="danger"
       />
     </div>
   );

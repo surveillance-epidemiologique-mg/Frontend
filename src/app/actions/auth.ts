@@ -7,7 +7,6 @@ import {
   changePassword,
   forgotPassword,
   login,
-  resendActivation,
   resetPassword,
 } from "@/services/auth";
 
@@ -85,33 +84,6 @@ export async function activateAction(
 
   return {
     success: "Votre compte a été activé avec succès.",
-  };
-}
-
-export async function resendActivationAction(
-  _prevState: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  const email = String(formData.get("email") ?? "").trim();
-
-  if (!email) {
-    return { error: "Veuillez renseigner votre adresse e-mail." };
-  }
-
-  try {
-    await resendActivation(email);
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Impossible de renvoyer le lien d'activation.",
-    };
-  }
-
-  return {
-    success:
-      "Si un compte en attente d'activation est associé à cette adresse, un nouveau lien vient d'être envoyé.",
   };
 }
 

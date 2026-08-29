@@ -12,31 +12,20 @@ import {
 import type { InviteOptions, InvitePayload } from "@/features/users/services/invite";
 import type { InviteResponse } from "@/types/auth";
 
-const INVITABLE_ROLES = [
-  "Responsable national",
-  "Responsable régional",
-  "Agent de santé",
-  "Observateur",
-];
+const INVITABLE_ROLES = ["Medecin", "Laboratoire"];
 
 interface FormState {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   roleId: string;
-  regionId: string;
-  districtId: string;
   centreId: string;
   phoneNumber: string;
 }
 
 const EMPTY_FORM: FormState = {
-  firstName: "",
-  lastName: "",
+  name: "",
   email: "",
   roleId: "",
-  regionId: "",
-  districtId: "",
   centreId: "",
   phoneNumber: "",
 };
@@ -72,33 +61,41 @@ export function InviteForm() {
     };
   }, []);
 
-  const selectedRegion = options?.regions.find(
-    (r) => String(r.id) === form.regionId,
-  );
-  const districts = selectedRegion?.districts ?? [];
-  const centresInDistrict = (options?.centres ?? []).filter(
-    (c) => String(c.zoneId) === form.districtId,
-  );
-
   function updateField<K extends keyof FormState>(key: K, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function validate(): boolean {
+    if (!form.name.trim() || form.name.trim().length < 2) {
+      setError("Le nom complet est requis (2 caractères minimum).");
+      return false;
+    }
+    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setError("Adresse e-mail invalide.");
+      return false;
+    }
+    if (!form.roleId) {
+      setError("Le rôle est requis.");
+      return false;
+    }
+    return true;
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+
+    if (!validate()) {
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      const firstName = form.firstName.trim();
-      const lastName = form.lastName.trim();
       const payload: InvitePayload = {
-        name: [firstName, lastName].filter(Boolean).join(" "),
-        firstName,
-        lastName,
+        name: form.name.trim(),
         email: form.email.trim(),
         roleId: Number(form.roleId),
-        regionId: form.regionId ? Number(form.regionId) : undefined,
         centreId: form.centreId ? Number(form.centreId) : undefined,
         phoneNumber: form.phoneNumber.trim() || undefined,
       };
@@ -132,7 +129,9 @@ export function InviteForm() {
 
         <div className="space-y-3 rounded-lg border border-border bg-bg-app p-4 text-sm">
           <div>
-            <div className="font-medium text-text-muted">Lien d&apos;activation</div>
+            <div className="font-medium text-text-muted">
+              Lien d&apos;activation
+            </div>
             <div className="break-all font-mono text-xs text-text-main">
               {result.activationLink}
             </div>
@@ -155,28 +154,22 @@ export function InviteForm() {
     );
   }
 
+  const invitableRoles = (options?.roles ?? []).filter((role) =>
+    INVITABLE_ROLES.includes(role.name),
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error ? <Alert variant="error">{error}</Alert> : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Input
-          label="Prénom"
-          name="firstName"
-          value={form.firstName}
-          onChange={(e) => updateField("firstName", e.target.value)}
-          required
-          placeholder="Jean"
-        />
-        <Input
-          label="Nom"
-          name="lastName"
-          value={form.lastName}
-          onChange={(e) => updateField("lastName", e.target.value)}
-          required
-          placeholder="Rakoto"
-        />
-      </div>
+      <Input
+        label="Nom complet"
+        name="name"
+        value={form.name}
+        onChange={(e) => updateField("name", e.target.value)}
+        required
+        placeholder="Dr RAKOTO Jean"
+      />
 
       <Input
         label="Adresse e-mail"
@@ -188,71 +181,23 @@ export function InviteForm() {
         placeholder="prenom.nom@exemple.mg"
       />
 
-      <div className="space-y-1.5">
-        <label
-          htmlFor="roleId"
-          className="block text-sm font-medium text-text-main"
-        >
-          Rôle
-        </label>
-        <select
-          id="roleId"
-          name="roleId"
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Select
+          label="Rôle"
           value={form.roleId}
           onChange={(e) => updateField("roleId", e.target.value)}
-          required
-          disabled={loading}
-          className="w-full rounded-lg border border-border bg-bg-surface px-3.5 py-2.5 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
-        >
-          <option value="">
-            {loading ? "Chargement..." : "Sélectionner un rôle"}
-          </option>
-          {(options?.roles ?? [])
-            .filter((role) => INVITABLE_ROLES.includes(role.name))
-            .map((role) => (
-              <option key={role.id} value={role.id}>
-                {role.name}
-              </option>
-            ))}
-        </select>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Select
-          label="Région"
-          value={form.regionId}
-          onChange={(e) => {
-            updateField("regionId", e.target.value);
-            updateField("districtId", "");
-            updateField("centreId", "");
-          }}
-          placeholder="Aucune"
-          options={(options?.regions ?? []).map((r) => ({
-            value: String(r.id),
-            label: r.name,
+          placeholder={loading ? "Chargement..." : "Sélectionner un rôle"}
+          options={invitableRoles.map((role) => ({
+            value: String(role.id),
+            label: role.name,
           }))}
         />
         <Select
-          label="District"
-          value={form.districtId}
-          onChange={(e) => {
-            updateField("districtId", e.target.value);
-            updateField("centreId", "");
-          }}
-          placeholder="Aucun"
-          disabled={!form.regionId}
-          options={districts.map((d) => ({
-            value: String(d.id),
-            label: d.name,
-          }))}
-        />
-        <Select
-          label="Établissement"
+          label="Centre de santé"
           value={form.centreId}
           onChange={(e) => updateField("centreId", e.target.value)}
-          placeholder="Aucun"
-          disabled={!form.districtId}
-          options={centresInDistrict.map((c) => ({
+          placeholder="Aucun centre"
+          options={(options?.centres ?? []).map((c) => ({
             value: String(c.id),
             label: c.name,
           }))}
@@ -268,7 +213,12 @@ export function InviteForm() {
         placeholder="+261 34 00 000 00"
       />
 
-      <Button type="submit" className="w-full" disabled={submitting || loading}>
+      <Button
+        type="submit"
+        className="w-full"
+        loading={submitting}
+        disabled={loading}
+      >
         {submitting ? "Envoi..." : "Créer le compte"}
       </Button>
     </form>

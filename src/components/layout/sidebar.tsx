@@ -4,17 +4,15 @@ import { useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LogOut,
-  PanelLeftClose,
+  Menu,
   PanelLeftOpen,
   ShieldCheck,
   X,
 } from "lucide-react";
-import { logoutAction } from "@/app/actions/auth";
-import { MAIN_NAV, type NavItem } from "@/config/navigation";
+import { getNavForRole } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 
-const COLLAPSE_STORAGE_KEY = "sidebar-collapsed";
+const COLLAPSE_STORAGE_KEY = "episuivi-sidebar-collapsed";
 
 const listeners = new Set<() => void>();
 
@@ -44,18 +42,19 @@ function emitChange() {
 }
 
 interface SidebarProps {
-  isAdmin: boolean;
+  role?: string;
   mobileOpen: boolean;
   onCloseMobile: () => void;
 }
 
-export function Sidebar({ isAdmin, mobileOpen, onCloseMobile }: SidebarProps) {
+export function Sidebar({ role, mobileOpen, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
   const collapsed = useSyncExternalStore(
     subscribe,
     getSnapshot,
     getServerSnapshot,
   );
+  const items = getNavForRole(role);
 
   useEffect(() => {
     onCloseMobile();
@@ -72,9 +71,6 @@ export function Sidebar({ isAdmin, mobileOpen, onCloseMobile }: SidebarProps) {
     emitChange();
   }
 
-  const mainItems = MAIN_NAV.filter((item) => !item.adminOnly);
-  const adminItems = MAIN_NAV.filter((item) => item.adminOnly && isAdmin);
-
   return (
     <>
       {mobileOpen ? (
@@ -87,26 +83,27 @@ export function Sidebar({ isAdmin, mobileOpen, onCloseMobile }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-bg-surface transition-[width,transform] duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-bg-surface transition-[width,transform] duration-300 ease-in-out",
           "lg:sticky lg:top-0 lg:h-dvh",
-          collapsed ? "lg:w-[76px]" : "lg:w-64",
+          collapsed ? "w-[76px]" : "w-64",
           mobileOpen
             ? "translate-x-0 shadow-2xl"
             : "-translate-x-full lg:translate-x-0",
         )}
       >
-        <div className="flex h-16 shrink-0 items-center gap-1 px-3">
+        {/* En-tête : logo + bouton burger */}
+        <div className="flex h-16 shrink-0 items-center justify-between gap-1 px-3">
           <Link
             href="/dashboard"
-            className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-bg-app"
+            className="flex min-w-0 items-center gap-2.5 rounded-full px-2 py-1.5 transition-colors hover:bg-bg-app"
           >
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-active text-primary-foreground shadow-sm">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-primary-active text-primary-foreground shadow-sm">
               <ShieldCheck className="size-5" />
             </span>
             <span
               className={cn(
                 "truncate text-sm font-semibold tracking-tight text-text-main",
-                collapsed && "lg:hidden",
+                collapsed && "hidden",
               )}
             >
               ÉpiSuivi
@@ -117,12 +114,12 @@ export function Sidebar({ isAdmin, mobileOpen, onCloseMobile }: SidebarProps) {
             type="button"
             onClick={toggleCollapsed}
             aria-label={collapsed ? "Agrandir le menu" : "Réduire le menu"}
-            className="hidden size-9 shrink-0 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-app hover:text-text-main lg:grid"
+            className="grid size-9 shrink-0 place-items-center rounded-full text-text-muted transition-colors hover:bg-bg-app hover:text-text-main lg:grid"
           >
             {collapsed ? (
               <PanelLeftOpen className="size-5" />
             ) : (
-              <PanelLeftClose className="size-5" />
+              <Menu className="size-5" />
             )}
           </button>
 
@@ -130,72 +127,55 @@ export function Sidebar({ isAdmin, mobileOpen, onCloseMobile }: SidebarProps) {
             type="button"
             onClick={onCloseMobile}
             aria-label="Fermer le menu"
-            className="grid size-9 shrink-0 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-app hover:text-text-main lg:hidden"
+            className="grid size-9 shrink-0 place-items-center rounded-full text-text-muted transition-colors hover:bg-bg-app hover:text-text-main lg:hidden"
           >
             <X className="size-5" />
           </button>
         </div>
 
-        <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
-          <NavGroup label="Navigation" collapsed={collapsed}>
-            {mainItems.map((item) => (
-              <NavLink
-                key={item.href}
-                item={item}
-                collapsed={collapsed}
-                pathname={pathname}
-              />
-            ))}
-          </NavGroup>
+        {/* Navigation principale */}
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+          {items.map((item) => {
+            const isActive =
+              pathname === item.href ||
+              pathname.startsWith(`${item.href}/`);
 
-          {adminItems.length > 0 ? (
-            <div>
-              <div
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "mx-3 my-3 border-t border-border",
-                  collapsed && "lg:mx-4",
+                  "group relative flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium transition-colors duration-200",
+                  collapsed && "justify-center px-0",
+                  isActive
+                    ? "bg-primary-light text-primary"
+                    : "text-text-muted hover:bg-bg-app hover:text-text-main",
                 )}
-              />
-              <NavGroup label="Administration" collapsed={collapsed}>
-                {adminItems.map((item) => (
-                  <NavLink
-                    key={item.href}
-                    item={item}
-                    collapsed={collapsed}
-                    pathname={pathname}
-                  />
-                ))}
-              </NavGroup>
-            </div>
-          ) : null}
+              >
+                <item.icon className="size-5 shrink-0" />
+
+                <span className={cn("truncate", collapsed && "hidden")}>
+                  {item.title}
+                </span>
+
+                {collapsed ? (
+                  <span className="pointer-events-none absolute left-full z-50 ml-3 hidden whitespace-nowrap rounded-lg bg-text-main px-2.5 py-1.5 text-xs font-medium text-bg-surface opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+                    {item.title}
+                  </span>
+                ) : null}
+              </Link>
+            );
+          })}
         </nav>
 
+        {/* Pied */}
         <div className="shrink-0 border-t border-border p-3">
-          <form action={logoutAction} className="mb-3">
-            <button
-              type="submit"
-              aria-label="Déconnexion"
-              className={cn(
-                "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-muted transition-colors hover:bg-error/10 hover:text-error",
-                collapsed && "lg:justify-center lg:px-0",
-              )}
-            >
-              <LogOut className="size-5 shrink-0" />
-              <span className={cn("truncate", collapsed && "lg:hidden")}>
-                Déconnexion
-              </span>
-            </button>
-          </form>
-          <div
-            className={cn(
-              "rounded-xl bg-bg-app p-3",
-              collapsed && "lg:p-2",
-            )}
-          >
+          <div className={cn("rounded-xl bg-bg-app p-3", collapsed && "p-2")}>
             <p
               className={cn(
                 "truncate text-xs font-semibold text-text-main",
-                collapsed && "lg:hidden",
+                collapsed && "hidden",
               )}
             >
               ÉpiSuivi v1.0
@@ -203,89 +183,14 @@ export function Sidebar({ isAdmin, mobileOpen, onCloseMobile }: SidebarProps) {
             <p
               className={cn(
                 "mt-0.5 truncate text-[11px] text-text-muted",
-                collapsed && "lg:hidden",
+                collapsed && "hidden",
               )}
             >
               Surveillance épidémiologique
             </p>
-            {collapsed ? (
-              <div className="hidden place-items-center lg:grid">
-                <ShieldCheck className="size-4 text-text-muted" />
-              </div>
-            ) : null}
           </div>
         </div>
       </aside>
     </>
-  );
-}
-
-function NavGroup({
-  label,
-  collapsed,
-  children,
-}: {
-  label: string;
-  collapsed: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1">
-      <p
-        className={cn(
-          "mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted",
-          collapsed && "lg:hidden",
-        )}
-      >
-        {label}
-      </p>
-      {children}
-    </div>
-  );
-}
-
-function NavLink({
-  item,
-  collapsed,
-  pathname,
-}: {
-  item: NavItem;
-  collapsed: boolean;
-  pathname: string;
-}) {
-  const isActive =
-    pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-  return (
-    <Link
-      href={item.href}
-      aria-current={isActive ? "page" : undefined}
-      className={cn(
-        "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200",
-        collapsed && "lg:justify-center lg:px-0",
-        isActive
-          ? "bg-primary-light text-primary"
-          : "text-text-muted hover:bg-bg-app hover:text-text-main",
-      )}
-    >
-      {isActive ? (
-        <span
-          className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary"
-          aria-hidden="true"
-        />
-      ) : null}
-
-      <item.icon className="size-5 shrink-0" />
-
-      <span className={cn("truncate", collapsed && "lg:hidden")}>
-        {item.title}
-      </span>
-
-      {collapsed ? (
-        <span className="pointer-events-none absolute left-full z-50 ml-3 hidden whitespace-nowrap rounded-lg bg-text-main px-2.5 py-1.5 text-xs font-medium text-bg-surface opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 lg:block">
-          {item.title}
-        </span>
-      ) : null}
-    </Link>
   );
 }

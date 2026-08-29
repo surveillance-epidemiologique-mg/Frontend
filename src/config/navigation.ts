@@ -1,43 +1,66 @@
 import {
-  BarChart3,
-  Bell,
-  BellRing,
-  Building2,
-  ClipboardList,
-  FileText,
+  Activity,
+  FlaskConical,
   LayoutDashboard,
   Map,
   Settings,
-  Users,
   type LucideIcon,
 } from "lucide-react";
+
+export const ROLES = {
+  ADMINISTRATEUR: "Administrateur",
+  MEDECIN: "Medecin",
+  LABORATOIRE: "Laboratoire",
+} as const;
 
 export interface NavItem {
   title: string;
   href: string;
   icon: LucideIcon;
-  adminOnly?: boolean;
 }
 
-export const MAIN_NAV: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Statistiques", href: "/statistiques", icon: BarChart3 },
-  { title: "Carte épidémiologique", href: "/zones", icon: Map },
-  { title: "Alertes", href: "/alerts", icon: Bell },
-  { title: "Signalements", href: "/cases", icon: ClipboardList },
-  { title: "Établissements", href: "/etablissements", icon: Building2 },
-  { title: "Rapports", href: "/reports", icon: FileText },
-  { title: "Notifications", href: "/notifications", icon: BellRing },
-  {
-    title: "Utilisateurs",
-    href: "/users",
-    icon: Users,
-    adminOnly: true,
-  },
-  {
-    title: "Paramètres",
-    href: "/settings",
-    icon: Settings,
-    adminOnly: true,
-  },
-];
+const DASHBOARD: NavItem = {
+  title: "Dashboard",
+  href: "/dashboard",
+  icon: LayoutDashboard,
+};
+
+const CARTE: NavItem = {
+  title: "Carte épidémique",
+  href: "/zones",
+  icon: Map,
+};
+
+const CAS_CLINIQUE: NavItem = {
+  title: "Cas clinique",
+  href: "/cases",
+  icon: Activity,
+};
+
+const LABORATOIRE: NavItem = {
+  title: "Laboratoire",
+  href: "/lab",
+  icon: FlaskConical,
+};
+
+const PARAMETRE: NavItem = {
+  title: "Paramètre",
+  href: "/settings",
+  icon: Settings,
+};
+
+export const NAV_BY_ROLE: Record<string, NavItem[]> = {
+  [ROLES.ADMINISTRATEUR]: [
+    DASHBOARD,
+    CARTE,
+    CAS_CLINIQUE,
+    LABORATOIRE,
+    PARAMETRE,
+  ],
+  [ROLES.MEDECIN]: [DASHBOARD, CARTE, CAS_CLINIQUE],
+  [ROLES.LABORATOIRE]: [DASHBOARD, CARTE, LABORATOIRE],
+};
+
+export function getNavForRole(role?: string): NavItem[] {
+  return NAV_BY_ROLE[role ?? ""] ?? [DASHBOARD];
+}

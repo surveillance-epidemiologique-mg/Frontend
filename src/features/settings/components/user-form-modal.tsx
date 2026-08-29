@@ -13,12 +13,6 @@ import {
   type UserFormValues,
 } from "@/features/settings/types";
 
-export interface RegionOption {
-  id: number;
-  name: string;
-  districts: { id: number; name: string }[];
-}
-
 interface UserFormModalProps {
   open: boolean;
   onClose: () => void;
@@ -26,17 +20,14 @@ interface UserFormModalProps {
   user?: User | null;
   roles: Role[];
   centres: CentreSante[];
-  regions: RegionOption[];
+  loading?: boolean;
 }
 
 const EMPTY: UserFormValues = {
   name: "",
-  firstName: "",
-  lastName: "",
   email: "",
   phoneNumber: "",
   roleId: 0,
-  regionId: null,
   centreId: null,
   isActive: true,
 };
@@ -48,28 +39,19 @@ export function UserFormModal({
   user,
   roles,
   centres,
-  regions,
+  loading = false,
 }: UserFormModalProps) {
   const [values, setValues] = useState<UserFormValues>(() =>
     user
       ? {
           name: user.name,
-          firstName: user.firstName ?? "",
-          lastName: user.lastName ?? "",
           email: user.email,
           phoneNumber: user.phoneNumber ?? "",
           roleId: user.roleId,
-          regionId: user.region?.id ?? null,
           centreId: user.centreId,
           isActive: user.isActive,
         }
       : EMPTY,
-  );
-  const [districtId, setDistrictId] = useState<string>(
-    () =>
-      user?.centre
-        ? String(centres.find((c) => c.id === user.centreId)?.zoneId ?? "")
-        : "",
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const isEdit = Boolean(user);
@@ -83,12 +65,6 @@ export function UserFormModal({
     return options;
   }, [roles, user]);
 
-  const selectedRegion = regions.find((r) => r.id === values.regionId);
-  const districts = selectedRegion?.districts ?? [];
-  const centresInDistrict = centres.filter(
-    (c) => String(c.zoneId) === districtId,
-  );
-
   function updateField<K extends keyof UserFormValues>(
     key: K,
     value: UserFormValues[K],
@@ -99,8 +75,11 @@ export function UserFormModal({
 
   function validate(): boolean {
     const next: Record<string, string> = {};
-    if (!values.firstName.trim() && !values.name.trim()) {
-      next.firstName = "Le prénom ou le nom est requis.";
+
+    if (!values.name.trim()) {
+      next.name = "Le nom complet est requis.";
+    } else if (values.name.trim().length < 2) {
+      next.name = "Le nom doit contenir au moins 2 caractères.";
     }
     if (!values.email.trim()) {
       next.email = "L'adresse e-mail est requise.";
@@ -110,6 +89,7 @@ export function UserFormModal({
     if (!values.roleId) {
       next.roleId = "Le rôle est requis.";
     }
+
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -121,13 +101,9 @@ export function UserFormModal({
       return;
     }
 
-    const firstName = values.firstName.trim();
-    const lastName = values.lastName.trim();
     onSubmit({
       ...values,
-      name: [firstName, lastName].filter(Boolean).join(" ") || values.name.trim(),
-      firstName,
-      lastName,
+      name: values.name.trim(),
       email: values.email.trim(),
       phoneNumber: values.phoneNumber.trim(),
     });
@@ -141,16 +117,20 @@ export function UserFormModal({
       description={
         isEdit
           ? "Mettez à jour les informations du compte."
-          : "Le compte sera prêt pour sa première connexion (l'utilisateur définira son mot de passe)."
+          : "Le compte sera créé avec un mot de passe temporaire. L'utilisateur définira son propre mot de passe lors de l'activation."
       }
       size="lg"
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} disabled={loading}>
             Annuler
           </Button>
-          <Button type="submit" form="user-form">
-            {isEdit ? "Enregistrer" : "Créer le compte"}
+          <Button type="submit" form="user-form" loading={loading}>
+            {loading
+              ? "Enregistrement..."
+              : isEdit
+                ? "Enregistrer"
+                : "Créer le compte"}
           </Button>
         </>
       }
@@ -161,22 +141,14 @@ export function UserFormModal({
         className="space-y-4"
         noValidate
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Input
-            label="Prénom"
-            value={values.firstName}
-            onChange={(e) => updateField("firstName", e.target.value)}
-            placeholder="Jean"
-            error={errors.firstName}
-            autoFocus
-          />
-          <Input
-            label="Nom"
-            value={values.lastName}
-            onChange={(e) => updateField("lastName", e.target.value)}
-            placeholder="Rakoto"
-          />
-        </div>
+        <Input
+          label="Nom complet"
+          value={values.name}
+          onChange={(e) => updateField("name", e.target.value)}
+          placeholder="Dr RAKOTO Jean"
+          error={errors.name}
+          autoFocus
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
@@ -196,10 +168,10 @@ export function UserFormModal({
           />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Select
             label="Rôle"
-            value={values.roleId || ""}
+            value={values.roleId ? String(values.roleId) : ""}
             onChange={(e) =>
               updateField("roleId", e.target.value ? Number(e.target.value) : 0)
             }
@@ -211,43 +183,23 @@ export function UserFormModal({
             error={errors.roleId}
           />
           <Select
-            label="Région"
-            value={values.regionId ? String(values.regionId) : ""}
-            onChange={(e) => {
-              updateField("regionId", e.target.value ? Number(e.target.value) : null);
-              setDistrictId("");
-              updateField("centreId", null);
-            }}
-            placeholder="Aucune"
-            options={regions.map((r) => ({ value: String(r.id), label: r.name }))}
-          />
-          <Select
-            label="District"
-            value={districtId}
-            onChange={(e) => {
-              setDistrictId(e.target.value);
-              updateField("centreId", null);
-            }}
-            placeholder="Aucun"
-            disabled={!values.regionId}
-            options={districts.map((d) => ({ value: String(d.id), label: d.name }))}
-          />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Select
-            label="Établissement"
+            label="Centre de santé"
             value={values.centreId ? String(values.centreId) : ""}
             onChange={(e) =>
-              updateField("centreId", e.target.value ? Number(e.target.value) : null)
+              updateField(
+                "centreId",
+                e.target.value ? Number(e.target.value) : null,
+              )
             }
-            placeholder="Aucun"
-            disabled={!districtId}
-            options={centresInDistrict.map((centre) => ({
+            placeholder="Aucun centre"
+            options={centres.map((centre) => ({
               value: String(centre.id),
               label: centre.name,
             }))}
           />
+        </div>
+
+        {isEdit ? (
           <Select
             label="Statut du compte"
             value={values.isActive ? "active" : "inactive"}
@@ -257,7 +209,7 @@ export function UserFormModal({
               { value: "inactive", label: "Inactif" },
             ]}
           />
-        </div>
+        ) : null}
       </form>
     </Modal>
   );

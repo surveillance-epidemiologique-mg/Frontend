@@ -2,23 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  Bell,
-  ChevronDown,
-  HelpCircle,
-  LogOut,
-  Menu,
-  Moon,
-  Presentation,
-  Sun,
-  User,
-} from "lucide-react";
+import { ChevronDown, LogOut, Menu, User } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { GlobalSearch } from "@/features/search/components/global-search";
-import { useTheme } from "@/features/theme/theme-provider";
 import { cn } from "@/lib/utils";
 
 export interface NavbarUser {
@@ -27,40 +14,14 @@ export interface NavbarUser {
   role?: string;
 }
 
-const PAGE_TITLES: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/statistiques": "Statistiques",
-  "/zones": "Carte épidémiologique",
-  "/alerts": "Alertes",
-  "/cases": "Signalements",
-  "/etablissements": "Établissements",
-  "/reports": "Rapports",
-  "/notifications": "Notifications",
-  "/users": "Utilisateurs",
-  "/settings": "Paramètres",
-  "/profile": "Profil",
-};
-
 interface NavbarProps {
   user: NavbarUser;
   onMenuClick: () => void;
-  presentation: boolean;
-  onTogglePresentation: () => void;
-  onOpenHelp: () => void;
 }
 
-export function Navbar({
-  user,
-  onMenuClick,
-  presentation,
-  onTogglePresentation,
-  onOpenHelp,
-}: NavbarProps) {
+export function Navbar({ user, onMenuClick }: NavbarProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { theme, toggleTheme } = useTheme();
-  const pathname = usePathname();
-  const pageTitle = PAGE_TITLES[pathname] ?? "Tableau de bord";
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -98,139 +59,83 @@ export function Navbar({
         <Menu className="size-5" />
       </button>
 
-      <div className="hidden min-w-0 items-center gap-3 lg:flex">
-        <span className="h-9 w-px shrink-0 bg-border" aria-hidden="true" />
-        <div className="min-w-0 leading-tight">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-            Surveillance épidémiologique
-          </p>
-          <p className="truncate text-sm font-semibold text-text-main">
-            {pageTitle}
-          </p>
-        </div>
+      {/* Gauche : type d'utilisateur */}
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" />
+        <Badge variant="secondary" className="capitalize">
+          {user.role ?? "Utilisateur"}
+        </Badge>
       </div>
 
-      <div className="hidden flex-1 justify-center px-4 lg:block">
-        <GlobalSearch />
-      </div>
-      <div className="flex-1 lg:hidden" />
+      <div className="flex-1" />
 
-      <div className="flex items-center gap-1.5">
+      {/* Droite : nom + email + menu profil */}
+      <div ref={menuRef} className="relative">
         <button
           type="button"
-          onClick={toggleTheme}
-          aria-label={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
-          className="grid size-9 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-app hover:text-text-main"
+          onClick={() => setOpen((prev) => !prev)}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          className="flex items-center gap-2.5 rounded-full p-1.5 transition-colors hover:bg-bg-app sm:pr-2.5"
         >
-          {theme === "dark" ? (
-            <Sun className="size-5" />
-          ) : (
-            <Moon className="size-5" />
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={onTogglePresentation}
-          aria-pressed={presentation}
-          aria-label="Mode présentation"
-          className={cn(
-            "hidden size-9 place-items-center rounded-lg transition-colors hover:bg-bg-app sm:grid",
-            presentation ? "bg-primary-light text-primary" : "text-text-muted hover:text-text-main",
-          )}
-        >
-          <Presentation className="size-5" />
-        </button>
-
-        <button
-          type="button"
-          onClick={onOpenHelp}
-          aria-label="Aide"
-          className="grid size-9 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-app hover:text-text-main"
-        >
-          <HelpCircle className="size-5" />
-        </button>
-
-        <Link
-          href="/notifications"
-          aria-label="Notifications"
-          className="grid size-9 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-app hover:text-text-main"
-        >
-          <Bell className="size-5" />
-        </Link>
-
-        <div ref={menuRef} className="relative">
-          <button
-            type="button"
-            onClick={() => setOpen((prev) => !prev)}
-            aria-haspopup="menu"
-            aria-expanded={open}
-            className="flex items-center gap-2.5 rounded-full p-1.5 transition-colors hover:bg-bg-app sm:pr-2.5"
-          >
-            <Avatar name={user.name} />
-            <span className="hidden min-w-0 text-left sm:block">
-              <span className="block truncate text-sm font-medium text-text-main">
-                {user.name}
-              </span>
-              <span className="block truncate text-xs text-text-muted">
-                {user.email}
-              </span>
+          <Avatar name={user.name} />
+          <span className="hidden min-w-0 text-left sm:block">
+            <span className="block truncate text-sm font-medium text-text-main">
+              {user.name}
             </span>
-            <ChevronDown
-              className={cn(
-                "hidden size-4 shrink-0 text-text-muted transition-transform duration-200 sm:block",
-                open && "rotate-180",
-              )}
-            />
-          </button>
+            <span className="block truncate text-xs text-text-muted">
+              {user.email}
+            </span>
+          </span>
+          <ChevronDown
+            className={cn(
+              "hidden size-4 shrink-0 text-text-muted transition-transform duration-200 sm:block",
+              open && "rotate-180",
+            )}
+          />
+        </button>
 
-          {open ? (
-            <div
-              role="menu"
-              className="animate-scale-in absolute right-0 top-full mt-2 w-72 origin-top-right overflow-hidden rounded-2xl border border-border bg-bg-surface shadow-lg"
-            >
-              <div className="flex items-center gap-3 border-b border-border px-4 py-3.5">
-                <Avatar name={user.name} size="lg" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-text-main">
-                    {user.name}
-                  </p>
-                  <p className="truncate text-xs text-text-muted">
-                    {user.email}
-                  </p>
-                  {user.role ? (
-                    <Badge variant="secondary" className="mt-1.5">
-                      {user.role}
-                    </Badge>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="p-1.5">
-                <Link
-                  href="/profile"
-                  role="menuitem"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-text-main transition-colors hover:bg-bg-app"
-                >
-                  <User className="size-4 shrink-0 text-text-muted" />
-                  Mes Informations
-                </Link>
-
-                <form action={logoutAction}>
-                  <button
-                    type="submit"
-                    role="menuitem"
-                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-error transition-colors hover:bg-error/10"
-                  >
-                    <LogOut className="size-4 shrink-0" />
-                    Déconnexion
-                  </button>
-                </form>
+        {open ? (
+          <div
+            role="menu"
+            className="animate-scale-in absolute right-0 top-full mt-2 w-72 origin-top-right overflow-hidden rounded-2xl border border-border bg-bg-surface shadow-lg"
+          >
+            <div className="flex items-center gap-3 border-b border-border px-4 py-3.5">
+              <Avatar name={user.name} size="lg" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-text-main">
+                  {user.name}
+                </p>
+                <p className="truncate text-xs text-text-muted">
+                  {user.email}
+                </p>
               </div>
             </div>
-          ) : null}
-        </div>
+
+            <div className="p-1.5">
+              <Link
+                href="/profile"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-text-main transition-colors hover:bg-bg-app"
+              >
+                <User className="size-4 shrink-0 text-text-muted" />
+                Mes Informations
+              </Link>
+
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  role="menuitem"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-error transition-colors hover:bg-error/10"
+                >
+                  <LogOut className="size-4 shrink-0" />
+                  Déconnexion
+                </button>
+              </form>
+            </div>
+          </div>
+        ) : null}
       </div>
     </header>
   );

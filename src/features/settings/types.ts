@@ -19,10 +19,8 @@ export const CENTRE_TYPES: CentreType[] = [
 ];
 
 export const INVITABLE_ROLE_NAMES = [
-  "Responsable national",
-  "Responsable régional",
-  "Agent de santé",
-  "Observateur",
+  "Medecin",
+  "Laboratoire",
 ] as const;
 
 export interface Maladie {
@@ -36,12 +34,9 @@ export interface Maladie {
 
 export interface UserFormValues {
   name: string;
-  firstName: string;
-  lastName: string;
   email: string;
   phoneNumber: string;
   roleId: number;
-  regionId: number | null;
   centreId: number | null;
   isActive: boolean;
 }

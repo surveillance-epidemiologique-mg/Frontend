@@ -1,39 +1,28 @@
-import type { CentreSante, InviteResponse, Role, Zone } from "@/types/auth";
-import type { RegionOption } from "@/features/settings/components/user-form-modal";
-import { buildRegions } from "@/features/settings/utils";
+import type { CentreSante, InviteResponse, Role } from "@/types/auth";
 
 export interface InvitePayload {
   name: string;
-  firstName?: string;
-  lastName?: string;
   email: string;
   roleId: number;
   centreId?: number;
-  regionId?: number;
   phoneNumber?: string;
 }
 
 export interface InviteOptions {
   roles: Role[];
   centres: CentreSante[];
-  regions: RegionOption[];
 }
 
 export async function getInviteOptions(): Promise<InviteOptions> {
   try {
-    const [roles, centres, zones] = await Promise.all([
+    const [roles, centres] = await Promise.all([
       fetch("/api/users/roles").then((r) => (r.ok ? r.json() : [])),
       fetch("/api/centres").then((r) => (r.ok ? r.json() : [])),
-      fetch("/api/zones").then((r) => (r.ok ? r.json() : [])),
     ]);
 
-    return {
-      roles: roles as Role[],
-      centres: centres as CentreSante[],
-      regions: buildRegions(zones as Zone[]),
-    };
+    return { roles: roles as Role[], centres: centres as CentreSante[] };
   } catch {
-    return { roles: [], centres: [], regions: [] };
+    return { roles: [], centres: [] };
   }
 }
 
