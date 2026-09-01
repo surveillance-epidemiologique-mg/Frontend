@@ -35,17 +35,12 @@ export default async function ProfilePage() {
   const name = me?.name ?? session.email.split("@")[0] ?? "Utilisateur";
   const email = me?.email ?? session.email;
   const role = me?.role?.name ?? session.role;
-  const firstName = me?.firstName ?? "";
-  const lastName = me?.lastName ?? "";
 
   const infos = [
     { icon: User, label: "Nom complet", value: name },
-    { icon: User, label: "Prénom", value: firstName || "—" },
-    { icon: User, label: "Nom de famille", value: lastName || "—" },
     { icon: Mail, label: "Adresse e-mail", value: email },
     { icon: Phone, label: "Téléphone", value: me?.phoneNumber ?? "—" },
     { icon: BadgeCheck, label: "Rôle", value: role },
-    { icon: MapPin, label: "Région", value: me?.region?.name ?? "—" },
     { icon: MapPin, label: "District", value: me?.centre?.zone?.name ?? "—" },
     { icon: Building2, label: "Établissement", value: me?.centre?.name ?? "—" },
     {
