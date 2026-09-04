@@ -13,6 +13,7 @@ import {
   createCentre,
   createMaladie,
   createUser,
+  deleteMaladie,
   fetchCentres,
   fetchMaladies,
   fetchRoles,
@@ -134,6 +135,11 @@ export function SettingsPage() {
     );
   }
 
+  async function handleDeleteMaladie(id: number) {
+    await deleteMaladie(id);
+    setMaladies((prev) => prev.filter((disease) => disease.id !== id));
+  }
+
   // ---- Centres ----
   async function handleAddCentre(values: CentreFormValues) {
     const created = await createCentre(values);
@@ -190,6 +196,7 @@ export function SettingsPage() {
           loading={loading}
           onAdd={handleAddMaladie}
           onUpdate={handleUpdateMaladie}
+          onDelete={handleDeleteMaladie}
         />
       ) : null}
 

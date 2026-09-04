@@ -1,39 +1,34 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { FlaskConical } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { ClipboardCheck, FlaskConical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  buildCasQueryString,
   CaseFilters,
   EMPTY_FILTERS,
   type CaseFiltersValues,
   type FilterOption,
 } from "@/components/cases/case-filters";
+import { DataTable, type Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
+import { ValidateCaseModal } from "@/features/lab/components/validate-case-modal";
+import {
+  fetchPendingCases,
+  notifyPrescriber,
+  validateCase,
+} from "@/features/lab/services/lab";
+import type { LabResultPayload, PendingCase } from "@/features/lab/types";
 import { formatDate } from "@/lib/utils";
 
-interface PendingCase {
-  id: number;
-  patient: {
-    anonymousCode: string;
-    namePatient: string | null;
-    age: number | null;
-    gender: string | null;
-  };
-  maladie: { name: string };
-  centre: { name: string; zone: { name: string } | null };
-  agent: { name: string };
-  diagnosisDate: string;
-  symptoms: string | null;
-  diagnosticStatus: string;
-}
+const STATUS_LABEL: Record<string, string> = {
+  Suspect: "Suspect",
+  Confirme: "Confirmé",
+  Invalide: "Invalidé",
+};
 
 export default function LaboratoirePage() {
   const { toast } = useToast();
@@ -43,9 +38,9 @@ export default function LaboratoirePage() {
   const [years, setYears] = useState<number[]>([]);
   const [filters, setFilters] = useState<CaseFiltersValues>(EMPTY_FILTERS);
   const [loading, setLoading] = useState(true);
-  const [result, setResult] = useState<
-    Record<number, { labResult: string; status: string }>
-  >({});
+
+  const [selected, setSelected] = useState<PendingCase | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -62,8 +57,6 @@ export default function LaboratoirePage() {
         setYears(y);
       } catch {
         // API indisponible : listes vides
-      } finally {
-        if (active) setLoading(false);
       }
     })();
     return () => {
@@ -71,19 +64,20 @@ export default function LaboratoirePage() {
     };
   }, []);
 
+  const loadCases = useCallback(async () => {
+    const data = await fetchPendingCases(filters);
+    setCases(data);
+  }, [filters]);
+
   useEffect(() => {
     const id = setTimeout(() => {
       void (async () => {
         try {
-          const data = await fetch(
-            `/api/cas/laboratoire${buildCasQueryString(filters)}`,
-          ).then((r) => (r.ok ? r.json() : []));
-          setCases(Array.isArray(data) ? data : []);
-        } catch (e) {
+          await loadCases();
+        } catch {
           toast({
             title: "Erreur",
-            description:
-              e instanceof Error ? e.message : "Erreur de chargement.",
+            description: "Erreur de chargement des cas.",
             variant: "error",
           });
           setCases([]);
@@ -93,66 +87,123 @@ export default function LaboratoirePage() {
       })();
     }, 300);
     return () => clearTimeout(id);
-  }, [filters, toast]);
+  }, [loadCases, toast]);
 
-  const centreNames = useMemo(
-    () => new Set(cases.map((c) => c.centre.name)),
-    [cases],
-  );
+  function openValidation(cas: PendingCase) {
+    setSelected(cas);
+    setModalOpen(true);
+  }
 
-  async function submitResult(id: number) {
-    const data = result[id];
-    if (!data?.labResult || !data?.status) {
-      toast({
-        title: "Champs requis",
-        description: "Renseignez le résultat et le statut.",
-        variant: "warning",
-      });
-      return;
-    }
+  async function handleValidate(id: number, payload: LabResultPayload) {
+    await validateCase(id, payload);
+
+    toast({
+      title: "Cas validé",
+      description: `Cas #${id} → ${
+        payload.diagnosticStatus === "Confirme" ? "Confirmé" : "Invalidé"
+      }.`,
+      variant: "success",
+    });
+
+    setModalOpen(false);
+    setSelected(null);
+
+    // NOTIF-01 : notification au médecin prescripteur (best-effort)
+    notifyPrescriber(id, payload.diagnosticStatus);
+
+    // Rafraîchit la liste « en attente » (le cas quitte la liste si statut ≠ Suspect)
     try {
-      const res = await fetch(`/api/cas/${id}/result`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          labResult: data.labResult,
-          diagnosticStatus: data.status,
-        }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(
-          body?.message ?? "Impossible d'enregistrer le résultat.",
-        );
-      }
-      toast({
-        title: "Résultat enregistré",
-        description: `Cas #${id} → ${data.status}.`,
-        variant: "success",
-      });
-      setResult((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-      const fresh = await fetch(
-        `/api/cas/laboratoire${buildCasQueryString(filters)}`,
-      ).then((r) => (r.ok ? r.json() : []));
-      setCases(Array.isArray(fresh) ? fresh : []);
-    } catch (e) {
-      toast({
-        title: "Erreur",
-        description: e instanceof Error ? e.message : "Erreur.",
-        variant: "error",
-      });
+      const fresh = await fetchPendingCases(filters);
+      setCases(fresh);
+    } catch {
+      setCases((prev) => prev.filter((cas) => cas.id !== id));
     }
   }
+
+  const columns: Column<PendingCase>[] = [
+    {
+      key: "patient",
+      header: "Nom du patient",
+      cell: (c) => (
+        <span className="font-medium text-text-main">
+          {c.patient.namePatient ?? "—"}
+        </span>
+      ),
+    },
+    {
+      key: "code",
+      header: "Code anonyme",
+      cell: (c) => (
+        <span className="font-mono text-xs font-medium text-text-muted">
+          {c.patient.anonymousCode}
+        </span>
+      ),
+    },
+    {
+      key: "maladie",
+      header: "Maladie",
+      cell: (c) => <span>{c.maladie.name}</span>,
+    },
+    {
+      key: "centre",
+      header: "Centre de santé",
+      cell: (c) => (
+        <span className="text-text-main">
+          {c.centre.name}
+          {c.centre.zone?.name ? (
+            <span className="block text-xs text-text-muted">
+              {c.centre.zone.name}
+            </span>
+          ) : null}
+        </span>
+      ),
+    },
+    {
+      key: "agent",
+      header: "Médecin déclarant",
+      cell: (c) => <span className="text-text-muted">{c.agent.name}</span>,
+    },
+    {
+      key: "date",
+      header: "Date de déclaration",
+      cell: (c) => (
+        <span className="whitespace-nowrap text-text-muted">
+          {formatDate(c.diagnosisDate)}
+        </span>
+      ),
+    },
+    {
+      key: "statut",
+      header: "Statut actuel",
+      cell: (c) => (
+        <Badge variant={c.diagnosticStatus === "Suspect" ? "warning" : "secondary"} dot>
+          {STATUS_LABEL[c.diagnosticStatus] ?? c.diagnosticStatus}
+        </Badge>
+      ),
+    },
+    {
+      key: "action",
+      header: "",
+      align: "right",
+      cell: (c) => (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => openValidation(c)}
+          aria-label={`Valider le cas ${c.patient.anonymousCode}`}
+        >
+          <ClipboardCheck className="size-4" />
+          Valider le cas
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Laboratoire"
-        description="Cas suspects en attente d'analyse."
+        description="Cas suspects en attente d'analyse et de validation."
       />
 
       <Card>
@@ -165,89 +216,37 @@ export default function LaboratoirePage() {
           showStatut={false}
         />
 
-        {cases.length === 0 ? (
-          <EmptyState
-            icon={FlaskConical}
-            title={loading ? "Chargement…" : "Aucun cas en attente"}
-            description={
-              loading
-                ? "Récupération des cas…"
-                : centreNames.size
-                  ? "Aucun cas ne correspond aux filtres sélectionnés."
+        <DataTable
+          columns={columns}
+          data={cases}
+          getRowId={(c) => String(c.id)}
+          loading={loading}
+          pageSize={10}
+          ariaLabel="Cas en attente d'analyse"
+          emptyState={
+            <EmptyState
+              icon={FlaskConical}
+              title={loading ? "Chargement…" : "Aucun cas en attente"}
+              description={
+                loading
+                  ? "Récupération des cas…"
                   : "Tous les cas suspects ont été analysés."
-            }
-          />
-        ) : (
-          <div className="space-y-4 p-4">
-            {cases.map((c) => {
-              const value = result[c.id];
-              return (
-                <Card key={c.id} className="p-5">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-sm font-semibold text-text-main">
-                          {c.patient.anonymousCode}
-                        </span>
-                        <Badge variant="warning">Suspect</Badge>
-                        <Badge variant="secondary">{c.maladie.name}</Badge>
-                      </div>
-                      <p className="mt-1 text-sm text-text-muted">
-                        {c.patient.namePatient ?? "—"} · {c.centre.name} ·{" "}
-                        {c.centre.zone?.name ?? "—"} · Déclaré par{" "}
-                        {c.agent.name} · {formatDate(c.diagnosisDate)}
-                      </p>
-                      {c.symptoms ? (
-                        <p className="mt-1 text-sm text-text-muted">
-                          {c.symptoms}
-                        </p>
-                      ) : null}
-                    </div>
-
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-                      <Input
-                        label="Résultat"
-                        value={value?.labResult ?? ""}
-                        onChange={(e) =>
-                          setResult((prev) => ({
-                            ...prev,
-                            [c.id]: {
-                              labResult: e.target.value,
-                              status: prev[c.id]?.status ?? "",
-                            },
-                          }))
-                        }
-                        placeholder="Positif / Négatif"
-                        className="sm:w-44"
-                      />
-                      <Select
-                        label="Statut"
-                        value={value?.status ?? ""}
-                        onChange={(e) =>
-                          setResult((prev) => ({
-                            ...prev,
-                            [c.id]: {
-                              labResult: prev[c.id]?.labResult ?? "",
-                              status: e.target.value,
-                            },
-                          }))
-                        }
-                        placeholder="Choisir"
-                        options={[
-                          { value: "Confirme", label: "Confirmé" },
-                          { value: "Invalide", label: "Invalidé" },
-                        ]}
-                        className="sm:w-40"
-                      />
-                      <Button onClick={() => submitResult(c.id)}>Valider</Button>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+              }
+            />
+          }
+        />
       </Card>
+
+      <ValidateCaseModal
+        key={selected ? `validation-${selected.id}-${modalOpen}` : "none"}
+        cas={selected}
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setSelected(null);
+        }}
+        onSubmit={handleValidate}
+      />
     </div>
   );
 }

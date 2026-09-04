@@ -50,23 +50,39 @@ export function Input({
             strokeWidth={1.75}
           />
         ) : null}
-        <input
-          id={inputId}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={describedById}
-          className={cn(
-            "w-full rounded-xl border bg-bg-surface px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60",
-            Icon && "pl-10",
-            rightSlot ? "pr-10" : false,
-            variant === "glass" &&
-              "border-white/60 bg-white/55 shadow-sm backdrop-blur-sm placeholder:text-text-subtle focus:bg-white/80",
-            error
-              ? "border-error focus:border-error focus:ring-error/20"
-              : "focus:border-primary focus:ring-primary/20",
-            className,
-          )}
-          {...props}
-        />
+          <input
+              id={inputId}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={describedById}
+              className={cn(
+                  "w-full rounded-xl border border-border/60",
+                  "bg-bg-surface px-3.5 py-2.5",
+                  "text-sm text-text-main outline-none",
+                  "placeholder:text-text-subtle/70",
+                  "transition-all duration-200",
+
+                  "hover:border-border",
+                  "focus:border-primary",
+                  "focus:ring-2 focus:ring-primary/20",
+                  "focus:outline-none",
+
+                  "disabled:cursor-not-allowed disabled:opacity-60",
+
+                  Icon ? "pl-10" : undefined,
+                  rightSlot ? "pr-10" : undefined,
+
+                  variant === "glass"
+                      ? "border-white/60 bg-white/55 shadow-sm backdrop-blur-sm placeholder:text-text-subtle"
+                      : undefined,
+
+                  error
+                      ? "border-error focus:border-error focus:ring-error/20"
+                      : undefined,
+
+                  className,
+              )}
+              {...props}
+          />
         {rightSlot ? (
           <div className="absolute right-2 top-1/2 -translate-y-1/2">
             {rightSlot}

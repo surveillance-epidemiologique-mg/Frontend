@@ -2,10 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, LogOut, Menu, User } from "lucide-react";
+import { ChevronDown, LogOut, Menu, User, X } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export interface NavbarUser {
@@ -16,10 +15,11 @@ export interface NavbarUser {
 
 interface NavbarProps {
   user: NavbarUser;
+  mobileOpen: boolean;
   onMenuClick: () => void;
 }
 
-export function Navbar({ user, onMenuClick }: NavbarProps) {
+export function Navbar({ user, mobileOpen, onMenuClick }: NavbarProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -49,24 +49,37 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-bg-surface/80 px-4 backdrop-blur-md sm:px-6">
+    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-bg-surface/80 px-4 backdrop-blur-md sm:px-6">
+      {/* Bouton d'ouverture/fermeture de la sidebar (mobile & tablette) */}
       <button
         type="button"
         onClick={onMenuClick}
-        aria-label="Ouvrir le menu"
+        aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
+        aria-expanded={mobileOpen}
+        aria-controls="app-sidebar"
         className="grid size-9 shrink-0 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-app hover:text-text-main lg:hidden"
       >
-        <Menu className="size-5" />
+        <span className="relative grid size-5" aria-hidden="true">
+          <Menu
+            className={cn(
+              "absolute inset-0 size-5 transition-all duration-300",
+              mobileOpen
+                ? "rotate-90 scale-50 opacity-0"
+                : "rotate-0 scale-100 opacity-100",
+            )}
+          />
+          <X
+            className={cn(
+              "absolute inset-0 size-5 transition-all duration-300",
+              mobileOpen
+                ? "rotate-0 scale-100 opacity-100"
+                : "-rotate-90 scale-50 opacity-0",
+            )}
+          />
+        </span>
       </button>
 
-      {/* Gauche : type d'utilisateur */}
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" />
-        <Badge variant="secondary" className="capitalize">
-          {user.role ?? "Utilisateur"}
-        </Badge>
-      </div>
-
+      {/* Gauche : aucun rôle affiché ici (affiché uniquement dans le bloc profil) */}
       <div className="flex-1" />
 
       {/* Droite : nom + email + menu profil */}
@@ -85,6 +98,9 @@ export function Navbar({ user, onMenuClick }: NavbarProps) {
             </span>
             <span className="block truncate text-xs text-text-muted">
               {user.email}
+            </span>
+            <span className="block truncate text-[11px] font-medium capitalize text-primary">
+              {user.role ?? "Utilisateur"}
             </span>
           </span>
           <ChevronDown

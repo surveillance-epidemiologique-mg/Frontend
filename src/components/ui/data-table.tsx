@@ -60,123 +60,123 @@ export function DataTable<T>({
   const skeletonRows = Array.from({ length: pageSize });
 
   return (
-    <div className="flex flex-col">
-      <div className="overflow-x-auto">
-        <table
-          className="w-full min-w-full border-collapse text-sm"
-          aria-label={ariaLabel}
-        >
-          <thead>
-            <tr className="border-b border-border bg-bg-muted/60">
+      <div className="flex flex-col">
+        <div className="overflow-x-auto">
+          <table
+              className="w-full min-w-full border-collapse text-sm"
+              aria-label={ariaLabel}
+          >
+            <thead>
+            <tr className="border-b border-border bg-bg-muted">
               {columns.map((column) => (
-                <th
-                  key={column.key}
-                  scope="col"
-                  className={cn(
-                    "whitespace-nowrap px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted",
-                    ALIGN_CLASSES[column.align ?? "left"],
-                    column.headerClassName,
-                  )}
-                >
-                  {column.header}
-                </th>
+                  <th
+                      key={column.key}
+                      scope="col"
+                      className={cn(
+                          "whitespace-nowrap px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted",
+                          ALIGN_CLASSES[column.align ?? "left"],
+                          column.headerClassName,
+                      )}
+                  >
+                    {column.header}
+                  </th>
               ))}
             </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
+            </thead>
+            <tbody className="divide-y divide-border">
             {loading
-              ? skeletonRows.map((_, index) => (
-                  <tr key={index}>
-                    {columns.map((column) => (
-                      <td key={column.key} className="px-4 py-3.5">
-                        <Skeleton className="h-4 w-full max-w-[10rem]" />
-                      </td>
-                    ))}
-                  </tr>
+                ? skeletonRows.map((_, index) => (
+                    <tr key={index}>
+                      {columns.map((column) => (
+                          <td key={column.key} className="px-4 py-3.5">
+                            <Skeleton className="h-4 w-full max-w-[10rem]" />
+                          </td>
+                      ))}
+                    </tr>
                 ))
-              : visibleRows.map((row) => (
-                  <tr
-                    key={getRowId(row)}
-                    onClick={
-                      onRowClick ? () => onRowClick(row) : undefined
-                    }
-                    className={cn(
-                      "transition-colors duration-150 hover:bg-bg-surface-hover",
-                      onRowClick && "cursor-pointer",
-                    )}
-                  >
-                    {columns.map((column) => (
-                      <td
-                        key={column.key}
+                : visibleRows.map((row) => (
+                    <tr
+                        key={getRowId(row)}
+                        onClick={
+                          onRowClick ? () => onRowClick(row) : undefined
+                        }
                         className={cn(
-                          "whitespace-nowrap px-4 py-3.5 text-text-main",
-                          ALIGN_CLASSES[column.align ?? "left"],
-                          column.className,
+                            "transition-colors duration-150 hover:bg-bg-surface-hover",
+                            onRowClick && "cursor-pointer",
                         )}
-                      >
-                        {column.cell(row)}
-                      </td>
-                    ))}
-                  </tr>
+                    >
+                      {columns.map((column) => (
+                          <td
+                              key={column.key}
+                              className={cn(
+                                  "whitespace-nowrap px-4 py-3.5 text-text-main",
+                                  ALIGN_CLASSES[column.align ?? "left"],
+                                  column.className,
+                              )}
+                          >
+                            {column.cell(row)}
+                          </td>
+                      ))}
+                    </tr>
                 ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
 
-        {!loading && data.length === 0 ? (
-          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-            {emptyState ?? (
-              <p className="text-sm text-text-muted">Aucune donnée.</p>
-            )}
-          </div>
-        ) : null}
-      </div>
+          {!loading && data.length === 0 ? (
+              <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+                {emptyState ?? (
+                    <p className="text-sm text-text-muted">Aucune donnée.</p>
+                )}
+              </div>
+          ) : null}
+        </div>
 
-      {data.length > 0 ? (
-        <div className="flex flex-col items-center justify-between gap-3 border-t border-border px-4 py-3 sm:flex-row">
-          <p className="text-xs text-text-muted">
-            {data.length === 0
-              ? "0 résultat"
-              : `${start + 1}–${Math.min(start + pageSize, data.length)} sur ${data.length} résultats`}
-          </p>
+        {data.length > 0 ? (
+            <div className="flex flex-col items-center justify-between gap-3 border-t border-border px-4 py-3 sm:flex-row">
+              <p className="text-xs text-text-muted">
+                {data.length === 0
+                    ? "0 résultat"
+                    : `${start + 1}–${Math.min(start + pageSize, data.length)} sur ${data.length} résultats`}
+              </p>
 
-          <div className="flex items-center gap-1">
-            <PaginationButton
-              onClick={() => setPage(0)}
-              disabled={safePage === 0}
-              ariaLabel="Première page"
-            >
-              <ChevronsLeft className="size-4" />
-            </PaginationButton>
-            <PaginationButton
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={safePage === 0}
-              ariaLabel="Page précédente"
-            >
-              <ChevronLeft className="size-4" />
-            </PaginationButton>
+              <div className="flex items-center gap-1">
+                <PaginationButton
+                    onClick={() => setPage(0)}
+                    disabled={safePage === 0}
+                    ariaLabel="Première page"
+                >
+                  <ChevronsLeft className="size-4" />
+                </PaginationButton>
+                <PaginationButton
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={safePage === 0}
+                    ariaLabel="Page précédente"
+                >
+                  <ChevronLeft className="size-4" />
+                </PaginationButton>
 
-            <span className="px-2 text-xs font-medium text-text-main">
+                <span className="px-2 text-xs font-medium text-text-main">
               {safePage + 1} / {totalPages}
             </span>
 
-            <PaginationButton
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={safePage >= totalPages - 1}
-              ariaLabel="Page suivante"
-            >
-              <ChevronRight className="size-4" />
-            </PaginationButton>
-            <PaginationButton
-              onClick={() => setPage(totalPages - 1)}
-              disabled={safePage >= totalPages - 1}
-              ariaLabel="Dernière page"
-            >
-              <ChevronsRight className="size-4" />
-            </PaginationButton>
-          </div>
-        </div>
-      ) : null}
-    </div>
+                <PaginationButton
+                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                    disabled={safePage >= totalPages - 1}
+                    ariaLabel="Page suivante"
+                >
+                  <ChevronRight className="size-4" />
+                </PaginationButton>
+                <PaginationButton
+                    onClick={() => setPage(totalPages - 1)}
+                    disabled={safePage >= totalPages - 1}
+                    ariaLabel="Dernière page"
+                >
+                  <ChevronsRight className="size-4" />
+                </PaginationButton>
+              </div>
+            </div>
+        ) : null}
+      </div>
   );
 }
 

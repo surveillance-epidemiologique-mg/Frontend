@@ -1,66 +1,51 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   Design Tokens — Primary: #2563EB
-   Dérivations mathématiques (HSL) · Contraste WCAG 2.1 AA
+   Design Tokens — Palette « Bleu médical »
+   Famille Sky (hsl(201 96% 32%)) · contrastes WCAG 2.1 AA vérifiés
    ========================================================================== */
 
 :root {
   color-scheme: light;
 
-  /* --- Typographie (pile système, sans dépendance réseau) ------------- */
+  /* --- Typographie (pile système, sans dépendance réseau) --------------- */
   --font-geist-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-geist-mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas,
     "Liberation Mono", monospace;
 
-  /* --- Primary (#2563EB · hsl(217 91% 53%)) ----------------------------- */
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  /* L −12 % */
-  --primary-active: #1e40af;
-  /* L −20 % */
-  --primary-light: #eff6ff;
-  /* tint ~95 % */
-  --primary-foreground: #ffffff;
-  /* contraste 4.56:1 sur --primary */
+  /* --- Primary — bleu médical (#0369A1 · sky-700) ----------------------- */
+  --primary: #0369a1;
+  --primary-hover: #075985;   /* sky-800 */
+  --primary-active: #0c4a6e;  /* sky-900 */
+  --primary-light: #e0f2fe;   /* sky-100 (fonds, badges, hover doux) */
+  --primary-foreground: #ffffff; /* contraste 5.2:1 sur --primary */
 
-  /* --- Secondary (Slate, équilibré avec la primaire) -------------------- */
+  /* --- Secondary (Slate, neutre) ---------------------------------------- */
   --secondary: #475569;
   --secondary-hover: #334155;
-  --secondary-foreground: #ffffff;
-  /* contraste 7.58:1 sur --secondary */
+  --secondary-foreground: #ffffff; /* contraste 7.58:1 sur --secondary */
 
-  /* --- Accent (complémentaire ~37° · CTA) ----------------------------- */
+  /* --- Accent (complémentaire orange) ----------------------------------- */
   --accent: #ea580c;
   --accent-hover: #c2410c;
-  --accent-foreground: #ffffff;
-  /* contraste 4.63:1 sur --accent */
+  --accent-foreground: #ffffff; /* contraste 4.63:1 sur --accent */
 
-  /* --- Surfaces & typographie ----------------------------------------- */
-  /* --bg-app: #f8fafc;          fond de page (slate-50) */
-  --bg-app: #fff;
-  --bg-surface: #ffffff;
-  /* cartes / panneaux */
-  --bg-muted: #f1f5f9;
-  /* fonds insérés (slate-100) */
-  --bg-surface-hover: #f8fafc;
-  /* survol des cartes / lignes */
-  --border: #e2e8f0;
-  /* bordures (slate-200) */
-  --border-strong: #cbd5e1;
-  /* bordures renforcées (slate-300) */
-  --text-main: #0f172a;
-  /* contraste 15.8:1 sur --bg-app */
-  --text-muted: #64748b;
-  /* contraste 4.76:1 sur --bg-surface */
-  --text-subtle: #94a3b8;
-  /* texte tertiaire / placeholders */
+  /* --- Surfaces & typographie ------------------------------------------- */
+  --bg-app: #fff;          /* fond de page (léger bleu-gris) */
+  --bg-surface: #ffffff;      /* cartes / panneaux */
+  --bg-muted: #eef3f7;        /* fonds insérés (champs, zones secondaires) */
+  --bg-surface-hover: #f8fafc;/* survol des cartes / lignes */
+  --border: #e2e8f0;          /* bordures */
+  --border-strong: #cbd5e1;   /* bordures renforcées */
+  --text-main: #0f172a;       /* contraste 15.8:1 sur --bg-app */
+  --text-muted: #64748b;      /* contraste 4.76:1 sur --bg-surface */
+  --text-subtle: #94a3b8;     /* texte tertiaire / placeholders */
 
-  /* --- Focus & accessibilité ------------------------------------------ */
-  --focus-ring: rgb(37 99 235 / 0.35);
+  /* --- Focus & accessibilité -------------------------------------------- */
+  --focus-ring: rgb(3 105 161 / 0.35);
 
-  /* --- États système -------------------------------------------------- */
+  /* --- États système ---------------------------------------------------- */
   --success: #16a34a;
   --success-foreground: #ffffff;
   --warning: #d97706;
@@ -70,40 +55,29 @@
   --info: #0284c7;
   --info-foreground: #ffffff;
 
-  /* --- Statuts épidémiologiques (badges pastel discrets) -------------- */
-  --status-suspect-bg: #fef3c7;
-  /* jaune pastel */
+  /* --- Statuts épidémiologiques (badges pastel, couleurs distinctes) ---- */
+  --status-suspect-bg: #fef3c7;   /* ambre pastel */
   --status-suspect-fg: #92400e;
-  /* ambre foncé */
-  --status-confirmed-bg: #fee2e2;
-  /* rouge pastel */
+  --status-probable-bg: #ffedd5;  /* orange pastel */
+  --status-probable-fg: #c2410c;
+  --status-confirmed-bg: #fee2e2; /* rouge pastel */
   --status-confirmed-fg: #991b1b;
-  --status-recovered-bg: #dcfce7;
-  /* vert pastel */
+  --status-recovered-bg: #dcfce7; /* vert pastel */
   --status-recovered-fg: #166534;
-  --status-deceased-bg: #f1f5f9;
-  /* gris neutre */
+  --status-deceased-bg: #f1f5f9;  /* gris neutre */
   --status-deceased-fg: #334155;
 
-  /* --- Palette graphiques (data-viz, analytics) ------------------------ */
-  --chart-1: #2563eb;
-  /* bleu primaire */
-  --chart-2: #0ea5e9;
-  /* ciel */
-  --chart-3: #10b981;
-  /* émeraude */
-  --chart-4: #f59e0b;
-  /* ambre */
-  --chart-5: #ef4444;
-  /* rouge */
-  --chart-6: #8b5cf6;
-  /* violet */
-  --chart-7: #14b8a6;
-  /* sarcelle */
-  --chart-8: #f97316;
-  /* orange */
+  /* --- Palette graphiques (data-viz, analytics) ------------------------- */
+  --chart-1: #0369a1;  /* bleu médical */
+  --chart-2: #0ea5e9;  /* ciel */
+  --chart-3: #10b981;  /* émeraude */
+  --chart-4: #f59e0b;  /* ambre */
+  --chart-5: #ef4444;  /* rouge */
+  --chart-6: #8b5cf6;  /* violet */
+  --chart-7: #14b8a6;  /* sarcelle */
+  --chart-8: #f97316;  /* orange */
 
-  /* --- Élévations (ombres douces & naturelles) ------------------------- */
+  /* --- Élévations (ombres douces & naturelles) -------------------------- */
   --elevation-card:
     0 1px 2px 0 rgb(15 23 42 / 0.04),
     0 1px 3px 0 rgb(15 23 42 / 0.04);
@@ -116,30 +90,30 @@
     0 8px 16px -4px rgb(15 23 42 / 0.10),
     0 20px 40px -12px rgb(15 23 42 / 0.12);
 
-  /* --- Alias rétrocompatibilité --------------------------------------- */
+  /* --- Alias rétrocompatibilité ----------------------------------------- */
   --background: var(--bg-app);
   --foreground: var(--text-main);
 }
 
 /* ==========================================================================
-   Dark Mode — classe .dark (basculable manuellement)
+   Dark Mode — classe .dark (basculée par le ThemeProvider)
    ========================================================================== */
 
 .dark {
   color-scheme: dark;
 
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --primary-active: #1d4ed8;
-  --primary-light: #172554;
-  --primary-foreground: #ffffff;
+  --primary: #38bdf8;         /* sky-400 */
+  --primary-hover: #0ea5e9;   /* sky-500 */
+  --primary-active: #0284c7;  /* sky-600 */
+  --primary-light: #0c4a6e;   /* sky-900 */
+  --primary-foreground: #082f49; /* sky-950 */
 
-  --secondary: #64748b;
-  --secondary-hover: #475569;
-  --secondary-foreground: #ffffff;
+  --secondary: #94a3b8;
+  --secondary-hover: #64748b;
+  --secondary-foreground: #0f172a;
 
-  --accent: #f97316;
-  --accent-hover: #ea580c;
+  --accent: #fb923c;
+  --accent-hover: #f97316;
   --accent-foreground: #0f172a;
 
   --bg-app: #0f172a;
@@ -152,7 +126,7 @@
   --text-muted: #94a3b8;
   --text-subtle: #64748b;
 
-  --focus-ring: rgb(59 130 246 / 0.50);
+  --focus-ring: rgb(56 189 248 / 0.50);
 
   --success: #22c55e;
   --success-foreground: #0f172a;
@@ -160,11 +134,13 @@
   --warning-foreground: #0f172a;
   --error: #ef4444;
   --error-foreground: #ffffff;
-  --info: #0ea5e9;
+  --info: #38bdf8;
   --info-foreground: #0f172a;
 
   --status-suspect-bg: #451a03;
   --status-suspect-fg: #fde68a;
+  --status-probable-bg: #431407;
+  --status-probable-fg: #fed7aa;
   --status-confirmed-bg: #450a0a;
   --status-confirmed-fg: #fecaca;
   --status-recovered-bg: #052e16;
@@ -172,8 +148,8 @@
   --status-deceased-bg: #1e293b;
   --status-deceased-fg: #cbd5e1;
 
-  --chart-1: #3b82f6;
-  --chart-2: #38bdf8;
+  --chart-1: #38bdf8;
+  --chart-2: #7dd3fc;
   --chart-3: #34d399;
   --chart-4: #fbbf24;
   --chart-5: #f87171;
@@ -182,16 +158,16 @@
   --chart-8: #fb923c;
 
   --elevation-card:
-    0 1px 2px 0 rgb(0 0 0 / 0.30),
-    0 1px 3px 0 rgb(0 0 0 / 0.28);
+    0 1px 2px 0 rgb(0 0 0 / 0.40),
+    0 1px 3px 0 rgb(0 0 0 / 0.40);
   --elevation-card-hover:
-    0 1px 2px 0 rgb(0 0 0 / 0.30),
-    0 4px 8px -2px rgb(0 0 0 / 0.35),
-    0 12px 24px -8px rgb(0 0 0 / 0.45);
+    0 1px 2px 0 rgb(0 0 0 / 0.40),
+    0 4px 6px -2px rgb(0 0 0 / 0.40),
+    0 10px 20px -8px rgb(0 0 0 / 0.55);
   --elevation-dropdown:
-    0 2px 4px -1px rgb(0 0 0 / 0.40),
-    0 8px 16px -4px rgb(0 0 0 / 0.45),
-    0 24px 48px -12px rgb(0 0 0 / 0.60);
+    0 2px 4px -1px rgb(0 0 0 / 0.50),
+    0 8px 16px -4px rgb(0 0 0 / 0.50),
+    0 20px 40px -12px rgb(0 0 0 / 0.50);
 
   --background: var(--bg-app);
   --foreground: var(--text-main);
@@ -239,6 +215,8 @@
 
   --color-status-suspect-bg: var(--status-suspect-bg);
   --color-status-suspect-fg: var(--status-suspect-fg);
+  --color-status-probable-bg: var(--status-probable-bg);
+  --color-status-probable-fg: var(--status-probable-fg);
   --color-status-confirmed-bg: var(--status-confirmed-bg);
   --color-status-confirmed-fg: var(--status-confirmed-fg);
   --color-status-recovered-bg: var(--status-recovered-bg);
@@ -258,6 +236,14 @@
   --shadow-card: var(--elevation-card);
   --shadow-card-hover: var(--elevation-card-hover);
   --shadow-dropdown: var(--elevation-dropdown);
+
+  /* Rayons harmonisés (composants · formulaires · cartes) */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -344,28 +330,6 @@
    Animations utilitaires (micro-interactions)
    ========================================================================== */
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes toast-in {
   from {
     opacity: 0;
@@ -390,49 +354,6 @@
   }
 }
 
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 200ms ease-out both;
-}
-
-.animate-slide-up {
-  animation: slide-up 240ms ease-out both;
-}
-
-.animate-toast-in {
-  animation: toast-in 200ms ease-out both;
-}
-
-.animate-scale-in {
-  animation: scale-in 160ms ease-out both;
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 240ms ease-out both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
 @keyframes route-progress {
   0% {
     transform: translateX(-100%);
@@ -443,66 +364,20 @@
   }
 }
 
-/* ==========================================================================
-   Login — effets immersifs (glassmorphism, profondeur, ambiance médicale)
-   ========================================================================== */
+.animate-toast-in {
+  animation: toast-in 200ms ease-out both;
+}
 
-@keyframes float {
+.animate-scale-in {
+  animation: scale-in 160ms ease-out both;
+}
 
-  0%,
-  100% {
-    transform: translateY(0);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-
-  50% {
-    transform: translateY(-9px);
-  }
-}
-
-@keyframes drift {
-
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  50% {
-    transform: translate(14px, -16px) scale(1.05);
-  }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-drift {
-  animation: drift 16s ease-in-out infinite;
-}
-
-.glass-card {
-  background: linear-gradient(150deg,
-      rgb(255 255 255 / 0.78),
-      rgb(255 255 255 / 0.52));
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
-  border: 1px solid rgb(255 255 255 / 0.6);
-  box-shadow:
-    0 24px 60px -12px rgb(37 99 235 / 0.18),
-    0 2px 8px rgb(15 23 42 / 0.04),
-    inset 0 1px 0 rgb(255 255 255 / 0.9);
-}
-
-.dashboard-select {
-  height: 40px;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  background: #071523;
-  color: white;
-  padding: 0 12px;
-  font-size: 13px;
-  outline: none;
-}
-
-.dashboard-select:focus {
-  border-color: #22c55e;
 }

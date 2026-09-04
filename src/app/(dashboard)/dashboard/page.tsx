@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { DashboardAnalytics } from "@/features/dashboard/components/DashboardAnalytics";
 import { verifySession } from "@/lib/session";
 import { getMe } from "@/services/auth";
 import { formatDate } from "@/lib/utils";
@@ -92,6 +93,9 @@ export default async function DashboardPage() {
         title={`Bonjour, ${name}`}
         description={today.charAt(0).toUpperCase() + today.slice(1)}
       />
+
+      {/* DASH-01 / DASH-02 · KPI, graphiques et filtres (données mockées) */}
+      <DashboardAnalytics />
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {actions.map((action) => (

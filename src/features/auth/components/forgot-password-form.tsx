@@ -151,9 +151,9 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold tracking-tight text-text-main">
+        <h3 className="text-lg font-semibold tracking-tight text-primary">
           {step === "email"
             ? "Mot de passe oublié ?"
             : step === "code"
@@ -173,7 +173,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
       {info ? <Alert variant="info">{info}</Alert> : null}
 
       {step === "email" ? (
-        <form onSubmit={handleSendCode} className="space-y-4">
+        <form onSubmit={handleSendCode} className="space-y-6">
           <Input
             label="Adresse e-mail"
             type="email"
@@ -193,7 +193,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
       ) : null}
 
       {step === "code" ? (
-        <form onSubmit={handleVerifyCode} className="space-y-4">
+        <form onSubmit={handleVerifyCode} className="space-y-6">
           <div className="space-y-1.5">
             <label
               htmlFor="reset-code"
@@ -210,7 +210,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
               inputMode="numeric"
               autoComplete="one-time-code"
               placeholder="000000"
-              className="w-full rounded-xl border border-white/60 bg-white/55 px-3 py-3 text-center font-mono text-2xl tracking-[0.5em] text-text-main backdrop-blur-sm placeholder:text-text-subtle focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full rounded-xl border border-white/60 bg-white/55 px-3 py-3 text-center font-mono text-2xl tracking-[0.5em] text-text-main backdrop-blur-sm placeholder:text-text-subtle focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
           <Button type="submit" className="w-full" loading={loading}>
@@ -229,7 +229,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
       ) : null}
 
       {step === "password" ? (
-        <form onSubmit={handleResetPassword} className="space-y-4">
+        <form onSubmit={handleResetPassword} className="space-y-6">
           <Input
             label="Nouveau mot de passe"
             type="password"

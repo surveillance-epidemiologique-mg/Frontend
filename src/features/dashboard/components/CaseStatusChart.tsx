@@ -9,7 +9,7 @@ import {
   Legend,
 } from "recharts";
 
-const COLORS = ["#2563eb", "#f59e0b"];
+const COLORS = ["#0369a1", "#f59e0b"];
 
 export default function CaseStatusChart({
   confirmed,

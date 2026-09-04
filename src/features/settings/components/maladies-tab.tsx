@@ -1,23 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Activity,
-  Edit,
-  Plus,
-  Search,
-  SearchX,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Activity, Edit, Plus, Search, SearchX, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DataTable, type Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/toast";
-import {
-  MaladieFormModal,
-} from "@/features/settings/components/maladie-form-modal";
+import { MaladieFormModal } from "@/features/settings/components/maladie-form-modal";
 import type { Maladie, MaladieFormValues } from "@/features/settings/types";
 
 interface MaladiesTabProps {
@@ -25,6 +17,7 @@ interface MaladiesTabProps {
   loading: boolean;
   onAdd: (values: MaladieFormValues) => Promise<void>;
   onUpdate: (id: number, values: MaladieFormValues) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
 }
 
 export function MaladiesTab({
@@ -32,11 +25,14 @@ export function MaladiesTab({
   loading,
   onAdd,
   onUpdate,
+  onDelete,
 }: MaladiesTabProps) {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editingDisease, setEditingDisease] = useState<Maladie | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Maladie | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const filteredMaladies = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -93,25 +89,107 @@ export function MaladiesTab({
     }
   }
 
-  if (loading) {
-    return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <Card key={index} className="p-5">
-            <Skeleton className="size-11 rounded-xl" />
-            <Skeleton className="mt-4 h-5 w-2/3" />
-            <Skeleton className="mt-2 h-4 w-1/3" />
-            <Skeleton className="mt-4 h-4 w-full" />
-            <Skeleton className="mt-2 h-4 w-5/6" />
-            <div className="mt-4 flex justify-between border-t border-border pt-4">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-5 w-8" />
-            </div>
-          </Card>
-        ))}
-      </div>
-    );
+  async function handleDelete() {
+    if (!deleteTarget) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await onDelete(deleteTarget.id);
+      toast({
+        title: "Maladie supprimée",
+        description: `${deleteTarget.name} a été retirée du dictionnaire.`,
+        variant: "success",
+      });
+      setDeleteTarget(null);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Impossible de supprimer la maladie.",
+        variant: "error",
+      });
+    } finally {
+      setDeleting(false);
+    }
   }
+
+  const columns: Column<Maladie>[] = [
+    {
+      key: "name",
+      header: "Nom de la maladie",
+      cell: (disease) => (
+        <span className="flex items-center gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary-light text-primary">
+            <Activity className="size-4" />
+          </span>
+          <span className="font-medium text-text-main">{disease.name}</span>
+        </span>
+      ),
+    },
+    {
+      key: "icd10",
+      header: "Code CIM-10",
+      cell: (disease) => (
+        <span className="font-mono text-xs font-medium text-text-muted">
+          {disease.icd10Code ?? "—"}
+        </span>
+      ),
+    },
+    {
+      key: "seuil",
+      header: "Seuil d'alerte",
+      cell: (disease) => (
+        <span className="inline-flex rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning ring-1 ring-inset ring-warning/25">
+          {disease.alertThreshold}
+        </span>
+      ),
+    },
+    {
+      key: "description",
+      header: "Description / Protocole",
+      className: "max-w-[22rem]",
+      cell: (disease) => (
+        <span
+          className="block truncate text-text-muted"
+          title={disease.description ?? undefined}
+        >
+          {disease.description ?? "—"}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "",
+      align: "right",
+      cell: (disease) => (
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => openEdit(disease)}
+            aria-label={`Modifier ${disease.name}`}
+          >
+            <Edit className="size-4" />
+            Modifier
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-error hover:bg-error/10 hover:text-error"
+            onClick={() => setDeleteTarget(disease)}
+            aria-label={`Supprimer ${disease.name}`}
+          >
+            <Trash2 className="size-4" />
+            Supprimer
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-4">
@@ -143,55 +221,23 @@ export function MaladiesTab({
         </div>
       </Card>
 
-      {filteredMaladies.length === 0 ? (
-        <EmptyState
-          icon={SearchX}
-          title="Aucune maladie trouvée"
-          description="Aucune maladie ne correspond à votre recherche."
+      <Card>
+        <DataTable
+          columns={columns}
+          data={filteredMaladies}
+          getRowId={(disease) => String(disease.id)}
+          loading={loading}
+          pageSize={10}
+          ariaLabel="Dictionnaire des maladies"
+          emptyState={
+            <EmptyState
+              icon={SearchX}
+              title="Aucune maladie trouvée"
+              description="Aucune maladie ne correspond à votre recherche."
+            />
+          }
         />
-      ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredMaladies.map((disease) => (
-            <Card
-              key={disease.id}
-              className="group flex flex-col p-5 transition-all duration-200 hover:shadow-md"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary-light text-primary">
-                  <Activity className="size-5" />
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => openEdit(disease)}
-                  aria-label={`Modifier ${disease.name}`}
-                >
-                  <Edit className="size-4" />
-                  Modifier
-                </Button>
-              </div>
-
-              <h3 className="mt-4 text-base font-semibold text-text-main">
-                {disease.name}
-              </h3>
-              <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-text-muted">
-                ICD-10 · {disease.icd10Code ?? "—"}
-              </p>
-
-              <p className="mt-3 line-clamp-3 flex-1 text-sm leading-relaxed text-text-muted">
-                {disease.description}
-              </p>
-
-              <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-                <span className="text-xs text-text-muted">
-                  Seuil d&apos;alerte
-                </span>
-                <Badge variant="warning">{disease.alertThreshold}</Badge>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+      </Card>
 
       <MaladieFormModal
         key={
@@ -205,6 +251,34 @@ export function MaladiesTab({
         disease={editingDisease}
         onSubmit={handleSubmit}
       />
+
+      <Modal
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        title="Supprimer la maladie"
+        description="Cette action est irréversible."
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleting}
+            >
+              Annuler
+            </Button>
+            <Button variant="danger" onClick={handleDelete} loading={deleting}>
+              <Trash2 className="size-4" />
+              {deleting ? "Suppression…" : "Supprimer"}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-text-muted">
+          Voulez-vous vraiment supprimer{" "}
+          <strong className="text-text-main">{deleteTarget?.name}</strong> du
+          dictionnaire ?
+        </p>
+      </Modal>
     </div>
   );
 }

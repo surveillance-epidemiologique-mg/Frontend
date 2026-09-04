@@ -14,6 +14,7 @@ type StatTone =
 interface StatCardProps {
   title: string;
   value: string;
+  unit?: string;
   icon: LucideIcon;
   tone?: StatTone;
   trend?: number;
@@ -33,6 +34,7 @@ const TONE_CLASSES: Record<StatTone, string> = {
 export function StatCard({
   title,
   value,
+  unit,
   icon: Icon,
   tone = "primary",
   trend,
@@ -71,11 +73,14 @@ export function StatCard({
 
       <div
         className={cn(
-          "mt-1 font-semibold leading-tight tabular-nums tracking-tight text-text-main",
+          "mt-1 flex items-baseline gap-1.5 font-semibold leading-tight tabular-nums tracking-tight text-text-main",
           compact ? "text-2xl" : "mt-2 text-[28px]",
         )}
       >
-        {value}
+        <span>{value}</span>
+        {unit ? (
+          <span className="text-xs font-normal text-text-muted">{unit}</span>
+        ) : null}
       </div>
 
       <div className={cn("flex items-center gap-2", compact ? "mt-1" : "mt-2")}>

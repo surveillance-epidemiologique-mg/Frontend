@@ -126,6 +126,12 @@ export function updateMaladie(
   });
 }
 
+export function deleteMaladie(id: number): Promise<void> {
+  return request<void>(`/api/maladies/${id}`, {
+    method: "DELETE",
+  });
+}
+
 // ---- Centres ----
 export function fetchZones(): Promise<Zone[]> {
   return request<Zone[]>("/api/centres/zones");

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Activity, Plus } from "lucide-react";
+import { Activity, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { ActionMenu } from "@/components/ui/action-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import {
   type CaseFiltersValues,
   type FilterOption,
 } from "@/components/cases/case-filters";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
@@ -24,7 +26,13 @@ import { formatDate } from "@/lib/utils";
 
 interface CasRow {
   id: number;
-  patient: { id: number; namePatient: string | null; anonymousCode: string };
+  patient: {
+    id: number;
+    namePatient: string | null;
+    anonymousCode: string;
+    age: number | null;
+    gender: string | null;
+  };
   maladie: { name: string };
   centre: { name: string };
   agent: { id: number; name: string };
@@ -33,6 +41,34 @@ interface CasRow {
   diagnosticStatus: string;
   clinicalOutcome: string;
   symptoms: string | null;
+}
+
+interface PatientCas {
+  id: number;
+  maladie: { name: string };
+  agent: { name: string };
+  centre: { name: string };
+  diagnosticStatus: string;
+  clinicalOutcome: string;
+  declarationDate: string;
+}
+
+interface PatientDetail {
+  id: number;
+  namePatient: string | null;
+  anonymousCode: string;
+  age: number | null;
+  gender: string | null;
+  residenceZone: { name: string } | null;
+  cas: PatientCas[];
+}
+
+interface PatientLight {
+  id: number;
+  namePatient: string | null;
+  anonymousCode: string;
+  age: number | null;
+  gender: string | null;
 }
 
 const EMPTY_FORM = {
@@ -69,6 +105,12 @@ function statusBadge(statut: string) {
   return STATUS_BADGE[statut] ?? "secondary";
 }
 
+function genderLabel(gender: string | null): string {
+  if (gender === "M") return "Homme";
+  if (gender === "F") return "Femme";
+  return "—";
+}
+
 export default function CasCliniquePage() {
   const { toast } = useToast();
   const [me, setMe] = useState<{ role: string; centreId: number | null } | null>(
@@ -84,6 +126,19 @@ export default function CasCliniquePage() {
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<FormKey, string>>>({});
+
+  // Actions patient
+  const [viewPatient, setViewPatient] = useState<PatientDetail | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [editPatient, setEditPatient] = useState<PatientLight | null>(null);
+  const [editForm, setEditForm] = useState({
+    namePatient: "",
+    age: "",
+    gender: "",
+  });
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [deletePatient, setDeletePatient] = useState<PatientLight | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -181,6 +236,13 @@ export default function CasCliniquePage() {
     return Object.keys(next).length === 0;
   }
 
+  async function reload() {
+    const cs = await fetch(`/api/cas${buildCasQueryString(filters)}`).then(
+      (r) => (r.ok ? r.json() : []),
+    );
+    setCasList(cs);
+  }
+
   async function declareCase(event: React.FormEvent) {
     event.preventDefault();
     if (!validate()) {
@@ -225,8 +287,7 @@ export default function CasCliniquePage() {
       setModalOpen(false);
       resetForm();
       setFilters(EMPTY_FILTERS);
-      const cs = await fetch("/api/cas").then((r) => (r.ok ? r.json() : []));
-      setCasList(cs);
+      await reload();
     } catch (e) {
       toast({
         title: "Erreur",
@@ -238,14 +299,139 @@ export default function CasCliniquePage() {
     }
   }
 
+  async function openView(patientId: number) {
+    setViewPatient(null);
+    setViewLoading(true);
+    try {
+      const res = await fetch(`/api/patients/${patientId}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(
+          typeof body?.message === "string"
+            ? body.message
+            : "Impossible de charger le patient.",
+        );
+      }
+      setViewPatient(await res.json());
+    } catch (e) {
+      toast({
+        title: "Erreur",
+        description: e instanceof Error ? e.message : "Erreur.",
+        variant: "error",
+      });
+    } finally {
+      setViewLoading(false);
+    }
+  }
+
+  function openEdit(patient: PatientLight) {
+    setEditPatient(patient);
+    setEditForm({
+      namePatient: patient.namePatient ?? "",
+      age: patient.age != null ? String(patient.age) : "",
+      gender: patient.gender ?? "",
+    });
+  }
+
+  async function submitEdit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!editPatient) {
+      return;
+    }
+    if (editForm.namePatient.trim().length < 2) {
+      toast({
+        title: "Nom invalide",
+        description: "Le nom doit contenir au moins 2 caractères.",
+        variant: "warning",
+      });
+      return;
+    }
+
+    setEditSubmitting(true);
+    try {
+      const res = await fetch(`/api/patients/${editPatient.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          namePatient: editForm.namePatient.trim(),
+          age: editForm.age ? Number(editForm.age) : undefined,
+          gender: editForm.gender || undefined,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(
+          typeof body?.message === "string"
+            ? body.message
+            : "Impossible de modifier le patient.",
+        );
+      }
+      toast({
+        title: "Patient modifié",
+        description: `Patient ${body.anonymousCode} mis à jour.`,
+        variant: "success",
+      });
+      setEditPatient(null);
+      await reload();
+    } catch (e) {
+      toast({
+        title: "Erreur",
+        description: e instanceof Error ? e.message : "Erreur.",
+        variant: "error",
+      });
+    } finally {
+      setEditSubmitting(false);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deletePatient) {
+      return;
+    }
+    setDeleteSubmitting(true);
+    try {
+      const res = await fetch(`/api/patients/${deletePatient.id}`, {
+        method: "DELETE",
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(
+          typeof body?.message === "string"
+            ? body.message
+            : "Impossible de supprimer le patient.",
+        );
+      }
+      toast({
+        title: "Patient supprimé",
+        description: `${deletePatient.namePatient ?? deletePatient.anonymousCode} a été supprimé.`,
+        variant: "success",
+      });
+      setDeletePatient(null);
+      await reload();
+    } catch (e) {
+      toast({
+        title: "Suppression impossible",
+        description: e instanceof Error ? e.message : "Erreur.",
+        variant: "error",
+      });
+    } finally {
+      setDeleteSubmitting(false);
+    }
+  }
+
   const columns: Column<CasRow>[] = [
     {
       key: "patient",
       header: "Nom du patient",
       cell: (c) => (
-        <span className="font-medium text-text-main">
+        <button
+          type="button"
+          onClick={() => void openView(c.patient.id)}
+          className="block max-w-[14rem] truncate text-left font-medium text-primary hover:underline"
+          title={c.patient.namePatient ?? undefined}
+        >
           {c.patient.namePatient ?? "—"}
-        </span>
+        </button>
       ),
     },
     {
@@ -283,6 +469,34 @@ export default function CasCliniquePage() {
         <span className="whitespace-nowrap text-text-muted">
           {formatDate(c.declarationDate)}
         </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "",
+      align: "right",
+      cell: (c) => (
+        <ActionMenu
+          ariaLabel={`Actions pour ${c.patient.namePatient ?? c.patient.anonymousCode}`}
+          items={[
+            {
+              label: "Voir le patient",
+              icon: Eye,
+              onClick: () => void openView(c.patient.id),
+            },
+            {
+              label: "Modifier le patient",
+              icon: Pencil,
+              onClick: () => openEdit(c.patient),
+            },
+            {
+              label: "Supprimer le patient",
+              icon: Trash2,
+              danger: true,
+              onClick: () => setDeletePatient(c.patient),
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -333,6 +547,7 @@ export default function CasCliniquePage() {
         />
       </Card>
 
+      {/* Déclaration de cas */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -454,6 +669,182 @@ export default function CasCliniquePage() {
           </div>
         </form>
       </Modal>
+
+      {/* Voir un patient */}
+      <Modal
+        open={viewPatient !== null || viewLoading}
+        onClose={() => setViewPatient(null)}
+        title="Détail du patient"
+        size="lg"
+      >
+        {viewLoading ? (
+          <div className="py-8 text-center text-sm text-text-muted">
+            Chargement…
+          </div>
+        ) : viewPatient ? (
+          <div className="space-y-5">
+            <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <DetailItem label="Nom" value={viewPatient.namePatient ?? "—"} />
+              <DetailItem
+                label="Code anonyme"
+                value={
+                  <span className="font-mono">{viewPatient.anonymousCode}</span>
+                }
+              />
+              <DetailItem
+                label="Âge"
+                value={viewPatient.age != null ? `${viewPatient.age} ans` : "—"}
+              />
+              <DetailItem
+                label="Sexe"
+                value={genderLabel(viewPatient.gender)}
+              />
+              <DetailItem
+                label="Zone de résidence"
+                value={viewPatient.residenceZone?.name ?? "—"}
+              />
+            </dl>
+
+            <div>
+              <h4 className="mb-2 text-sm font-semibold text-text-main">
+                Historique des cas ({viewPatient.cas.length})
+              </h4>
+              {viewPatient.cas.length === 0 ? (
+                <p className="text-sm text-text-muted">
+                  Aucun cas déclaré pour ce patient.
+                </p>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-border">
+                  <table className="w-full min-w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border bg-bg-muted/60">
+                        <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+                          Maladie
+                        </th>
+                        <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+                          Statut
+                        </th>
+                        <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+                          Médecin
+                        </th>
+                        <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+                          Date
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {viewPatient.cas.map((c) => (
+                        <tr key={c.id}>
+                          <td className="px-4 py-3 text-text-main">
+                            {c.maladie.name}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge variant={statusBadge(c.diagnosticStatus)} dot>
+                              {STATUS_LABEL[c.diagnosticStatus] ??
+                                c.diagnosticStatus}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-text-muted">
+                            {c.agent.name}
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-3 text-text-muted">
+                            {formatDate(c.declarationDate)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
+      </Modal>
+
+      {/* Modifier un patient */}
+      <Modal
+        open={editPatient !== null}
+        onClose={() => setEditPatient(null)}
+        title="Modifier le patient"
+        description={
+          editPatient
+            ? `Code anonyme : ${editPatient.anonymousCode} (non modifiable)`
+            : undefined
+        }
+      >
+        <form onSubmit={submitEdit} className="space-y-4">
+          <Input
+            label="Nom du patient"
+            value={editForm.namePatient}
+            onChange={(e) => setEditForm((p) => ({ ...p, namePatient: e.target.value }))}
+            placeholder="Patient 01"
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label="Âge (années)"
+              type="number"
+              min={0}
+              value={editForm.age}
+              onChange={(e) => setEditForm((p) => ({ ...p, age: e.target.value }))}
+              placeholder="34"
+            />
+            <Select
+              label="Sexe"
+              value={editForm.gender}
+              onChange={(e) => setEditForm((p) => ({ ...p, gender: e.target.value }))}
+              placeholder="—"
+              options={[
+                { value: "M", label: "Masculin" },
+                { value: "F", label: "Féminin" },
+              ]}
+            />
+          </div>
+          <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEditPatient(null)}
+            >
+              Annuler
+            </Button>
+            <Button type="submit" loading={editSubmitting}>
+              Enregistrer
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Supprimer un patient */}
+      <ConfirmDialog
+        open={deletePatient !== null}
+        onClose={() => setDeletePatient(null)}
+        onConfirm={() => void confirmDelete()}
+        title="Supprimer le patient"
+        description={
+          deletePatient
+            ? `Supprimer définitivement le patient « ${deletePatient.namePatient ?? deletePatient.anonymousCode} » (${deletePatient.anonymousCode}) ?`
+            : ""
+        }
+        confirmLabel="Supprimer"
+        loading={deleteSubmitting}
+      />
+    </div>
+  );
+}
+
+function DetailItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div>
+      <dt className="text-xs font-medium uppercase tracking-wider text-text-muted">
+        {label}
+      </dt>
+      <dd className="mt-0.5 text-sm text-text-main">{value}</dd>
     </div>
   );
 }
