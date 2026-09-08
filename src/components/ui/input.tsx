@@ -55,24 +55,21 @@ export function Input({
               aria-invalid={error ? true : undefined}
               aria-describedby={describedById}
               className={cn(
-                  "w-full rounded-xl border border-border/60",
+                  "w-full rounded-xl border-1 border-border/60",
                   "bg-bg-surface px-3.5 py-2.5",
                   "text-sm text-text-main outline-none",
                   "placeholder:text-text-subtle/70",
                   "transition-all duration-200",
 
-                  "hover:border-border",
-                  "focus:border-primary",
-                  "focus:ring-2 focus:ring-primary/20",
-                  "focus:outline-none",
+                  "hover:border-primary",
 
                   "disabled:cursor-not-allowed disabled:opacity-60",
 
-                  Icon ? "pl-10" : undefined,
-                  rightSlot ? "pr-10" : undefined,
+                  Icon ? "pl-5" : undefined,
+                  rightSlot ? "pr-5" : undefined,
 
                   variant === "glass"
-                      ? "border-white/60 bg-white/55 shadow-sm backdrop-blur-sm placeholder:text-text-subtle"
+                      ? "border-primary/40 bg-white backdrop-blur-sm placeholder:text-text-subtle"
                       : undefined,
 
                   error

@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <div className="relative hidden w-[60%] flex-col justify-between p-10 lg:flex bg-primary overflow-hidden rounded-r-4xl" >
 
         <Image
-            src="/auth/auth3.jpg" // À remplacer par le chemin de votre image dans /public
+            src="/auth/login.jpg" // À remplacer par le chemin de votre image dans /public
             alt="Fond de connexion"
             fill
             priority

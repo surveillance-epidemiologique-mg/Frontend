@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { ArrowLeft, CheckCircle2, KeyRound, Mail, RefreshCw } from "lucide-react";
-import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
 import {
   forgotPassword,
@@ -25,13 +25,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
-
-  function clearMessages() {
-    setError(null);
-    setInfo(null);
-  }
+  const { toast } = useToast();
 
   async function requestCode(): Promise<boolean> {
     setLoading(true);
@@ -39,18 +33,21 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
       const result = await forgotPassword(email.trim());
 
       if (!result.success) {
-        setError(
-          result.message ??
-            "Aucun compte n'est associé à cette adresse e-mail.",
-        );
+        toast({
+          title: "Erreur",
+          description: result.message ?? "Aucun compte n'est associé à cette adresse e-mail.",
+          variant: "error",
+        });
         return false;
       }
 
       return true;
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Impossible d'envoyer le code.",
-      );
+      toast({
+        title: "Erreur",
+        description: err instanceof Error ? err.message : "Impossible d'envoyer le code.",
+        variant: "error",
+      });
       return false;
     } finally {
       setLoading(false);
@@ -59,25 +56,23 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
 
   async function handleSendCode(event: React.FormEvent) {
     event.preventDefault();
-    clearMessages();
 
     if (!email.trim()) {
-      setError("Veuillez saisir votre adresse e-mail.");
+      toast({ title: "Erreur", description: "Veuillez saisir votre adresse e-mail.", variant: "error" });
       return;
     }
 
     if (await requestCode()) {
-      setInfo("Un code à 6 chiffres vous a été envoyé.");
+      toast({ title: "Code envoyé", description: "Un code à 6 chiffres vous a été envoyé.", variant: "success" });
       setStep("code");
     }
   }
 
   async function handleVerifyCode(event: React.FormEvent) {
     event.preventDefault();
-    setError(null);
 
     if (!/^\d{6}$/.test(code)) {
-      setError("Veuillez saisir le code à 6 chiffres.");
+      toast({ title: "Erreur", description: "Veuillez saisir le code à 6 chiffres.", variant: "error" });
       return;
     }
 
@@ -87,42 +82,43 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
       setResetToken(result.resetToken);
       setStep("password");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Code invalide.");
+      toast({ title: "Erreur", description: err instanceof Error ? err.message : "Code invalide.", variant: "error" });
     } finally {
       setLoading(false);
     }
   }
 
   async function handleResendCode() {
-    clearMessages();
     if (await requestCode()) {
-      setInfo("Un nouveau code à 6 chiffres vous a été envoyé.");
+      toast({ title: "Code renvoyé", description: "Un nouveau code à 6 chiffres vous a été envoyé.", variant: "success" });
     }
   }
 
   async function handleResetPassword(event: React.FormEvent) {
     event.preventDefault();
-    setError(null);
 
     if (newPassword !== confirmPassword) {
-      setError("Les deux mots de passe ne correspondent pas.");
+      toast({ title: "Erreur", description: "Les deux mots de passe ne correspondent pas.", variant: "error" });
       return;
     }
     if (newPassword.length < 8) {
-      setError("Le mot de passe doit contenir au moins 8 caractères.");
+      toast({ title: "Erreur", description: "Le mot de passe doit contenir au moins 8 caractères.", variant: "error" });
       return;
     }
 
     setLoading(true);
     try {
       await resetPassword(resetToken, newPassword);
+      toast({ title: "Succès", description: "Votre mot de passe a été réinitialisé avec succès.", variant: "success" });
       setStep("done");
     } catch (err) {
-      setError(
-        err instanceof Error
+      toast({
+        title: "Erreur",
+        description: err instanceof Error
           ? err.message
           : "Impossible de réinitialiser le mot de passe.",
-      );
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -143,7 +139,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
             passe.
           </p>
         </div>
-        <Button className="w-full" onClick={onBack}>
+        <Button className="w-full cursor-pointer" onClick={onBack}>
           Retour à la connexion
         </Button>
       </div>
@@ -169,8 +165,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
         </p>
       </div>
 
-      {error ? <Alert variant="error">{error}</Alert> : null}
-      {info ? <Alert variant="info">{info}</Alert> : null}
+
 
       {step === "email" ? (
         <form onSubmit={handleSendCode} className="space-y-6">
@@ -195,23 +190,51 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
       {step === "code" ? (
         <form onSubmit={handleVerifyCode} className="space-y-6">
           <div className="space-y-1.5">
-            <label
-              htmlFor="reset-code"
-              className="block text-sm font-medium text-text-main"
+            <div 
+              className="flex justify-between gap-2"
+              onPaste={(e) => {
+                e.preventDefault();
+                const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+                if (pasted) {
+                  setCode(pasted);
+                  const nextIndex = Math.min(pasted.length, 5);
+                  document.getElementById(`code-${nextIndex}`)?.focus();
+                }
+              }}
             >
-              Code de vérification
-            </label>
-            <input
-              id="reset-code"
-              value={code}
-              onChange={(e) =>
-                setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
-              }
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              placeholder="000000"
-              className="w-full rounded-xl border border-white/60 bg-white/55 px-3 py-3 text-center font-mono text-2xl tracking-[0.5em] text-text-main backdrop-blur-sm placeholder:text-text-subtle focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
+              {Array.from({ length: 6 }).map((_, i) => (
+                <input
+                  key={i}
+                  id={`code-${i}`}
+                  value={code[i] || ""}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "").slice(-1);
+                    const newCode = code.split("");
+                    newCode[i] = val;
+                    setCode(newCode.join(""));
+                    if (val && i < 5) {
+                      document.getElementById(`code-${i + 1}`)?.focus();
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Backspace" && !code[i] && i > 0) {
+                      const prevInput = document.getElementById(`code-${i - 1}`);
+                      if (prevInput) {
+                        prevInput.focus();
+                        // Optional: clear the previous input when navigating back on empty
+                        const newCode = code.split("");
+                        newCode[i - 1] = "";
+                        setCode(newCode.join(""));
+                      }
+                    }
+                  }}
+                  inputMode="numeric"
+                  autoComplete={i === 0 ? "one-time-code" : "off"}
+                  className="w-12 h-14 sm:w-14 sm:h-16 rounded-xl border-2 border-primary/40 bg-white/55 text-center font-mono text-2xl text-text-main backdrop-blur-sm placeholder:text-text-subtle focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  maxLength={2}
+                />
+              ))}
+            </div>
           </div>
           <Button type="submit" className="w-full" loading={loading}>
             Vérifier le code
@@ -220,7 +243,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
             type="button"
             onClick={handleResendCode}
             disabled={loading}
-            className="mx-auto flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-primary-hover disabled:opacity-60"
+            className="mx-auto cursor-pointer flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-primary-hover disabled:opacity-60"
           >
             <RefreshCw className="size-3.5" />
             Renvoyer le code
