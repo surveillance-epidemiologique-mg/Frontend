@@ -20,6 +20,7 @@ interface FormState {
   roleId: string;
   centreId: string;
   phoneNumber: string;
+  adminPassword: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -28,6 +29,7 @@ const EMPTY_FORM: FormState = {
   roleId: "",
   centreId: "",
   phoneNumber: "",
+  adminPassword: "",
 };
 
 export function InviteForm() {
@@ -78,6 +80,10 @@ export function InviteForm() {
       setError("Le rôle est requis.");
       return false;
     }
+    if (!form.adminPassword) {
+      setError("Votre mot de passe est requis pour valider la création.");
+      return false;
+    }
     return true;
   }
 
@@ -98,6 +104,7 @@ export function InviteForm() {
         roleId: Number(form.roleId),
         centreId: form.centreId ? Number(form.centreId) : undefined,
         phoneNumber: form.phoneNumber.trim() || undefined,
+        adminPassword: form.adminPassword,
       };
       const response = await inviteUser(payload);
       setResult(response);
@@ -211,6 +218,16 @@ export function InviteForm() {
         value={form.phoneNumber}
         onChange={(e) => updateField("phoneNumber", e.target.value)}
         placeholder="+261 34 00 000 00"
+      />
+
+      <Input
+        label="Votre mot de passe"
+        name="adminPassword"
+        type="password"
+        value={form.adminPassword}
+        onChange={(e) => updateField("adminPassword", e.target.value)}
+        placeholder="Saisissez votre mot de passe pour valider"
+        hint="Confirme que vous êtes bien l'administrateur qui crée ce compte."
       />
 
       <Button

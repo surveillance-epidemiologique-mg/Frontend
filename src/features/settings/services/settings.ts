@@ -75,6 +75,7 @@ export function createUser(values: UserFormValues): Promise<InviteResponse> {
       roleId: values.roleId,
       centreId: values.centreId ?? undefined,
       phoneNumber: values.phoneNumber || undefined,
+      adminPassword: values.adminPassword ?? "",
     }),
   });
 }

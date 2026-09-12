@@ -6,6 +6,7 @@ export interface InvitePayload {
   roleId: number;
   centreId?: number;
   phoneNumber?: string;
+  adminPassword: string;
 }
 
 export interface InviteOptions {

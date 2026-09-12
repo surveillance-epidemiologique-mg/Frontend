@@ -37,7 +37,7 @@ export function Input({
       {label ? (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-text-main"
+          className="block text-md font-medium text-text-main"
         >
           {label}
         </label>
@@ -57,7 +57,7 @@ export function Input({
               className={cn(
                   "w-full rounded-xl border-1 border-border/60",
                   "bg-bg-surface px-3.5 py-2.5",
-                  "text-sm text-text-main outline-none",
+                  "text-md text-text-main outline-none",
                   "placeholder:text-text-subtle/70",
                   "transition-all duration-200",
 

@@ -30,6 +30,7 @@ const EMPTY: UserFormValues = {
   roleId: 0,
   centreId: null,
   isActive: true,
+  adminPassword: "",
 };
 
 export function UserFormModal({
@@ -50,6 +51,7 @@ export function UserFormModal({
           roleId: user.roleId,
           centreId: user.centreId,
           isActive: user.isActive,
+          adminPassword: "",
         }
       : EMPTY,
   );
@@ -88,6 +90,9 @@ export function UserFormModal({
     }
     if (!values.roleId) {
       next.roleId = "Le rôle est requis.";
+    }
+    if (!isEdit && !values.adminPassword) {
+      next.adminPassword = "Votre mot de passe est requis pour valider.";
     }
 
     setErrors(next);
@@ -209,7 +214,17 @@ export function UserFormModal({
               { value: "inactive", label: "Inactif" },
             ]}
           />
-        ) : null}
+        ) : (
+          <Input
+            label="Votre mot de passe"
+            type="password"
+            value={values.adminPassword}
+            onChange={(e) => updateField("adminPassword", e.target.value)}
+            placeholder="Saisissez votre mot de passe pour valider"
+            error={errors.adminPassword}
+            hint="Confirme que vous êtes bien l'administrateur qui crée ce compte."
+          />
+        )}
       </form>
     </Modal>
   );

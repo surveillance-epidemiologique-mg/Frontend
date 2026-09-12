@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Activity, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Activity, Eye, Pencil, Plus, Printer, Trash2 } from "lucide-react";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,17 +72,6 @@ interface PatientLight {
   gender: string | null;
 }
 
-const EMPTY_FORM = {
-  namePatient: "",
-  age: "",
-  gender: "",
-  maladieId: "",
-  centreId: "",
-  symptoms: "",
-  diagnosticStatus: "Suspect",
-};
-type FormKey = keyof typeof EMPTY_FORM;
-
 const STATUS_BADGE: Record<string, "suspect" | "warning" | "confirmed" | "danger"> = {
   Suspect: "suspect",
   Probable: "warning",
@@ -95,11 +85,6 @@ const STATUS_LABEL: Record<string, string> = {
   Confirme: "Confirmé",
   Invalide: "Invalidé",
 };
-
-const DIAGNOSTIC_STATUS_OPTIONS = [
-  { value: "Suspect", label: "Suspect" },
-  { value: "Confirme", label: "Confirmé" },
-];
 
 function statusBadge(statut: string) {
   return STATUS_BADGE[statut] ?? "secondary";
@@ -122,14 +107,17 @@ export default function CasCliniquePage() {
   const [casList, setCasList] = useState<CasRow[]>([]);
   const [filters, setFilters] = useState<CaseFiltersValues>(EMPTY_FILTERS);
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [errors, setErrors] = useState<Partial<Record<FormKey, string>>>({});
 
   // Actions patient
   const [viewPatient, setViewPatient] = useState<PatientDetail | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
+  const [viewQr, setViewQr] = useState("");
+  const [viewCas, setViewCas] = useState<{
+    id: number;
+    code: string;
+    maladie: string;
+    centre: string;
+  } | null>(null);
   const [editPatient, setEditPatient] = useState<PatientLight | null>(null);
   const [editForm, setEditForm] = useState({
     namePatient: "",
@@ -196,46 +184,6 @@ export default function CasCliniquePage() {
     ? centres.find((c) => c.id === me?.centreId)
     : undefined;
 
-  function updateField(key: FormKey, value: string) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-    setErrors((prev) => {
-      if (!prev[key]) return prev;
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-  }
-
-  function resetForm() {
-    setForm({
-      ...EMPTY_FORM,
-      centreId: isMedecin && me?.centreId ? String(me.centreId) : "",
-    });
-    setErrors({});
-  }
-
-  function openModal() {
-    resetForm();
-    setModalOpen(true);
-  }
-
-  function validate(): boolean {
-    const next: Partial<Record<FormKey, string>> = {};
-    if (!form.namePatient.trim()) {
-      next.namePatient = "Le nom du patient est requis.";
-    } else if (form.namePatient.trim().length < 2) {
-      next.namePatient = "Le nom doit contenir au moins 2 caractères.";
-    }
-    if (!form.maladieId) {
-      next.maladieId = "La maladie est requise.";
-    }
-    if (!isMedecin && !form.centreId) {
-      next.centreId = "Le centre de santé est requis.";
-    }
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  }
-
   async function reload() {
     const cs = await fetch(`/api/cas${buildCasQueryString(filters)}`).then(
       (r) => (r.ok ? r.json() : []),
@@ -243,67 +191,18 @@ export default function CasCliniquePage() {
     setCasList(cs);
   }
 
-  async function declareCase(event: React.FormEvent) {
-    event.preventDefault();
-    if (!validate()) {
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const payload: Record<string, unknown> = {
-        newPatient: {
-          namePatient: form.namePatient.trim(),
-          age: form.age ? Number(form.age) : undefined,
-          gender: form.gender || undefined,
-        },
-        maladieId: Number(form.maladieId),
-        symptoms: form.symptoms || undefined,
-        diagnosticStatus: form.diagnosticStatus,
-      };
-      if (!isMedecin) {
-        payload.centreId = Number(form.centreId);
-      }
-
-      const res = await fetch("/api/cas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const body = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(
-          typeof body?.message === "string"
-            ? body.message
-            : "Impossible de déclarer le cas.",
-        );
-      }
-
-      toast({
-        title: "Cas déclaré",
-        description: `Cas #${body.id} enregistré comme ${body.diagnosticStatus} (${body.patient.anonymousCode}).`,
-        variant: "success",
-      });
-      setModalOpen(false);
-      resetForm();
-      setFilters(EMPTY_FILTERS);
-      await reload();
-    } catch (e) {
-      toast({
-        title: "Erreur",
-        description: e instanceof Error ? e.message : "Erreur.",
-        variant: "error",
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function openView(patientId: number) {
+  async function openView(cas: CasRow) {
     setViewPatient(null);
+    setViewQr("");
+    setViewCas({
+      id: cas.id,
+      code: cas.patient.anonymousCode,
+      maladie: cas.maladie.name,
+      centre: cas.centre.name,
+    });
     setViewLoading(true);
     try {
-      const res = await fetch(`/api/patients/${patientId}`);
+      const res = await fetch(`/api/patients/${cas.patient.id}`);
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(
@@ -313,6 +212,13 @@ export default function CasCliniquePage() {
         );
       }
       setViewPatient(await res.json());
+      try {
+        const { qrDataUrl } = await import("@/lib/qr");
+        const qr = await qrDataUrl(cas.patient.anonymousCode, cas.id);
+        setViewQr(qr);
+      } catch {
+        // QR indisponible : on affiche la fiche sans QR.
+      }
     } catch (e) {
       toast({
         title: "Erreur",
@@ -426,7 +332,7 @@ export default function CasCliniquePage() {
       cell: (c) => (
         <button
           type="button"
-          onClick={() => void openView(c.patient.id)}
+          onClick={() => void openView(c)}
           className="block max-w-[14rem] truncate text-left font-medium text-primary hover:underline"
           title={c.patient.namePatient ?? undefined}
         >
@@ -482,7 +388,7 @@ export default function CasCliniquePage() {
             {
               label: "Voir le patient",
               icon: Eye,
-              onClick: () => void openView(c.patient.id),
+              onClick: () => void openView(c),
             },
             {
               label: "Modifier le patient",
@@ -507,9 +413,11 @@ export default function CasCliniquePage() {
         title="Cas clinique"
         description="Déclarer un cas suspect ou confirmé et suivre les cas de votre périmètre."
       >
-        <Button onClick={openModal}>
-          <Plus className="size-4" />
-          Déclarer un cas
+        <Button asChild>
+          <Link href="/cases/declarer">
+            <Plus className="size-4" />
+            Déclarer un cas
+          </Link>
         </Button>
       </PageHeader>
 
@@ -547,129 +455,6 @@ export default function CasCliniquePage() {
         />
       </Card>
 
-      {/* Déclaration de cas */}
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Déclarer un cas"
-        description="Créer un nouveau patient anonyme, puis renseigner le cas."
-        size="lg"
-      >
-        <form onSubmit={declareCase} className="space-y-5">
-          <section className="space-y-3">
-            <h3 className="text-sm font-semibold text-text-main">
-              Nouveau patient
-            </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Input
-                label="Nom du patient"
-                value={form.namePatient}
-                onChange={(e) => updateField("namePatient", e.target.value)}
-                placeholder="Patient 01"
-                error={errors.namePatient}
-              />
-              <Input
-                label="Âge (années)"
-                type="number"
-                min={0}
-                value={form.age}
-                onChange={(e) => updateField("age", e.target.value)}
-                placeholder="34"
-              />
-              <Select
-                label="Sexe"
-                value={form.gender}
-                onChange={(e) => updateField("gender", e.target.value)}
-                placeholder="—"
-                options={[
-                  { value: "M", label: "Masculin" },
-                  { value: "F", label: "Féminin" },
-                ]}
-              />
-            </div>
-          </section>
-
-          <section className="space-y-3 border-t border-border pt-5">
-            <h3 className="text-sm font-semibold text-text-main">Cas</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Select
-                label="Maladie"
-                value={form.maladieId}
-                onChange={(e) => updateField("maladieId", e.target.value)}
-                placeholder={loading ? "Chargement…" : "Sélectionner une maladie"}
-                options={maladies.map((m) => ({
-                  value: String(m.id),
-                  label: m.name,
-                }))}
-                error={errors.maladieId}
-              />
-              {isMedecin ? (
-                <div className="space-y-1.5">
-                  <Select
-                    label="Centre de santé"
-                    value={form.centreId}
-                    onChange={() => {}}
-                    options={
-                      medecinCentre
-                        ? [{ value: String(medecinCentre.id), label: medecinCentre.name }]
-                        : []
-                    }
-                    disabled
-                  />
-                  <p className="text-xs text-text-muted">
-                    Centre rattaché à votre compte.
-                  </p>
-                </div>
-              ) : (
-                <Select
-                  label="Centre de santé"
-                  value={form.centreId}
-                  onChange={(e) => updateField("centreId", e.target.value)}
-                  placeholder={
-                    loading ? "Chargement…" : "Sélectionner un centre"
-                  }
-                  options={centres.map((c) => ({
-                    value: String(c.id),
-                    label: c.name,
-                  }))}
-                  error={errors.centreId}
-                />
-              )}
-              <Select
-                label="Statut diagnostique"
-                value={form.diagnosticStatus}
-                onChange={(e) => updateField("diagnosticStatus", e.target.value)}
-                options={DIAGNOSTIC_STATUS_OPTIONS}
-              />
-              <Input
-                label="Symptômes"
-                value={form.symptoms}
-                onChange={(e) => updateField("symptoms", e.target.value)}
-                placeholder="Fièvre, céphalées…"
-              />
-            </div>
-            <p className="text-xs text-text-muted">
-              La date du diagnostic et la zone de résidence sont renseignées
-              automatiquement côté serveur.
-            </p>
-          </section>
-
-          <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setModalOpen(false)}
-            >
-              Annuler
-            </Button>
-            <Button type="submit" loading={submitting}>
-              <Activity className="size-4" />
-              {submitting ? "Enregistrement…" : "Déclarer le cas"}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
       {/* Voir un patient */}
       <Modal
         open={viewPatient !== null || viewLoading}
@@ -683,6 +468,44 @@ export default function CasCliniquePage() {
           </div>
         ) : viewPatient ? (
           <div className="space-y-5">
+            {/* QR Code + impression */}
+            {viewQr && viewCas ? (
+              <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border p-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={viewQr}
+                  alt={`QR code du cas #${viewCas.id}`}
+                  className="size-28 shrink-0 rounded-lg border border-border bg-white p-1"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-text-main">
+                    Cas #{viewCas.id}
+                  </p>
+                  <p className="mt-0.5 text-xs text-text-muted">
+                    {viewCas.code} · {viewCas.maladie} · {viewCas.centre}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    void import("@/lib/qr").then(({ printFicheLabel }) =>
+                      printFicheLabel(
+                        {
+                          code: viewCas.code,
+                          maladie: viewCas.maladie,
+                          centre: viewCas.centre,
+                        },
+                        viewQr,
+                      ),
+                    );
+                  }}
+                >
+                  <Printer className="size-4" />
+                  Imprimer
+                </Button>
+              </div>
+            ) : null}
+
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <DetailItem label="Nom" value={viewPatient.namePatient ?? "—"} />
               <DetailItem
@@ -822,7 +645,7 @@ export default function CasCliniquePage() {
         title="Supprimer le patient"
         description={
           deletePatient
-            ? `Supprimer définitivement le patient « ${deletePatient.namePatient ?? deletePatient.anonymousCode} » (${deletePatient.anonymousCode}) ?`
+            ? `Supprimer définitivement le patient « ${deletePatient.namePatient ?? deletePatient.anonymousCode} » (${deletePatient.anonymousCode}) ? Tous ses cas épidémiologiques et analyses associés seront supprimés en cascade.`
             : ""
         }
         confirmLabel="Supprimer"

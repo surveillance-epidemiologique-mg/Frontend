@@ -39,6 +39,7 @@ export interface UserFormValues {
   roleId: number;
   centreId: number | null;
   isActive: boolean;
+  adminPassword?: string;
 }
 
 export interface MaladieFormValues {
