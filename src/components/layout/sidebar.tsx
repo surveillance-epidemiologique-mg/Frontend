@@ -146,7 +146,7 @@ export function Sidebar({ role, mobileOpen, onCloseMobile }: SidebarProps) {
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors duration-200",
+                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200",
                   collapsed && "lg:justify-center lg:px-0",
                   isActive
                     ? "bg-primary text-white"

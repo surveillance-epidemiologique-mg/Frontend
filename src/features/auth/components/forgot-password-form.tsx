@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, CheckCircle2, KeyRound, Mail, RefreshCw } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, CheckCircle2, KeyRound, Mail, RefreshCw, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,24 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(600);
   const { toast } = useToast();
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (step === "code" && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [step, timeLeft]);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
 
   async function requestCode(): Promise<boolean> {
     setLoading(true);
@@ -64,6 +81,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
 
     if (await requestCode()) {
       toast({ title: "Code envoyé", description: "Un code à 6 chiffres vous a été envoyé.", variant: "success" });
+      setTimeLeft(600);
       setStep("code");
     }
   }
@@ -91,6 +109,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   async function handleResendCode() {
     if (await requestCode()) {
       toast({ title: "Code renvoyé", description: "Un nouveau code à 6 chiffres vous a été envoyé.", variant: "success" });
+      setTimeLeft(600);
     }
   }
 
@@ -236,7 +255,11 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
               ))}
             </div>
           </div>
-          <Button type="submit" className="w-full" loading={loading}>
+          <div className="flex justify-center items-center gap-1.5 text-sm text-text-muted">
+            <Clock className="size-4" />
+            <span>Code valide pendant <strong className={`font-mono ${timeLeft < 60 ? 'text-destructive' : 'text-primary'}`}>{formatTime(timeLeft)}</strong></span>
+          </div>
+          <Button type="submit" className="w-full" loading={loading} disabled={timeLeft === 0}>
             Vérifier le code
           </Button>
           <button

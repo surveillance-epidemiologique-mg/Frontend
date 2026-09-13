@@ -1,0 +1,112 @@
+$ next dev
+▲ Next.js 16.2.12 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.43.113:3000
+- Environments: .env.local
+✓ Ready in 890ms
+
+ GET /login 200 in 697ms (next.js: 159ms, proxy.ts: 241ms, application-code: 298ms)
+ GET / 307 in 139ms (next.js: 48ms, proxy.ts: 21ms, application-code: 71ms)
+ GET /login 200 in 123ms (next.js: 6ms, proxy.ts: 15ms, application-code: 102ms)
+[browser] Image with src "/auth/auth4.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/1_g4_next_dist_0nbtpmn._.js:2489:13)
+ POST /login 200 in 46ms (next.js: 7ms, proxy.ts: 12ms, application-code: 26ms)
+  └─ ƒ loginAction({}, {}) in 6ms src/app/actions/auth.ts
+✓ Compiled in 148ms
+ GET /login 200 in 309ms (next.js: 85ms, proxy.ts: 39ms, application-code: 185ms)
+✓ Compiled in 194ms
+ GET /login 200 in 346ms (next.js: 94ms, proxy.ts: 109ms, application-code: 143ms)
+ GET /login 200 in 47ms (next.js: 5ms, proxy.ts: 8ms, application-code: 35ms)
+ GET /dashboard 200 in 251ms (next.js: 65ms, proxy.ts: 15ms, application-code: 170ms)
+ POST /login 303 in 867ms (next.js: 6ms, proxy.ts: 19ms, application-code: 842ms)
+  └─ ƒ loginAction({"error":"fetch failed"}, {}) in 555ms src/app/actions/auth.ts
+ GET /zones 200 in 111ms (next.js: 62ms, proxy.ts: 13ms, application-code: 36ms)
+ GET /cases 200 in 91ms (next.js: 45ms, proxy.ts: 13ms, application-code: 33ms)
+ GET /lab 200 in 100ms (next.js: 49ms, proxy.ts: 18ms, application-code: 33ms)
+ GET /zones 200 in 51ms (next.js: 7ms, proxy.ts: 9ms, application-code: 36ms)
+ GET /lab 200 in 64ms (next.js: 5ms, proxy.ts: 22ms, application-code: 36ms)
+ GET /settings 200 in 108ms (next.js: 49ms, proxy.ts: 20ms, application-code: 39ms)
+ GET /zones 200 in 57ms (next.js: 7ms, proxy.ts: 17ms, application-code: 33ms)
+✓ Compiled in 100ms
+✓ Compiled in 94ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 82ms
+ GET /zones 200 in 868ms (next.js: 6ms, proxy.ts: 10ms, application-code: 852ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 89ms
+ GET /zones 200 in 458ms (next.js: 7ms, proxy.ts: 7ms, application-code: 444ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 89ms
+ GET /zones 200 in 350ms (next.js: 6ms, proxy.ts: 8ms, application-code: 336ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 81ms
+ GET /zones 200 in 325ms (next.js: 5ms, proxy.ts: 8ms, application-code: 312ms)
+✓ Compiled in 169ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 107ms
+✓ Compiled in 90ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /zones 200 in 902ms (next.js: 188ms, proxy.ts: 9ms, application-code: 706ms)
+[browser] Uncaught Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <ScrollAndMaybeFocusHandler cacheNode={{rsc:{...}, ...}}>
+      <InnerScrollAndFocusHandlerOld focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>
+        <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+          <LoadingBoundary name="zones/" loading={null}>
+            <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/zones" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="(dashboard...">
+                      <SegmentTrieNode>
+                      <CarteEpidemiquePage>
+                        <div className="space-y-6">
+                          <div>
+                          <EpidemicMap>
+                            <div className="relative i...">
+                              <LoadableComponent>
+                              <span className="pointer-ev...">
+                                <MapPin>
++                               Fond de carte : CartoDB Voyager
+-                               Fond de carte : Esri Light Gray
+                    ...
+                  ...
+        ...
+
+    at <unknown> (https://react.dev/link/hydration-mismatch)
+    at throwOnHydrationMismatch (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/1_g4_next_dist_compiled_react-dom_0w5acdn._.js:3318:56)
+    at completeWork (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/1_g4_next_dist_compiled_react-dom_0w5acdn._.js:7021:36)
+    at runWithFiberInDEV (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/1_g4_next_dist_compiled_react-dom_0w5acdn._.js:965:74)
+    at completeUnitOfWork (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/1_g4_next_dist_compiled_react-dom_0w5acdn._.js:9622:23)
+    at performUnitOfWork (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/1_g4_next_dist_compiled_react-dom_0w5acdn._.js:9557:28)
+    at workLoopConcurrentByScheduler (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/1_g4_next_dist_compiled_react-dom_0w5acdn._.js:9551:58)
+    at renderRootConcurrent (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/1_g4_next_dist_compiled_react-dom_0w5acdn._.js:9534:71)
+    at performWorkOnRoot (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/1_g4_next_dist_compiled_react-dom_0w5acdn._.js:9061:150)
+    at performWorkOnRootViaSchedulerTask (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/1_g4_next_dist_compiled_react-dom_0w5acdn._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/1_g4_next_dist_compiled_1l02tr3._.js:2647:64)
+    at span (<anonymous>)
+    at EpidemicMap (file://D:/prerte de temps/Project/surveillance-epidemiologique-mg/frontend/.next/dev/static/chunks/_0qfy3kh._.js:95:326)
+    at CarteEpidemiquePage (src\app\(dashboard)\zones\page.tsx:12:7)
+  10 |       />
+  11 |
+> 12 |       <EpidemicMap />
+     |       ^
+  13 |     </div>
+  14 |   );
+  15 | }
+ GET /zones 200 in 650ms (next.js: 112ms, proxy.ts: 133ms, application-code: 406ms)
+ GET /cases 200 in 71ms (next.js: 26ms, proxy.ts: 12ms, application-code: 33ms)
+ GET /zones 200 in 51ms (next.js: 7ms, proxy.ts: 11ms, application-code: 33ms)
+✓ Compiled in 83ms
+✓ Compiled in 80ms
+ GET /zones 200 in 331ms (next.js: 149ms, proxy.ts: 72ms, application-code: 110ms)

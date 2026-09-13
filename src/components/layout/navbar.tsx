@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronDown, LogOut, Menu, User, X } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import { Avatar } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
 
 export interface NavbarUser {
@@ -81,6 +82,9 @@ export function Navbar({ user, mobileOpen, onMenuClick }: NavbarProps) {
 
       {/* Gauche : aucun rôle affiché ici (affiché uniquement dans le bloc profil) */}
       <div className="flex-1" />
+
+      {/* Basculer le thème clair / sombre */}
+      <ThemeToggle />
 
       {/* Droite : nom + email + menu profil */}
       <div ref={menuRef} className="relative">

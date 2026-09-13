@@ -23,11 +23,11 @@ const EpidemicMapInner = dynamic(
 
 export function EpidemicMap() {
   return (
-    <div className="relative h-[calc(90vh-5rem)] w-full overflow-hidden rounded-2xl border border-border bg-bg-surface shadow-sm">
+    <div className="relative isolate h-[calc(90vh-5rem)] w-full overflow-hidden rounded-2xl border border-border bg-bg-surface shadow-sm">
       <EpidemicMapInner />
       <span className="pointer-events-none absolute left-3 top-3 z-[1001] hidden items-center gap-2 rounded-full bg-bg-surface/90 px-3 py-1.5 text-xs font-medium text-text-muted shadow-card backdrop-blur sm:inline-flex">
         <MapPin className="size-3.5 text-primary" />
-        Fond de carte : Esri Light Gray
+        Fond de carte : OpenStreetMap
       </span>
     </div>
   );

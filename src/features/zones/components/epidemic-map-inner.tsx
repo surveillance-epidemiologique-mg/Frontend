@@ -9,7 +9,7 @@ import {
 } from "react-leaflet";
 import L, { type GeoJSON as LeafletGeoJSON } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { ChevronDown, Filter, Layers, Palette } from "lucide-react";
+import { ChevronDown, Filter, Layers, Palette, RotateCcw, X } from "lucide-react";
 import { CENTRE_MADAGASCAR } from "@/features/zones/data/map-data";
 import { cn } from "@/lib/utils";
 
@@ -25,17 +25,17 @@ const GRAVITE_LABEL: Record<string, string> = {
 };
 
 const GRAVITE_FILL: Record<string, string> = {
-  Faible: "#fef08a",
-  Modere: "#fdba74",
-  Eleve: "#f87171",
+  Faible: "#eab308",
+  Modere: "#f97316",
+  Eleve: "#dc2626",
   Critique: "#7f1d1d",
 };
 
 const GRAVITE_STROKE: Record<string, string> = {
   Faible: "#ca8a04",
   Modere: "#ea580c",
-  Eleve: "#dc2626",
-  Critique: "#7f1d1d",
+  Eleve: "#b91c1c",
+  Critique: "#450a0a",
 };
 
 const STATUT_LABEL: Record<string, string> = {
@@ -84,6 +84,17 @@ interface GeojsonCollection {
     geometry: { type: string; coordinates: unknown } | null;
     properties: Record<string, unknown>;
   }>;
+}
+
+interface ZoneInfo {
+  zoneId: number;
+  nom: string;
+  type: string;
+  centreCount: number;
+  centres: { id: number; name: string; type: string }[];
+  casTotal: number;
+  casConfirmes: number;
+  alerte: { gravite: string; maladie: string; cas: number } | null;
 }
 
 function walkCoords(geometry: unknown, out: [number, number][]) {
@@ -140,18 +151,40 @@ async function fetchGeo(url: string): Promise<GeojsonCollection> {
 }
 
 /* ------------------------------------------------------------------ */
-/*  FitBounds automatique                                              */
+/*  Actions carte (fitBounds / flyTo)                                  */
 /* ------------------------------------------------------------------ */
 
-function FitBounds({ bounds }: { bounds: L.LatLngBoundsExpression | null }) {
+function MapActions({
+  bounds,
+  focusZone,
+  flyTarget,
+}: {
+  bounds: L.LatLngBoundsExpression | null;
+  focusZone: {
+    id: number;
+    name: string;
+    bounds: L.LatLngBoundsExpression;
+  } | null;
+  flyTarget: { center: [number, number]; zoom: number } | null;
+}) {
   const map = useMap();
+
   useEffect(() => {
-    if (!bounds) {
+    if (focusZone) {
+      map.flyToBounds(focusZone.bounds, { padding: [24, 24] });
+    } else if (bounds) {
+      map.fitBounds(bounds, { padding: [24, 24] });
+    } else {
       map.fitBounds(MADAGASCAR_BOUNDS, { padding: [24, 24] });
-      return;
     }
-    map.fitBounds(bounds, { padding: [24, 24] });
-  }, [map, bounds]);
+  }, [map, bounds, focusZone]);
+
+  useEffect(() => {
+    if (flyTarget) {
+      map.flyTo(flyTarget.center, flyTarget.zoom, { duration: 0.8 });
+    }
+  }, [map, flyTarget]);
+
   return null;
 }
 
@@ -195,6 +228,17 @@ export function EpidemicMapInner() {
   const [clusters, setClusters] = useState<GeojsonCollection | null>(null);
   const [cas, setCas] = useState<GeojsonCollection | null>(null);
   const [loading, setLoading] = useState(true);
+  const [focusZone, setFocusZone] = useState<{
+    id: number;
+    name: string;
+    bounds: L.LatLngBoundsExpression;
+  } | null>(null);
+  const [flyTarget, setFlyTarget] = useState<{
+    center: [number, number];
+    zoom: number;
+  } | null>(null);
+  const [zoneInfo, setZoneInfo] = useState<ZoneInfo | null>(null);
+  const [zoneLoading, setZoneLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -238,6 +282,8 @@ export function EpidemicMapInner() {
     return Array.from(names).sort((a, b) => a.localeCompare(b));
   }, [cas]);
 
+  const zoneName = focusZone?.name ?? "";
+
   const filteredCas = useMemo(() => {
     if (!cas) return null;
     return {
@@ -246,10 +292,33 @@ export function EpidemicMapInner() {
         const statut = String(f.properties.statut ?? "");
         if (statuts.size > 0 && !statuts.has(statut)) return false;
         if (maladie && f.properties.maladie !== maladie) return false;
+        if (zoneName && f.properties.zone !== zoneName) return false;
         return true;
       }),
     };
-  }, [cas, statuts, maladie]);
+  }, [cas, statuts, maladie, zoneName]);
+
+  const filteredCentres = useMemo(() => {
+    if (!centres) return null;
+    if (!zoneName) return centres;
+    return {
+      type: "FeatureCollection" as const,
+      features: centres.features.filter(
+        (f) => f.properties.zone === zoneName,
+      ),
+    };
+  }, [centres, zoneName]);
+
+  const filteredAlertes = useMemo(() => {
+    if (!alertes) return null;
+    if (!zoneName) return alertes;
+    return {
+      type: "FeatureCollection" as const,
+      features: alertes.features.filter(
+        (f) => f.properties.zone === zoneName,
+      ),
+    };
+  }, [alertes, zoneName]);
 
   function toggle(key: LayerKey) {
     setLayers((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -262,6 +331,41 @@ export function EpidemicMapInner() {
       else next.add(s);
       return next;
     });
+  }
+
+  async function loadZoneSummary(id: number, name: string) {
+    setZoneLoading(true);
+    try {
+      const res = await fetch(`/api/carte/zone/${id}`);
+      if (!res.ok) throw new Error("Résumé indisponible.");
+      const data = await res.json();
+      setZoneInfo(data as ZoneInfo);
+      void name;
+    } catch {
+      setZoneInfo(null);
+    } finally {
+      setZoneLoading(false);
+    }
+  }
+
+  function resetView() {
+    setFocusZone(null);
+    setZoneInfo(null);
+    setFlyTarget(null);
+  }
+
+  function flyToCentre(centreId: number) {
+    const feature = centres?.features.find(
+      (f) => Number(f.properties.id) === centreId,
+    );
+    const geom = feature?.geometry as {
+      type?: string;
+      coordinates?: unknown;
+    } | null;
+    if (geom?.type === "Point") {
+      const [lng, lat] = geom.coordinates as [number, number];
+      setFlyTarget({ center: [lat, lng], zoom: 10 });
+    }
   }
 
   /* ---------- Styles & popups des couches ---------- */
@@ -297,6 +401,15 @@ export function EpidemicMapInner() {
     });
     layer.on("mouseout", () => {
       layer.setStyle(zoneStyle(feature) as L.PathOptions);
+    });
+    // Navigation par clic : zoom sur la zone + filtrage contextuel + panneau info.
+    layer.on("click", () => {
+      const bounds = layer.getBounds();
+      const id = Number(p.id ?? 0);
+      const name = String(p.nom ?? "");
+      if (!id) return;
+      setFocusZone({ id, name, bounds });
+      void loadZoneSummary(id, name);
     });
   }
 
@@ -357,12 +470,14 @@ export function EpidemicMapInner() {
     latlng?: L.LatLng,
   ) => {
     const nb = Number(feature?.properties?.nb ?? 1);
-    return L.circleMarker(latlng ?? [0, 0], {
-      radius: Math.min(8 + nb * 2, 22),
-      color: "#ffffff",
-      weight: 1,
-      fillColor: "#0369a1",
-      fillOpacity: 0.5,
+    const size = 28 + Math.min(nb, 8) * 2;
+    return L.marker(latlng ?? [0, 0], {
+      icon: L.divIcon({
+        className: "",
+        html: `<div style="display:grid;place-items:center;width:${size}px;height:${size}px;border-radius:50%;background:#0369a1;color:#ffffff;font-weight:600;font-size:12px;border:2px solid #ffffff;box-shadow:0 1px 4px rgba(0,0,0,.35)">${nb}</div>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      }),
     });
   };
 
@@ -398,23 +513,31 @@ export function EpidemicMapInner() {
         className="h-full w-full"
       >
         <TileLayer
-          attribution='Tiles &copy; Esri &mdash; Source: Esri, TomTom, Garmin, FAO, NOAA, USGS, &copy; OpenStreetMap contributors'
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        <FitBounds bounds={bounds} />
+        <MapActions
+          bounds={bounds}
+          focusZone={focusZone}
+          flyTarget={flyTarget}
+        />
 
         {layers.limites && zones ? (
           <GeoJSON data={zones} style={zoneStyle} onEachFeature={zoneEach} />
         ) : null}
 
-        {layers.alertes && alertes ? (
-          <GeoJSON data={alertes} style={alerteStyle} onEachFeature={alerteEach} />
+        {layers.alertes && filteredAlertes ? (
+          <GeoJSON
+            data={filteredAlertes}
+            style={alerteStyle}
+            onEachFeature={alerteEach}
+          />
         ) : null}
 
-        {layers.centres && centres ? (
+        {layers.centres && filteredCentres ? (
           <GeoJSON
-            data={centres}
+            data={filteredCentres}
             pointToLayer={centrePoint}
             onEachFeature={centreEach}
           />
@@ -422,14 +545,14 @@ export function EpidemicMapInner() {
 
         {layers.cas && filteredCas ? (
           <GeoJSON
-            key={`cas-${Array.from(statuts).sort().join("|")}-${maladie}`}
+            key={`cas-${Array.from(statuts).sort().join("|")}-${maladie}-${zoneName}`}
             data={filteredCas}
             pointToLayer={casPoint}
             onEachFeature={casEach}
           />
         ) : null}
 
-        {layers.clusters && clusters ? (
+        {layers.clusters && clusters && !focusZone ? (
           <GeoJSON
             data={clusters}
             pointToLayer={clusterPoint}
@@ -437,6 +560,100 @@ export function EpidemicMapInner() {
           />
         ) : null}
       </MapContainer>
+
+      {/* Panneau contextuel de zone sélectionnée */}
+      {focusZone ? (
+        <div className="absolute left-3 top-14 z-[1000] w-72 max-w-[calc(100%-24px)] rounded-2xl border border-border bg-bg-surface/95 p-4 shadow-card backdrop-blur-md">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-sm font-semibold text-text-main">
+              {focusZone.name}
+            </p>
+            <button
+              type="button"
+              onClick={resetView}
+              aria-label="Fermer la sélection de zone"
+              className="grid size-7 shrink-0 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-app hover:text-text-main"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+
+          {zoneLoading ? (
+            <p className="mt-2 text-xs text-text-muted">Chargement…</p>
+          ) : zoneInfo ? (
+            <div className="mt-2 space-y-2.5 text-sm">
+              {zoneInfo.alerte ? (
+                <div className="flex items-center gap-2">
+                  <span
+                    className="size-2.5 shrink-0 rounded-full"
+                    style={{
+                      backgroundColor:
+                        GRAVITE_FILL[zoneInfo.alerte.gravite] ?? "#94a3b8",
+                    }}
+                  />
+                  <span className="text-text-muted">
+                    Alerte{" "}
+                    <strong className="text-text-main">
+                      {GRAVITE_LABEL[zoneInfo.alerte.gravite] ??
+                        zoneInfo.alerte.gravite}
+                    </strong>{" "}
+                    · {zoneInfo.alerte.maladie}
+                  </span>
+                </div>
+              ) : (
+                <p className="text-text-muted">Aucune alerte active.</p>
+              )}
+
+              <p className="text-text-muted">
+                Cas déclarés :{" "}
+                <strong className="text-text-main">{zoneInfo.casTotal}</strong>
+                {" ("}
+                <strong className="text-text-main">
+                  {zoneInfo.casConfirmes}
+                </strong>{" "}
+                confirmés)
+              </p>
+
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+                  Centres de santé ({zoneInfo.centreCount})
+                </p>
+                {zoneInfo.centreCount === 0 ? (
+                  <p className="mt-1 text-xs text-text-muted">Aucun centre.</p>
+                ) : (
+                  <ul className="mt-1 max-h-32 space-y-1 overflow-y-auto pr-1">
+                    {zoneInfo.centres.map((c) => (
+                      <li key={c.id}>
+                        <button
+                          type="button"
+                          onClick={() => flyToCentre(c.id)}
+                          className="block w-full truncate rounded px-1.5 py-0.5 text-left text-xs text-text-muted transition-colors hover:bg-bg-app hover:text-primary hover:underline"
+                          title={`Centrer sur ${c.name}`}
+                        >
+                          {c.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-text-muted">
+              Données indisponibles pour cette zone.
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={resetView}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-bg-surface px-3 py-2 text-xs font-medium text-text-main transition-colors hover:bg-bg-app"
+          >
+            <RotateCcw className="size-3.5" />
+            Réinitialiser la vue
+          </button>
+        </div>
+      ) : null}
 
       {/* Panneau flottant : Filtres + Légende + Couches (bas gauche,
           laissant l'attribution des fonds de carte visible en bas à droite) */}
