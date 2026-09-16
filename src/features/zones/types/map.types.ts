@@ -11,7 +11,17 @@ export const MADAGASCAR_BOUNDS: L.LatLngBoundsExpression = [
 
 /* ================================================================== */
 /*  Tokens de couleur — Gravité des alertes                           */
+/*  Échelle à 5 niveaux inspirée des standards de stratification      */
+/*  épidémiologique (ref. HMIS Malaria Risk Stratification)           */
 /* ================================================================== */
+
+/** Zone sans alerte active (risque très faible confirmé). */
+export const NO_ALERT_FILL   = "#8BC34A"; // vert clair
+export const NO_ALERT_STROKE = "#558B2F"; // vert foncé
+
+/** Zone dont les données sont absentes / non renseignées. */
+export const NO_DATA_FILL   = "#C5CAE9"; // bleu-lavande neutre
+export const NO_DATA_STROKE = "#7986CB";
 
 export const GRAVITE_LABEL: Record<string, string> = {
   Faible:   "Faible",
@@ -20,21 +30,35 @@ export const GRAVITE_LABEL: Record<string, string> = {
   Critique: "Critique",
 };
 
+/** Couleurs de remplissage choroplèthe — du jaune au rouge sang. */
 export const GRAVITE_FILL: Record<string, string> = {
-  Faible:   "#eab308",
-  Modere:   "#f97316",
-  Eleve:    "#dc2626",
-  Critique: "#7f1d1d",
+  Faible:   "#FDD835", // jaune
+  Modere:   "#FB8C00", // orange
+  Eleve:    "#E53935", // rouge
+  Critique: "#B71C1C", // rouge foncé
 };
 
 export const GRAVITE_STROKE: Record<string, string> = {
-  Faible:   "#ca8a04",
-  Modere:   "#ea580c",
-  Eleve:    "#b91c1c",
-  Critique: "#450a0a",
+  Faible:   "#F9A825",
+  Modere:   "#E65100",
+  Eleve:    "#C62828",
+  Critique: "#7F1D1D",
 };
 
 export const GRAVITES = ["Faible", "Modere", "Eleve", "Critique"] as const;
+
+/**
+ * Source de vérité unique pour la légende choroplèthe.
+ * Ordre du risque le plus faible au plus élevé, incluant les cas
+ * « Aucune alerte » et « Données insuffisantes ».
+ */
+export const GRAVITES_LEGEND = [
+  { key: "aucune",   label: "Aucune alerte",         fill: NO_ALERT_FILL,       stroke: NO_ALERT_STROKE },
+  { key: "Faible",   label: GRAVITE_LABEL.Faible,     fill: GRAVITE_FILL.Faible,   stroke: GRAVITE_STROKE.Faible },
+  { key: "Modere",   label: GRAVITE_LABEL.Modere,     fill: GRAVITE_FILL.Modere,   stroke: GRAVITE_STROKE.Modere },
+  { key: "Eleve",    label: GRAVITE_LABEL.Eleve,      fill: GRAVITE_FILL.Eleve,    stroke: GRAVITE_STROKE.Eleve },
+  { key: "Critique", label: GRAVITE_LABEL.Critique,   fill: GRAVITE_FILL.Critique, stroke: GRAVITE_STROKE.Critique },
+] as const;
 
 /* ================================================================== */
 /*  Tokens de couleur — Statut des cas                                */
@@ -109,12 +133,17 @@ export interface FlyTarget {
 /*  Icônes Leaflet                                                    */
 /* ================================================================== */
 
+/**
+ * Icône centre de santé — croix blanche sur fond bleu médical.
+ * Double ombre + bordure blanche épaisse pour rester lisible
+ * sur n'importe quelle couleur choroplèthe.
+ */
 export const crossIcon = L.divIcon({
   className: "",
-  html: `<div style="display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#0369a1;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>`,
-  iconSize:    [22, 22],
-  iconAnchor:  [11, 11],
-  popupAnchor: [0, -10],
+  html: `<div style="display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#0369a1;border:2.5px solid #fff;box-shadow:0 0 0 1.5px rgba(3,105,161,0.4),0 2px 6px rgba(0,0,0,.5)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>`,
+  iconSize:    [24, 24],
+  iconAnchor:  [12, 12],
+  popupAnchor: [0, -12],
 });
 
 /* ================================================================== */

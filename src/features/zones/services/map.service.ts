@@ -1,3 +1,4 @@
+import { apiFetch } from "@/services/api";
 import type { GeojsonCollection, ZoneInfo } from "@/features/zones/types/map.types";
 
 /* ================================================================== */
@@ -9,10 +10,12 @@ const EMPTY_COLLECTION: GeojsonCollection = {
   features: [],
 };
 
-async function fetchGeoLayer(url: string): Promise<GeojsonCollection> {
-  const res = await fetch(url);
-  if (!res.ok) return EMPTY_COLLECTION;
-  return res.json();
+async function fetchGeoLayer(path: string): Promise<GeojsonCollection> {
+  try {
+    return await apiFetch<GeojsonCollection>(path);
+  } catch {
+    return EMPTY_COLLECTION;
+  }
 }
 
 /* ================================================================== */
@@ -32,11 +35,11 @@ export async function fetchAllMapLayers(): Promise<{
   cas:      GeojsonCollection;
 }> {
   const [zones, centres, alertes, clusters, cas] = await Promise.all([
-    fetchGeoLayer("/api/carte/zones"),
-    fetchGeoLayer("/api/carte/centres"),
-    fetchGeoLayer("/api/carte/alertes"),
-    fetchGeoLayer("/api/carte/clusters"),
-    fetchGeoLayer("/api/carte/cas"),
+    fetchGeoLayer("/carte/zones"),
+    fetchGeoLayer("/carte/centres"),
+    fetchGeoLayer("/carte/alertes"),
+    fetchGeoLayer("/carte/clusters"),
+    fetchGeoLayer("/carte/cas"),
   ]);
   return { zones, centres, alertes, clusters, cas };
 }
@@ -46,7 +49,5 @@ export async function fetchAllMapLayers(): Promise<{
  * Lève une erreur si la réponse HTTP n'est pas OK.
  */
 export async function fetchZoneSummary(id: number): Promise<ZoneInfo> {
-  const res = await fetch(`/api/carte/zone/${id}`);
-  if (!res.ok) throw new Error("Résumé de zone indisponible.");
-  return res.json();
+  return await apiFetch<ZoneInfo>(`/carte/zone/${id}`);
 }

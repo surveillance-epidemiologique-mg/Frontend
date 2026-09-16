@@ -15,6 +15,10 @@ import {
   GRAVITE_FILL,
   GRAVITE_LABEL,
   GRAVITE_STROKE,
+  NO_ALERT_FILL,
+  NO_ALERT_STROKE,
+  NO_DATA_FILL,
+  NO_DATA_STROKE,
   STATUT_COLOR,
   STATUT_LABEL,
   MADAGASCAR_BOUNDS,
@@ -35,8 +39,10 @@ import { MapControlsPanel } from "@/features/zones/components/map-controls-panel
 export function EpidemicMapInner() {
 
   /* ── State : couches & filtres ────────────────────────────────── */
+  // Seule la couche « Alertes » (choroplèthe par zone) est activée
+  // au chargement initial, conformément au cahier des charges.
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({
-    cas: true, centres: true, alertes: true, limites: true, clusters: true,
+    cas: false, centres: false, alertes: true, limites: false, clusters: false,
   });
   const [statuts, setStatuts] = useState<Set<string>>(new Set());
   const [maladie, setMaladie] = useState("");
@@ -178,16 +184,41 @@ export function EpidemicMapInner() {
 
   /* ── Styles & popups des couches GeoJSON ──────────────────────── */
 
+  /**
+   * Style choroplèthe pour la couche « Limites administratives ».
+   * Toutes les zones reçoivent un remplissage :
+   *   • Gravité connue   → palette jaune–rouge selon l'échelle à 5 niveaux
+   *   • Aucune alerte    → vert clair (risque très faible confirmé)
+   *   • Données absentes → bleu-lavande neutre (« données insuffisantes »)
+   */
   const zoneStyle = (feature?: { properties: Record<string, unknown> }) => {
     const gravite = String(feature?.properties?.gravite ?? "");
-    if (!gravite || !GRAVITE_FILL[gravite]) {
-      return { color: "#94a3b8", weight: 1.5, fill: false, dashArray: "6 6" };
+    const hasData = feature !== undefined; // le feature existe, juste sans alerte
+
+    if (gravite && GRAVITE_FILL[gravite]) {
+      // Zone avec alerte active : couleur de risque pleine
+      return {
+        color:       GRAVITE_STROKE[gravite],
+        weight:      1,
+        fillColor:   GRAVITE_FILL[gravite],
+        fillOpacity: 0.72,
+      };
     }
+    if (hasData) {
+      // Zone sans alerte active (donnée présente mais aucune alerte)
+      return {
+        color:       NO_ALERT_STROKE,
+        weight:      1,
+        fillColor:   NO_ALERT_FILL,
+        fillOpacity: 0.55,
+      };
+    }
+    // Zone dont les données sont absentes (« données insuffisantes »)
     return {
-      color:       GRAVITE_STROKE[gravite],
-      weight:      2,
-      fillColor:   GRAVITE_FILL[gravite],
-      fillOpacity: 0.35,
+      color:       NO_DATA_STROKE,
+      weight:      1,
+      fillColor:   NO_DATA_FILL,
+      fillOpacity: 0.50,
     };
   };
 
@@ -195,10 +226,13 @@ export function EpidemicMapInner() {
     const p       = feature.properties;
     const gravite = String(p.gravite ?? "");
     const html    = gravite
-      ? `<strong>${p.nom}</strong><br/>Alerte : ${p.alerteMaladie}<br/>Gravité : <strong>${GRAVITE_LABEL[gravite] ?? gravite}</strong><br/>Cas détectés : <strong>${p.alerteCas}</strong><br/>Détectée le : ${new Date(String(p.alerteDate)).toLocaleDateString("fr-FR")}`
-      : `<strong>${p.nom}</strong>`;
+      ? `<strong>${p.nom}</strong><br/>Alerte : ${p.alerteMaladie}<br/>Gravité : <strong>${GRAVITE_LABEL[gravite] ?? gravite}</strong><br/>Cas détectés : <strong>${p.alerteCas}</strong><br/>Détectée le : ${new Date(String(p.alerteDate)).toLocaleDateString("fr-FR")}`
+      : `<strong>${p.nom}</strong><br/><span style="color:#64748b">Aucune alerte active</span>`;
     layer.bindPopup(popupHtml(html));
-    layer.on("mouseover", () => { layer.setStyle({ weight: 3, fillOpacity: 0.5 }); layer.bringToFront(); });
+    layer.on("mouseover", () => {
+      layer.setStyle({ weight: 2.5, fillOpacity: 0.9 });
+      layer.bringToFront();
+    });
     layer.on("mouseout",  () => { layer.setStyle(zoneStyle(feature) as L.PathOptions); });
     layer.on("click", () => {
       const id   = Number(p.id ?? 0);
@@ -208,13 +242,18 @@ export function EpidemicMapInner() {
     });
   }
 
+  /**
+   * Style choroplèthe pour la couche « Alertes » (zones avec alerte uniquement).
+   * Utilise la même échelle de couleurs que zoneStyle,
+   * avec une opacité légèrement plus élevée pour marquer la distinction.
+   */
   const alerteStyle = (feature?: { properties: Record<string, unknown> }) => {
     const gravite = String(feature?.properties?.gravite ?? "");
     return {
-      color:       GRAVITE_STROKE[gravite] ?? "#ea580c",
-      weight:      2,
-      fillColor:   GRAVITE_FILL[gravite]   ?? "#fdba74",
-      fillOpacity: 0.4,
+      color:       GRAVITE_STROKE[gravite] ?? NO_ALERT_STROKE,
+      weight:      1.5,
+      fillColor:   GRAVITE_FILL[gravite]   ?? NO_ALERT_FILL,
+      fillOpacity: 0.75,
     };
   };
 
@@ -222,8 +261,10 @@ export function EpidemicMapInner() {
     const p       = feature.properties;
     const gravite = String(p.gravite ?? "");
     layer.bindPopup(popupHtml(
-      `<strong>${p.maladie}</strong><br/>Zone : ${p.zone}<br/>Gravité : <strong>${GRAVITE_LABEL[gravite] ?? gravite}</strong><br/>Cas détectés : <strong>${p.cas}</strong><br/>Détectée le : ${new Date(String(p.date)).toLocaleDateString("fr-FR")}`,
+      `<strong>${p.maladie}</strong><br/>Zone : ${p.zone}<br/>Gravité : <strong>${GRAVITE_LABEL[gravite] ?? gravite}</strong><br/>Cas détectés : <strong>${p.cas}</strong><br/>Détectée le : ${new Date(String(p.date)).toLocaleDateString("fr-FR")}`,
     ));
+    layer.on("mouseover", () => { layer.setStyle({ weight: 2.5, fillOpacity: 0.9 }); layer.bringToFront(); });
+    layer.on("mouseout",  () => { layer.setStyle(alerteStyle(feature) as L.PathOptions); });
   }
 
   const casPoint = (

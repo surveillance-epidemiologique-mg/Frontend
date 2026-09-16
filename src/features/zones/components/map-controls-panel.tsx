@@ -3,10 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, Filter, Layers, Palette } from "lucide-react";
 import {
-  GRAVITE_FILL,
-  GRAVITE_LABEL,
-  GRAVITE_STROKE,
-  GRAVITES,
+  GRAVITES_LEGEND,
   LAYER_DEFS,
   STATUT_COLOR,
   STATUT_LABEL,
@@ -138,31 +135,31 @@ export function MapControlsPanel({
             </select>
           </section>
 
-          {/* ── Section : Légende ─────────────────────────────────── */}
+          {/* ── Section : Légende choroplèthe ─────────────────────── */}
           <section className="border-t border-border pt-3">
             <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
               <Palette className="size-3" />
-              Légende
+              Légende — Niveau de risque
             </p>
 
-            {/* Gravité des alertes */}
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-              {GRAVITES.map((g) => (
-                <span key={g} className="flex items-center gap-1.5 text-xs text-text-muted">
+            {/* Échelle 5 niveaux : aucune alerte → critique */}
+            <div className="space-y-1.5">
+              {GRAVITES_LEGEND.map((g) => (
+                <span key={g.key} className="flex items-center gap-2 text-xs">
                   <span
-                    className="size-2.5 shrink-0 rounded-full border"
-                    style={{
-                      backgroundColor: GRAVITE_FILL[g],
-                      borderColor:     GRAVITE_STROKE[g] ?? GRAVITE_FILL[g],
-                    }}
+                    className="size-3.5 shrink-0 rounded-sm border"
+                    style={{ backgroundColor: g.fill, borderColor: g.stroke }}
                   />
-                  {GRAVITE_LABEL[g]}
+                  <span className="font-medium text-text-main">{g.label}</span>
                 </span>
               ))}
             </div>
 
-            {/* Statuts des cas */}
-            <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-border pt-2">
+            {/* Statuts des cas individuels */}
+            <p className="mb-1.5 mt-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+              Statut des cas
+            </p>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
               {STATUTS.map((s) => (
                 <span key={s} className="flex items-center gap-1.5 text-xs text-text-muted">
                   <span
