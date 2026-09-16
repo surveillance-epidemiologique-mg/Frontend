@@ -37,7 +37,7 @@ export function Input({
       {label ? (
         <label
           htmlFor={inputId}
-          className="block text-md font-medium text-text-main"
+          className="block text-sm font-medium text-text-main"
         >
           {label}
         </label>
@@ -55,7 +55,7 @@ export function Input({
               aria-invalid={error ? true : undefined}
               aria-describedby={describedById}
               className={cn(
-                  "w-full rounded-xl border-1 border-border/60",
+                  "w-full rounded-xl border-[1.5px] border-border/60",
                   "bg-bg-surface px-3.5 py-2.5",
                   "text-md text-text-main outline-none",
                   "placeholder:text-text-subtle/70",
@@ -69,7 +69,7 @@ export function Input({
                   rightSlot ? "pr-5" : undefined,
 
                   variant === "glass"
-                      ? "border-primary/40 bg-white backdrop-blur-sm placeholder:text-text-subtle"
+                      ? "border-primary/40 bg-bg-surface backdrop-blur-sm placeholder:text-text-subtle"
                       : undefined,
 
                   error

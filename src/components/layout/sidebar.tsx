@@ -150,7 +150,7 @@ export function Sidebar({ role, mobileOpen, onCloseMobile }: SidebarProps) {
                   collapsed && "lg:justify-center lg:px-0",
                   isActive
                     ? "bg-primary text-white"
-                    : "text-text-muted hover:bg-bg-app hover:text-text-main",
+                    : "text-text-muted hover:bg-bg-surface-hover hover:text-text-main",
                 )}
               >
                 <item.icon className="size-5 shrink-0" />

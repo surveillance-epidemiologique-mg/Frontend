@@ -35,7 +35,7 @@ export function Textarea({
         aria-invalid={error ? true : undefined}
         aria-describedby={describedById}
         className={cn(
-          "w-full rounded-lg border bg-bg-surface px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted transition-colors duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60",
+          "w-full rounded-lg border border-[1.5px] bg-bg-surface px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted transition-colors duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60",
           error
             ? "border-error focus:border-error focus:ring-error/20"
             : "border-border focus:border-primary focus:ring-primary/20",

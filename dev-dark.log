@@ -110,3 +110,5 @@ https://react.dev/link/hydration-mismatch
 ✓ Compiled in 83ms
 ✓ Compiled in 80ms
  GET /zones 200 in 331ms (next.js: 149ms, proxy.ts: 72ms, application-code: 110ms)
+ GET /login?reason=session-expired 200 in 136ms (next.js: 68ms, proxy.ts: 27ms, application-code: 41ms)
+^C^C

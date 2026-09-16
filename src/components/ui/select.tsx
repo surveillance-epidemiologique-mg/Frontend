@@ -30,39 +30,33 @@ export function Select({
 
   return (
       <div className="w-full space-y-1.5">
-        {label && (
-            <label
-                htmlFor={selectId}
-                className={cn(
-                    "block text-xs font-semibold uppercase tracking-wider transition-colors",
-                    props.disabled
-                        ? "text-text-muted/60"
-                        : error
-                            ? "text-error"
-                            : "text-text-muted"
-                )}
-            >
-              {label}
-            </label>
-        )}
+        {label ? (
+          <label
+            htmlFor={selectId}
+            className="block text-sm font-medium text-text-main"
+          >
+            {label}
+          </label>
+        ) : null}
 
         <div className="group relative flex items-center">
           <select
               id={selectId}
               className={cn(
-                  // Style de base & Typo
-                  "w-full appearance-none rounded-lg py-2 pl-3.5 pr-10 text-sm font-medium transition-all duration-200",
-                  "bg-bg-surface cursor-pointer shadow-sm border",
-                  // Couleur du texte dynamique : grisé si c'est le placeholder, sinon couleur principale
-                  !props.value && !props.defaultValue ? "text-text-muted" : "text-text-main",
-                  // Bordures & Focus
+                  // Style aligné sur l'Input (arrondi, bordure 1.5px, padding, taille de texte)
+                  "w-full appearance-none rounded-xl border-[1.5px] border-border/60",
+                  "bg-bg-surface px-3.5 py-2.5 pr-10",
+                  "text-md text-text-main outline-none cursor-pointer",
+                  "transition-all duration-200",
+                  "hover:border-primary",
+                  // Couleur du texte dynamique si placeholder actif
+                  !props.value && !props.defaultValue ? "text-text-muted/70" : "text-text-main",
+                  // Bordures & Focus en cas d'erreur ou normal
                   error
-                      ? "border-error focus:ring-2 focus:ring-error/20"
-                      : "border-border hover:border-border/80 focus:ring-2 focus:ring-primary/20",
-                  // Focus & Outline
-                  "outline-none",
+                      ? "border-error focus:border-error focus:ring-2 focus:ring-error/20"
+                      : "focus:border-primary focus:ring-2 focus:ring-primary/20",
                   // État Désactivé
-                  "disabled:cursor-not-allowed disabled:bg-bg-muted/40 disabled:opacity-60 disabled:shadow-none",
+                  "disabled:cursor-not-allowed disabled:bg-bg-muted/40 disabled:opacity-60",
                   className
               )}
               {...props}
@@ -83,23 +77,23 @@ export function Select({
             ))}
           </select>
 
-          {/* Icône animée au focus */}
+          {/* Icône flèche */}
           <ChevronDown
               aria-hidden="true"
               className={cn(
-                  "pointer-events-none absolute right-3 size-4 transition-transform duration-200",
+                  "pointer-events-none absolute right-3.5 size-4 transition-transform duration-200",
                   "group-focus-within:rotate-180",
                   props.disabled
                       ? "text-text-muted/40"
                       : error
                           ? "text-error"
-                          : "text-primary group-hover:scale-110"
+                          : "text-text-muted"
               )}
           />
         </div>
 
         {error && (
-            <p className="text-xs font-medium text-error flex items-center gap-1">
+            <p className="text-xs text-error">
               {error}
             </p>
         )}

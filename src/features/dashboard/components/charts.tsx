@@ -1,12 +1,12 @@
 "use client";
 
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -23,13 +23,18 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+/* ── Tokens de chart ─────────────────────────────────────────────────── */
+
 const CHART = {
-  grid: "#e2e8f0",
-  tick: "#64748b",
+  grid:    "#e2e8f0",
+  tick:    "#94a3b8",
   primary: "#0369a1",
   warning: "#f59e0b",
   success: "#16a34a",
+  danger:  "#ef4444",
 };
+
+const AXIS_TICK = { fill: CHART.tick, fontSize: 11 };
 
 export interface TrendPoint {
   jour: string;
@@ -71,34 +76,42 @@ export function formatMois(iso: string): string {
   return `${MOIS_FR[index] ?? mois} ${annee}`;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Primitives partagées                                              */
-/* ------------------------------------------------------------------ */
+/* ── Primitives partagées ──────────────────────────────────────────── */
 
 function ChartCard({
   title,
   description,
   className,
   children,
+  action,
 }: {
   title: string;
   description?: string;
   className?: string;
   children: React.ReactNode;
+  action?: React.ReactNode;
 }) {
   return (
     <Card className={cn("flex flex-col", className)}>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description ? (
-          <CardDescription>{description}</CardDescription>
-        ) : null}
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <CardTitle className="text-base">{title}</CardTitle>
+            {description ? (
+              <CardDescription className="mt-0.5 text-[13px]">
+                {description}
+              </CardDescription>
+            ) : null}
+          </div>
+          {action}
+        </div>
       </CardHeader>
-      <CardContent className="flex-1">{children}</CardContent>
+      <CardContent className="flex-1 pt-0">{children}</CardContent>
     </Card>
   );
 }
 
+/* Légende compacte réutilisable */
 function ChartLegend({
   items,
   className,
@@ -111,10 +124,10 @@ function ChartLegend({
       {items.map((item) => (
         <span
           key={item.label}
-          className="inline-flex items-center gap-1.5 text-xs text-text-muted"
+          className="inline-flex items-center gap-1.5 text-[11px] font-medium text-text-muted"
         >
           <span
-            className="size-2.5 shrink-0 rounded-full"
+            className="size-2 shrink-0 rounded-full"
             style={{ backgroundColor: item.color }}
           />
           {item.label}
@@ -124,11 +137,12 @@ function ChartLegend({
   );
 }
 
+/* Tooltip glassmorphism */
 interface TooltipEntry {
   name?: string;
   value?: number | string;
   dataKey?: string | number;
-  payload?: { couleur?: string; fill?: string };
+  payload?: { couleur?: string; fill?: string; stroke?: string };
 }
 
 function ChartTooltip({
@@ -140,31 +154,41 @@ function ChartTooltip({
   label?: string | number;
   payload?: TooltipEntry[];
 }) {
-  if (!active || !payload?.length) {
-    return null;
-  }
+  if (!active || !payload?.length) return null;
 
   return (
-    <div className="rounded-xl border border-border bg-bg-surface px-3.5 py-2.5 text-xs shadow-dropdown">
+    <div
+      className={cn(
+        "min-w-[140px] rounded-xl border border-border/60 px-3.5 py-2.5 text-xs shadow-dropdown",
+        "bg-bg-surface/90 backdrop-blur-md",
+      )}
+    >
       {label ? (
-        <p className="mb-1.5 font-semibold text-text-main">{label}</p>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+          {label}
+        </p>
       ) : null}
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {payload.map((entry, index) => (
           <div
             key={`${entry.dataKey ?? entry.name ?? index}`}
-            className="flex items-center gap-2 text-text-muted"
+            className="flex items-center gap-2"
           >
             <span
               className="size-2 shrink-0 rounded-full"
               style={{
                 backgroundColor:
-                  entry.payload?.couleur ?? entry.payload?.fill ?? "#0369a1",
+                  entry.payload?.couleur ??
+                  entry.payload?.fill ??
+                  entry.payload?.stroke ??
+                  CHART.primary,
               }}
             />
-            <span>{entry.name}</span>
-            <span className="ml-auto pl-3 font-medium tabular-nums text-text-main">
-              {entry.value}
+            <span className="text-text-muted">{entry.name}</span>
+            <span className="ml-auto pl-4 font-semibold tabular-nums text-text-main">
+              {typeof entry.value === "number"
+                ? entry.value.toLocaleString("fr-FR")
+                : entry.value}
             </span>
           </div>
         ))}
@@ -173,11 +197,7 @@ function ChartTooltip({
   );
 }
 
-const AXIS_TICK = { fill: CHART.tick, fontSize: 12 };
-
-/* ------------------------------------------------------------------ */
-/*  DASH-01 · Courbe : évolution des cas confirmés (30 jours)         */
-/* ------------------------------------------------------------------ */
+/* ── DASH-01 · Area chart : évolution des cas confirmés ──────────────── */
 
 export function ConfirmedTrendChart({
   data,
@@ -186,38 +206,71 @@ export function ConfirmedTrendChart({
   data: TrendPoint[];
   className?: string;
 }) {
+  const gradientId = "trend-gradient";
+
   return (
     <ChartCard
       title="Évolution des cas confirmés"
       description="30 derniers jours"
       className={className}
     >
-      <div className="h-[280px] w-full">
+      <div className="h-[240px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <CartesianGrid stroke={CHART.grid} strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="jour" tick={AXIS_TICK} tickLine={false} axisLine={false} />
-            <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={36} />
-            <Tooltip content={<ChartTooltip />} />
-            <Line
+          <AreaChart data={data} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stopColor={CHART.primary} stopOpacity={0.22} />
+                <stop offset="85%"  stopColor={CHART.primary} stopOpacity={0.03} />
+                <stop offset="100%" stopColor={CHART.primary} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              stroke={CHART.grid}
+              strokeDasharray="4 4"
+              vertical={false}
+              strokeOpacity={0.7}
+            />
+            <XAxis
+              dataKey="jour"
+              tick={AXIS_TICK}
+              tickLine={false}
+              axisLine={false}
+              interval="preserveStartEnd"
+            />
+            <YAxis
+              tick={AXIS_TICK}
+              tickLine={false}
+              axisLine={false}
+              width={34}
+            />
+            <Tooltip
+              content={<ChartTooltip />}
+              cursor={{ stroke: CHART.primary, strokeWidth: 1, strokeDasharray: "4 4" }}
+            />
+            <Area
               type="monotone"
               dataKey="valeur"
               name="Cas confirmés"
               stroke={CHART.primary}
-              strokeWidth={2.5}
+              strokeWidth={2}
+              fill={`url(#${gradientId})`}
               dot={false}
-              activeDot={{ r: 4 }}
+              activeDot={{ r: 5, fill: CHART.primary, strokeWidth: 2, stroke: "#fff" }}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </ChartCard>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  DASH-01 · Histogramme : nombre de cas par mois                    */
-/* ------------------------------------------------------------------ */
+/* ── DASH-01 · Histogramme : cas par mois ────────────────────────────── */
+
+const BAR_LEGEND = [
+  { label: "Confirmés", color: CHART.primary },
+  { label: "Suspects",  color: CHART.warning },
+  { label: "Guéris",    color: CHART.success },
+];
 
 export function MonthlyCasesChart({
   data,
@@ -227,29 +280,65 @@ export function MonthlyCasesChart({
   className?: string;
 }) {
   const formatted = data.map((d) => ({ ...d, mois: formatMois(d.mois) }));
+
   return (
     <ChartCard
       title="Cas par mois"
       description="Agrégation par date de diagnostic"
       className={className}
+      action={<ChartLegend items={BAR_LEGEND} />}
     >
-      <ChartLegend
-        items={[
-          { label: "Confirmés", color: CHART.primary },
-          { label: "Suspects", color: CHART.warning },
-          { label: "Guéris", color: CHART.success },
-        ]}
-      />
-      <div className="mt-4 h-[250px] w-full">
+      <div className="h-[220px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={formatted} barGap={2}>
-            <CartesianGrid stroke={CHART.grid} strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="mois" tick={AXIS_TICK} tickLine={false} axisLine={false} />
-            <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={36} />
-            <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(148,163,184,0.08)" }} />
-            <Bar dataKey="confirmes" name="Confirmés" fill={CHART.primary} radius={[3, 3, 0, 0]} maxBarSize={14} />
-            <Bar dataKey="suspects" name="Suspects" fill={CHART.warning} radius={[3, 3, 0, 0]} maxBarSize={14} />
-            <Bar dataKey="gueris" name="Guéris" fill={CHART.success} radius={[3, 3, 0, 0]} maxBarSize={14} />
+          <BarChart
+            data={formatted}
+            barGap={2}
+            barCategoryGap="30%"
+            margin={{ top: 4, right: 4, left: -12, bottom: 0 }}
+          >
+            <CartesianGrid
+              stroke={CHART.grid}
+              strokeDasharray="4 4"
+              vertical={false}
+              strokeOpacity={0.7}
+            />
+            <XAxis
+              dataKey="mois"
+              tick={AXIS_TICK}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              tick={AXIS_TICK}
+              tickLine={false}
+              axisLine={false}
+              width={34}
+            />
+            <Tooltip
+              content={<ChartTooltip />}
+              cursor={{ fill: "rgba(148,163,184,0.06)", radius: 4 }}
+            />
+            <Bar
+              dataKey="confirmes"
+              name="Confirmés"
+              fill={CHART.primary}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={12}
+            />
+            <Bar
+              dataKey="suspects"
+              name="Suspects"
+              fill={CHART.warning}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={12}
+            />
+            <Bar
+              dataKey="gueris"
+              name="Guéris"
+              fill={CHART.success}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={12}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -257,9 +346,7 @@ export function MonthlyCasesChart({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  DASH-01 · Camembert / Donut                                        */
-/* ------------------------------------------------------------------ */
+/* ── Donut partagé (maladies + statuts) ──────────────────────────────── */
 
 function PieDonut({
   data,
@@ -268,15 +355,16 @@ function PieDonut({
   data: SlicePoint[];
   totalLabel: string;
 }) {
-  const total = data.reduce((sum, slice) => sum + slice.valeur, 0);
-  const slices = data.map((slice, index) => ({
+  const total = data.reduce((sum, s) => sum + s.valeur, 0);
+  const slices = data.map((slice, i) => ({
     ...slice,
-    couleur: PIE_COLORS[index % PIE_COLORS.length],
+    couleur: PIE_COLORS[i % PIE_COLORS.length],
   }));
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative h-[220px] w-full">
+    <div className="flex h-full flex-col gap-4">
+      {/* Donut */}
+      <div className="relative h-[180px] w-full shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -285,8 +373,8 @@ function PieDonut({
               nameKey="nom"
               cx="50%"
               cy="50%"
-              innerRadius="62%"
-              outerRadius="88%"
+              innerRadius="60%"
+              outerRadius="85%"
               paddingAngle={3}
               strokeWidth={0}
             >
@@ -297,21 +385,38 @@ function PieDonut({
             <Tooltip content={<ChartTooltip />} />
           </PieChart>
         </ResponsiveContainer>
+
+        {/* Centre */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-semibold tabular-nums tracking-tight text-text-main">
+          <span className="text-2xl font-bold tabular-nums tracking-tight text-text-main">
             {total.toLocaleString("fr-FR")}
           </span>
-          <span className="text-xs text-text-muted">{totalLabel}</span>
+          <span className="mt-0.5 text-[11px] font-medium text-text-muted">
+            {totalLabel}
+          </span>
         </div>
       </div>
 
-      <ChartLegend
-        items={slices.map((slice) => ({
-          label: slice.nom,
-          color: slice.couleur,
-        }))}
-        className="mt-4 justify-center"
-      />
+      {/* Légende compacte avec barre de proportion */}
+      <div className="space-y-1.5 overflow-y-auto">
+        {slices.map((slice) => {
+          const pct = total > 0 ? Math.round((slice.valeur / total) * 100) : 0;
+          return (
+            <div key={slice.nom} className="flex items-center gap-2">
+              <span
+                className="size-2 shrink-0 rounded-full"
+                style={{ backgroundColor: slice.couleur }}
+              />
+              <span className="min-w-0 flex-1 truncate text-[12px] text-text-muted">
+                {slice.nom}
+              </span>
+              <span className="shrink-0 text-[12px] font-semibold tabular-nums text-text-main">
+                {pct}%
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

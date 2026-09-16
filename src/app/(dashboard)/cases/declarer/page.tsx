@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
 import { ROLES } from "@/config/navigation";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Option {
   id: number;
@@ -442,10 +443,9 @@ export default function DeclarerCasPage() {
                     label: m.name,
                   }))}
                 />
-                <Input
+                <Textarea
                   label="Symptômes"
                   value={clinical.symptoms}
-                  className="h-40 resize-none"
                   onChange={(e) =>
                     setClinical((c) => ({ ...c, symptoms: e.target.value }))
                   }
