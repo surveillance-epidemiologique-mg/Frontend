@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Surveillance Épidémiologique — Madagascar",
   description:
     "Plateforme nationale de surveillance épidémiologique de Madagascar.",
+  icons: {
+    icon: "/logo-p.svg",
+  },
 };
 
 export default function RootLayout({

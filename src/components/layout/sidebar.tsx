@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { getNavForRole } from "@/config/navigation";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 const COLLAPSE_STORAGE_KEY = "episuivi-sidebar-collapsed";
 
@@ -91,45 +92,66 @@ export function Sidebar({ role, mobileOpen, onCloseMobile }: SidebarProps) {
         )}
       >
         {/* En-tête : logo + bouton de réduction (desktop uniquement) */}
-        <div className="flex h-16 shrink-0 items-center justify-between gap-1 px-3">
+        <div 
+          className={cn(
+            "flex h-16 pt-15 pb-10 shrink-0 items-center gap-1 transition-all",
+            collapsed ? "justify-between px-3 lg:justify-center lg:px-0" : "justify-between px-3"
+          )}
+        >
           <Link
             href="/dashboard"
-            className="flex min-w-0 items-center gap-2.5 rounded-full px-2 py-1.5 transition-colors hover:bg-bg-app"
+            className={cn(
+              "flex min-w-0 items-center gap-2.5 rounded-full px-2 py-1.5 transition-colors hover:bg-bg-app",
+              collapsed && "lg:hidden"
+            )}
           >
-            <span
-              className={cn(
-                "truncate text-xl font-semibold tracking-tight text-primary",
-                collapsed && "lg:hidden",
-              )}
-            >
-              ÉpiSuivi
-            </span>
+            <Image
+              src="/images/logo-app.svg" 
+              alt="Logo ÉpiSuivi" 
+              width={140}
+              height={40}
+              priority
+              className=" object-contain drop-shadow-sm transition-transform duration-500 hover:scale-[1.03]"
+            />
           </Link>
 
           <button
             type="button"
             onClick={toggleCollapsed}
             aria-label={collapsed ? "Agrandir le menu" : "Réduire le menu"}
-            className="hidden size-9 shrink-0 place-items-center rounded-full text-text-muted transition-colors hover:bg-bg-app hover:text-text-main lg:grid"
+            className="group relative hidden size-10 shrink-0 place-items-center rounded-full text-text-muted transition-colors hover:bg-bg-app hover:text-text-main lg:grid"
           >
-            <span className="relative grid size-5" aria-hidden="true">
-              <PanelLeftClose
-                className={cn(
-                  "absolute inset-0 size-5 transition-all duration-300",
-                  collapsed
-                    ? "-rotate-90 scale-50 opacity-0"
-                    : "rotate-0 scale-100 opacity-100",
-                )}
-              />
-              <PanelLeftOpen
-                className={cn(
-                  "absolute inset-0 size-5 transition-all duration-300",
-                  collapsed
-                    ? "rotate-0 scale-100 opacity-100"
-                    : "rotate-90 scale-50 opacity-0",
-                )}
-              />
-            </span>
+            {/* Panel ouvert → PanelLeftClose */}
+            {!collapsed && (
+              <span
+                className="absolute inset-0 grid place-items-center"
+                aria-hidden="true"
+              >
+                <PanelLeftClose className="size-5" />
+              </span>
+            )}
+
+            {/* Panel fermé → Logo */}
+            {collapsed && (
+              <>
+                <Image
+                  src="/images/logo-v.svg"
+                  alt="ÉpiSuivi"
+                  width={46}
+                  height={46}
+                  priority
+                  className="object-contain transition-all duration-300 group-hover:scale-75 group-hover:opacity-0"
+                />
+
+                {/* Au survol du logo → PanelLeftOpen */}
+                <span
+                  className="pointer-events-none absolute inset-0 grid place-items-center opacity-0 transition-all duration-300 group-hover:opacity-100"
+                  aria-hidden="true"
+                >
+                  <PanelLeftOpen className="size-5 transition-transform duration-300" />
+                </span>
+              </>
+            )}
           </button>
         </div>
 

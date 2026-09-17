@@ -1,0 +1,27 @@
+<svg width="280" height="280" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="280" height="280" rx="50" fill="white"/>
+<circle cx="140" cy="140" r="69" fill="#B22727"/>
+<path d="M140 108.5C157.397 108.5 171.5 122.603 171.5 140C171.5 157.397 157.397 171.5 140 171.5C122.603 171.5 108.5 157.397 108.5 140C108.5 122.603 122.603 108.5 140 108.5Z" stroke="#D67E7E"/>
+<path d="M140 140V92" stroke="#D67E7E"/>
+<path d="M140.337 139.659L109.69 176.183" stroke="#D67E7E"/>
+<path d="M140.341 139.659L170.987 176.183" stroke="#D67E7E"/>
+<path d="M140.083 139.659L98.7926 115.82" stroke="#D67E7E"/>
+<path d="M140.341 139.659L181.631 115.82" stroke="#D67E7E"/>
+<path d="M140.5 31.5V71.5" stroke="#991C1C" stroke-width="4"/>
+<circle cx="140.5" cy="31.5" r="6.5" transform="rotate(-180 140.5 31.5)" fill="#DC2626"/>
+<path d="M63.1924 216.88L91.4767 188.596" stroke="#991C1C" stroke-width="4"/>
+<circle cx="63.1924" cy="216.88" r="6.5" transform="rotate(45 63.1924 216.88)" fill="#DC2626"/>
+<path d="M216.88 216.88L188.596 188.596" stroke="#991C1C" stroke-width="4"/>
+<circle cx="216.88" cy="216.88" r="6.5" transform="rotate(-45 216.88 216.88)" fill="#DC2626"/>
+<path d="M218.88 65.1924L190.596 93.4767" stroke="#991C1C" stroke-width="4"/>
+<circle cx="218.88" cy="65.1924" r="6.5" transform="rotate(-135 218.88 65.1924)" fill="#DC2626"/>
+<path d="M63.1924 63.1924L91.4767 91.4767" stroke="#991C1C" stroke-width="4"/>
+<circle cx="63.1924" cy="63.1924" r="6.5" transform="rotate(135 63.1924 63.1924)" fill="#DC2626"/>
+<path d="M31.5 137.5H71.5" stroke="#991C1C" stroke-width="4"/>
+<circle cx="31.5" cy="137.5" r="6.5" transform="rotate(90 31.5 137.5)" fill="#DC2626"/>
+<path d="M139.5 249V209" stroke="#991C1C" stroke-width="4"/>
+<circle cx="139.5" cy="249" r="6.5" fill="#DC2626"/>
+<path d="M249 139.5H209" stroke="#991C1C" stroke-width="4"/>
+<circle cx="249" cy="139.5" r="6.5" transform="rotate(-90 249 139.5)" fill="#DC2626"/>
+<path d="M74 160.988H102.725L119.824 128.25L139.658 189L159.15 108L178.642 160.988H206" stroke="#F7E9E9" stroke-width="4"/>
+</svg>

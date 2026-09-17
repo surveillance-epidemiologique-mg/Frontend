@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useActionState } from "react";
+import { useToast } from "@/components/ui/toast";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { loginAction, type ActionState } from "@/app/actions/auth";
 import { Alert } from "@/components/ui/alert";
@@ -11,8 +12,24 @@ import { ForgotPasswordForm } from "@/features/auth/components/forgot-password-f
 
 const initialState: ActionState = {};
 
-export function LoginForm() {
+export function LoginForm({ sessionExpired }: { sessionExpired?: boolean }) {
   const [view, setView] = useState<"login" | "forgot">("login");
+  const { toast } = useToast();
+  const hasToasted = useRef(false);
+
+  useEffect(() => {
+    if (sessionExpired && !hasToasted.current) {
+      hasToasted.current = true;
+      setTimeout(() => {
+        toast({
+          title: "Session expirée",
+          description: "Votre session a expiré suite à une longue période d'inactivité. Veuillez vous reconnecter pour continuer.",
+          variant: "warning",
+        });
+      }, 100);
+    }
+  }, [sessionExpired, toast]);
+
   const [state, formAction, pending] = useActionState(
     loginAction,
     initialState,

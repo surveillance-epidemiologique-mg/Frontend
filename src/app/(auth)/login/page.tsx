@@ -1,4 +1,3 @@
-import { Alert } from "@/components/ui/alert";
 import { LoginForm } from "@/components/auth/login-form";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import Image from "next/image";
@@ -71,18 +70,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         {/* Conteneur centré du formulaire */}
         <div className="my-auto mx-auto w-full max-w-sm pt-8 lg:pt-0">
           
-          <div className="mb-8">
-            {/* <h2 className="text-2xl font-bold tracking-tight text-foreground">Connexion sécurisée</h2>
-            <p className="text-sm text-muted-foreground mt-1">Veuillez vous identifier pour accéder au portail.</p> */}
+          <div className="mb-10 flex items-center justify-center lg:justify-start">
+            <Image 
+              src="/images/logo-app.svg" 
+              alt="Logo ÉpiSuivi" 
+              width={250}
+              height={250}
+              priority
+              className=" object-contain drop-shadow-sm transition-transform duration-500 hover:scale-[1.03]"
+            />
           </div>
 
-          {sessionExpired ? (
-            <Alert variant="warning" className="mb-6">
-              Votre session a expiré suite à une longue période d&apos;inactivité. Veuillez vous reconnecter pour continuer.
-            </Alert>
-          ) : null}
-
-          <LoginForm />
+          <LoginForm sessionExpired={sessionExpired} />
         </div>
 
         {/* Footer droit */}
