@@ -26,14 +26,11 @@ import {
   MADAGASCAR_BOUNDS,
   crossIcon,
   computeBounds,
-  normalizeRegionName,
   popupHtml,
   regionNameFromFeature,
   statutDot,
 } from "@/features/zones/types/map.types";
 import {
-  fetchAdm1GeoJson,
-  fetchAlertesRegions,
   fetchAllMapLayers,
   fetchZoneSummary,
 } from "@/features/zones/services/map.service";
@@ -62,13 +59,12 @@ export function EpidemicMapInner() {
   const [maladie, setMaladie] = useState("");
 
   /* ── State : données GeoJSON ──────────────────────────────────── */
+  const [regions,  setRegions]  = useState<GeojsonCollection | null>(null);
   const [zones,    setZones]    = useState<GeojsonCollection | null>(null);
   const [centres,  setCentres]  = useState<GeojsonCollection | null>(null);
   const [alertes,  setAlertes]  = useState<GeojsonCollection | null>(null);
   const [clusters, setClusters] = useState<GeojsonCollection | null>(null);
   const [cas,      setCas]      = useState<GeojsonCollection | null>(null);
-  const [adm1Geo,  setAdm1Geo]  = useState<GeojsonCollection | null>(null);
-  const [regionRisks, setRegionRisks] = useState<Record<string, string>>({});
   const [loading,  setLoading]  = useState(true);
   const [maladieOptions, setMaladieOptions] = useState<string[]>([]);
 
@@ -83,25 +79,14 @@ export function EpidemicMapInner() {
     let active = true;
     (async () => {
       try {
-        const [data, geoData, alertData] = await Promise.all([
-          fetchAllMapLayers(),
-          fetchAdm1GeoJson(),
-          fetchAlertesRegions(),
-        ]);
+        const data = await fetchAllMapLayers();
         if (!active) return;
+        setRegions(data.regions);
         setZones(data.zones);
         setCentres(data.centres);
         setAlertes(data.alertes);
         setClusters(data.clusters);
         setCas(data.cas);
-        setAdm1Geo(geoData);
-        const risks: Record<string, string> = {};
-        for (const a of alertData) {
-          if (a?.region_name) {
-            risks[normalizeRegionName(a.region_name)] = a.risk_level;
-          }
-        }
-        setRegionRisks(risks);
       } catch {
         // API indisponible : les couches restent vides
       } finally {
@@ -129,12 +114,13 @@ export function EpidemicMapInner() {
 
   /* ── Données dérivées ─────────────────────────────────────────── */
   const bounds = useMemo(
-    () => computeBounds([adm1Geo, zones, centres, alertes, clusters, cas]),
-    [adm1Geo, zones, centres, alertes, clusters, cas],
+    () => computeBounds([regions, zones, centres, alertes, clusters, cas]),
+    [regions, zones, centres, alertes, clusters, cas],
   );
 
   function regionRiskOf(feature: { properties: Record<string, unknown> }) {
-    return regionRisks[normalizeRegionName(regionNameFromFeature(feature.properties))];
+    const risk = feature.properties.risk_level;
+    return risk ? String(risk) : undefined;
   }
 
   const zoneName = focusZone?.name ?? "";
@@ -424,7 +410,7 @@ export function EpidemicMapInner() {
 
         <MapActions bounds={bounds} focusZone={focusZone} flyTarget={flyTarget} />
 
-        {layers.regions   && adm1Geo        ? <GeoJSON data={adm1Geo}         style={regionStyle}  onEachFeature={regionEach}  /> : null}
+        {layers.regions   && regions        ? <GeoJSON data={regions}         style={regionStyle}  onEachFeature={regionEach}  /> : null}
         {layers.limites   && zones          ? <GeoJSON data={zones}           style={zoneStyle}    onEachFeature={zoneEach}    /> : null}
         {layers.alertes   && filteredAlertes ? <GeoJSON data={filteredAlertes} style={alerteStyle}  onEachFeature={alerteEach}  /> : null}
         {layers.centres   && filteredCentres ? <GeoJSON data={filteredCentres} pointToLayer={centrePoint} onEachFeature={centreEach}  /> : null}

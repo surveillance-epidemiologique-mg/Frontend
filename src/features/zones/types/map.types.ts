@@ -171,7 +171,9 @@ export function normalizeRegionName(value: string): string {
 
 /** Extrait le nom de région depuis les propriétés GeoJSON ADM1. */
 export function regionNameFromFeature(properties: Record<string, unknown>): string {
-  return String(properties.shapeName ?? properties.NAME_1 ?? properties.name ?? "");
+  return String(
+    properties.nom ?? properties.shapeName ?? properties.NAME_1 ?? properties.name ?? "",
+  );
 }
 
 /* ================================================================== */

@@ -66,13 +66,11 @@ function sexeLabel(sexe: string | null): string {
 }
 
 /**
- * Ouvre une fenêtre d'impression avec la fiche patient complète (A4).
+ * Injecte un iframe invisible dans le DOM, y écrit la fiche patient (A4),
+ * puis déclenche l'impression via contentWindow.print().
+ * Ne déclenche AUCUN popup blocker (pas de window.open).
  */
 export function printFichePatient(content: FichePatientContent, qr: string) {
-  const win = window.open("", "_blank", "width=800,height=900");
-  if (!win) {
-    return;
-  }
   const code = escapeHtml(content.codeAnonyme);
   const centre = escapeHtml(content.centre);
   const dateDecl = formatFicheDate(content.dateDeclaration);
@@ -95,8 +93,7 @@ export function printFichePatient(content: FichePatientContent, qr: string) {
     `;
   }).join('') : `<tr><td colspan="4" style="text-align: center; color: #64748b; padding: 20px;">Aucune analyse liée</td></tr>`;
 
-  win.document.open();
-  win.document.write(`<!doctype html>
+  const html = `<!doctype html>
 <html>
 <head>
 <meta charset="utf-8" />
@@ -165,12 +162,6 @@ export function printFichePatient(content: FichePatientContent, qr: string) {
     height: 90px;
     image-rendering: pixelated;
     display: block;
-  }
-  .qr-legend {
-    font-size: 9px;
-    color: #475569;
-    margin-top: 4px;
-    font-weight: 600;
   }
 
   /* Section Title */
@@ -335,12 +326,40 @@ export function printFichePatient(content: FichePatientContent, qr: string) {
       <span>Version 1.0</span>
     </footer>
   </div>
-  <script>
-    // Wait for the logo to load, then open the print dialog
-    window.onload = function(){ setTimeout(function(){ window.print(); }, 400); };
-  </script>
 </body>
-</html>`);
-  win.document.close();
-  win.focus();
+</html>`;
+
+  const iframe = document.createElement("iframe");
+  iframe.style.cssText = "position:fixed;top:0;left:-9999px;width:1px;height:1px;border:none;opacity:0;";
+  document.body.appendChild(iframe);
+
+  const iframeDoc = iframe.contentDocument;
+  if (!iframeDoc) {
+    document.body.removeChild(iframe);
+    return;
+  }
+
+  iframeDoc.open();
+  iframeDoc.write(html);
+  iframeDoc.close();
+
+  const triggerPrint = () => {
+    try {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    } catch {
+      // Fallback : certains navigateurs restreignent contentWindow.print()
+      window.print();
+    } finally {
+      setTimeout(() => {
+        if (document.body.contains(iframe)) document.body.removeChild(iframe);
+      }, 1500);
+    }
+  };
+
+  if (iframe.contentWindow) {
+    iframe.contentWindow.onload = () => setTimeout(triggerPrint, 400);
+  } else {
+    setTimeout(triggerPrint, 600);
+  }
 }

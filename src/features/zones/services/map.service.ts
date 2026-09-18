@@ -27,25 +27,27 @@ async function fetchGeoLayer(path: string): Promise<GeojsonCollection> {
 /* ================================================================== */
 
 /**
- * Charge simultanément les 5 couches GeoJSON de la carte épidémique.
+ * Charge simultanément les 6 couches GeoJSON de la carte épidémique.
  * En cas d'erreur réseau partielle, les couches indisponibles sont
  * remplacées par une FeatureCollection vide (pas de crash).
  */
 export async function fetchAllMapLayers(): Promise<{
+  regions:  GeojsonCollection;
   zones:    GeojsonCollection;
   centres:  GeojsonCollection;
   alertes:  GeojsonCollection;
   clusters: GeojsonCollection;
   cas:      GeojsonCollection;
 }> {
-  const [zones, centres, alertes, clusters, cas] = await Promise.all([
+  const [regions, zones, centres, alertes, clusters, cas] = await Promise.all([
+    fetchGeoLayer("/carte/regions"),
     fetchGeoLayer("/carte/zones"),
     fetchGeoLayer("/carte/centres"),
     fetchGeoLayer("/carte/alertes"),
     fetchGeoLayer("/carte/clusters"),
     fetchGeoLayer("/carte/cas"),
   ]);
-  return { zones, centres, alertes, clusters, cas };
+  return { regions, zones, centres, alertes, clusters, cas };
 }
 
 /**
@@ -58,23 +60,12 @@ export async function fetchZoneSummary(id: number): Promise<ZoneInfo> {
 
 /**
  * Alertes par région (ADM1) : `[{ region_name, risk_level }]`.
- * Retourne un tableau vide si l'API est indisponible.
+ * Conservé pour compatibilité ; la couche « Régions » inclut déjà `risk_level`.
  */
 export async function fetchAlertesRegions(): Promise<AlertRegion[]> {
   try {
     return await apiFetch<AlertRegion[]>("/carte/alertes-regions");
   } catch {
     return [];
-  }
-}
-
-/** Charge le GeoJSON statique des régions (ADM1) de Madagascar. */
-export async function fetchAdm1GeoJson(): Promise<GeojsonCollection | null> {
-  try {
-    const res = await fetch("/maps/geoBoundaries-MDG-ADM1.geojson");
-    if (!res.ok) return null;
-    return (await res.json()) as GeojsonCollection;
-  } catch {
-    return null;
   }
 }
