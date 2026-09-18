@@ -24,7 +24,15 @@ export function ActivateForm({ token }: ActivateFormProps) {
 
   if (state.success) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-primary">
+            Compte activé
+          </h2>
+          <p className="mt-1 text-sm text-text-muted">
+            Votre compte est prêt. Vous pouvez maintenant vous connecter.
+          </p>
+        </div>
         <Alert variant="success">{state.success}</Alert>
         <Button asChild className="w-full">
           <Link href="/login">Se connecter</Link>
@@ -35,7 +43,15 @@ export function ActivateForm({ token }: ActivateFormProps) {
 
   if (!token) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-primary">
+            Activation de votre compte
+          </h2>
+          <p className="mt-1 text-sm text-text-muted">
+            Définissez votre mot de passe personnel
+          </p>
+        </div>
         <Alert variant="error">
           Ce lien d&apos;activation est invalide ou incomplet.
         </Alert>
@@ -47,7 +63,16 @@ export function ActivateForm({ token }: ActivateFormProps) {
   }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight text-primary">
+          Activation de votre compte
+        </h2>
+        <p className="mt-1 text-sm text-text-muted">
+          Définissez votre mot de passe personnel
+        </p>
+      </div>
+      <form action={formAction} className="space-y-6">
       <input type="hidden" name="token" value={token} />
 
       {state.error ? <Alert variant="error">{state.error}</Alert> : null}
@@ -71,9 +96,10 @@ export function ActivateForm({ token }: ActivateFormProps) {
         placeholder="Saisissez à nouveau le mot de passe"
       />
 
-      <Button type="submit" className="w-full" loading={pending}>
+      <Button type="submit" size="lg" className="mt-2 w-full" loading={pending}>
         {pending ? "Activation..." : "Activer mon compte"}
       </Button>
     </form>
+    </div>
   );
 }
