@@ -1,5 +1,9 @@
 import { apiFetch } from "@/services/api";
-import type { GeojsonCollection, ZoneInfo } from "@/features/zones/types/map.types";
+import type {
+  AlertRegion,
+  GeojsonCollection,
+  ZoneInfo,
+} from "@/features/zones/types/map.types";
 
 /* ================================================================== */
 /*  Helpers internes                                                  */
@@ -50,4 +54,27 @@ export async function fetchAllMapLayers(): Promise<{
  */
 export async function fetchZoneSummary(id: number): Promise<ZoneInfo> {
   return await apiFetch<ZoneInfo>(`/carte/zone/${id}`);
+}
+
+/**
+ * Alertes par région (ADM1) : `[{ region_name, risk_level }]`.
+ * Retourne un tableau vide si l'API est indisponible.
+ */
+export async function fetchAlertesRegions(): Promise<AlertRegion[]> {
+  try {
+    return await apiFetch<AlertRegion[]>("/carte/alertes-regions");
+  } catch {
+    return [];
+  }
+}
+
+/** Charge le GeoJSON statique des régions (ADM1) de Madagascar. */
+export async function fetchAdm1GeoJson(): Promise<GeojsonCollection | null> {
+  try {
+    const res = await fetch("/maps/geoBoundaries-MDG-ADM1.geojson");
+    if (!res.ok) return null;
+    return (await res.json()) as GeojsonCollection;
+  } catch {
+    return null;
+  }
 }

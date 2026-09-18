@@ -19,15 +19,24 @@ import {
   NO_ALERT_STROKE,
   NO_DATA_FILL,
   NO_DATA_STROKE,
+  RISK_COLOR,
+  RISK_LABEL,
   STATUT_COLOR,
   STATUT_LABEL,
   MADAGASCAR_BOUNDS,
   crossIcon,
   computeBounds,
+  normalizeRegionName,
   popupHtml,
+  regionNameFromFeature,
   statutDot,
 } from "@/features/zones/types/map.types";
-import { fetchAllMapLayers, fetchZoneSummary } from "@/features/zones/services/map.service";
+import {
+  fetchAdm1GeoJson,
+  fetchAlertesRegions,
+  fetchAllMapLayers,
+  fetchZoneSummary,
+} from "@/features/zones/services/map.service";
 import { MapActions }       from "@/features/zones/components/map-actions";
 import { ZoneInfoPanel }    from "@/features/zones/components/zone-info-panel";
 import { MapControlsPanel } from "@/features/zones/components/map-controls-panel";
@@ -42,7 +51,12 @@ export function EpidemicMapInner() {
   // Seule la couche « Alertes » (choroplèthe par zone) est activée
   // au chargement initial, conformément au cahier des charges.
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({
-    cas: false, centres: false, alertes: true, limites: false, clusters: false,
+    regions: true,
+    cas: false,
+    centres: false,
+    alertes: false,
+    limites: false,
+    clusters: false,
   });
   const [statuts, setStatuts] = useState<Set<string>>(new Set());
   const [maladie, setMaladie] = useState("");
@@ -53,6 +67,8 @@ export function EpidemicMapInner() {
   const [alertes,  setAlertes]  = useState<GeojsonCollection | null>(null);
   const [clusters, setClusters] = useState<GeojsonCollection | null>(null);
   const [cas,      setCas]      = useState<GeojsonCollection | null>(null);
+  const [adm1Geo,  setAdm1Geo]  = useState<GeojsonCollection | null>(null);
+  const [regionRisks, setRegionRisks] = useState<Record<string, string>>({});
   const [loading,  setLoading]  = useState(true);
   const [maladieOptions, setMaladieOptions] = useState<string[]>([]);
 
@@ -67,13 +83,25 @@ export function EpidemicMapInner() {
     let active = true;
     (async () => {
       try {
-        const data = await fetchAllMapLayers();
+        const [data, geoData, alertData] = await Promise.all([
+          fetchAllMapLayers(),
+          fetchAdm1GeoJson(),
+          fetchAlertesRegions(),
+        ]);
         if (!active) return;
         setZones(data.zones);
         setCentres(data.centres);
         setAlertes(data.alertes);
         setClusters(data.clusters);
         setCas(data.cas);
+        setAdm1Geo(geoData);
+        const risks: Record<string, string> = {};
+        for (const a of alertData) {
+          if (a?.region_name) {
+            risks[normalizeRegionName(a.region_name)] = a.risk_level;
+          }
+        }
+        setRegionRisks(risks);
       } catch {
         // API indisponible : les couches restent vides
       } finally {
@@ -101,9 +129,13 @@ export function EpidemicMapInner() {
 
   /* ── Données dérivées ─────────────────────────────────────────── */
   const bounds = useMemo(
-    () => computeBounds([zones, centres, alertes, clusters, cas]),
-    [zones, centres, alertes, clusters, cas],
+    () => computeBounds([adm1Geo, zones, centres, alertes, clusters, cas]),
+    [adm1Geo, zones, centres, alertes, clusters, cas],
   );
+
+  function regionRiskOf(feature: { properties: Record<string, unknown> }) {
+    return regionRisks[normalizeRegionName(regionNameFromFeature(feature.properties))];
+  }
 
   const zoneName = focusZone?.name ?? "";
 
@@ -183,6 +215,54 @@ export function EpidemicMapInner() {
   }
 
   /* ── Styles & popups des couches GeoJSON ──────────────────────── */
+
+  const regionStyle = (feature?: { properties: Record<string, unknown> }) => {
+    const risk = feature ? regionRiskOf(feature) : undefined;
+    const color = risk ? RISK_COLOR[risk] : undefined;
+    if (!color) {
+      return {
+        color: "#94a3b8",
+        weight: 1,
+        fillColor: "#e2e8f0",
+        fillOpacity: 0.5,
+      };
+    }
+    return {
+      color: "#334155",
+      weight: 1.2,
+      fillColor: color,
+      fillOpacity: 0.55,
+    };
+  };
+
+  function regionEach(
+    feature: { properties: Record<string, unknown> },
+    layer: LeafletGeoJSON,
+  ) {
+    const name = regionNameFromFeature(feature.properties);
+    const risk = regionRiskOf(feature);
+    const label = risk ? (RISK_LABEL[risk] ?? risk) : "Aucune alerte";
+    const color = risk ? (RISK_COLOR[risk] ?? "#94a3b8") : "#94a3b8";
+    layer.bindPopup(
+      popupHtml(
+        `<strong>${name}</strong><br/>
+        Niveau d'alerte :
+        <span style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle">
+          <span style="width:9px;height:9px;border-radius:50%;background:${color};display:inline-block"></span>
+          <strong>${label}</strong>
+        </span>`,
+      ),
+    );
+    layer.on("mouseover", () => {
+      layer.setStyle({ weight: 2.5, fillOpacity: 0.75 });
+      layer.openPopup();
+    });
+    layer.on("mouseout", () => {
+      layer.setStyle(regionStyle(feature) as L.PathOptions);
+      layer.closePopup();
+    });
+    layer.on("click", () => layer.openPopup());
+  }
 
   /**
    * Style choroplèthe pour la couche « Limites administratives ».
@@ -344,6 +424,7 @@ export function EpidemicMapInner() {
 
         <MapActions bounds={bounds} focusZone={focusZone} flyTarget={flyTarget} />
 
+        {layers.regions   && adm1Geo        ? <GeoJSON data={adm1Geo}         style={regionStyle}  onEachFeature={regionEach}  /> : null}
         {layers.limites   && zones          ? <GeoJSON data={zones}           style={zoneStyle}    onEachFeature={zoneEach}    /> : null}
         {layers.alertes   && filteredAlertes ? <GeoJSON data={filteredAlertes} style={alerteStyle}  onEachFeature={alerteEach}  /> : null}
         {layers.centres   && filteredCentres ? <GeoJSON data={filteredCentres} pointToLayer={centrePoint} onEachFeature={centreEach}  /> : null}

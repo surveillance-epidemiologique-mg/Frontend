@@ -6,7 +6,7 @@ export default function CarteEpidemiquePage() {
     <div className="space-y-6">
       <PageHeader
         title="Carte épidémique"
-        description="Visualisation géospatiale de la situation épidémiologique (données de démonstration)."
+        description="Visualisation géospatiale de la situation épidémiologique par région et par couche (cas, centres, alertes et clusters)."
       />
 
       <EpidemicMap />

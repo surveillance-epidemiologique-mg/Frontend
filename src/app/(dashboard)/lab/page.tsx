@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { FlaskConical, Plus, QrCode, Stethoscope } from "lucide-react";
+import { FlaskConical, Plus, QrCode, Stethoscope, Calendar, Building2, Activity } from "lucide-react";
 import type { ScanResult } from "@/components/lab/qr-scanner";
 
 const QrScanner = dynamic(
@@ -198,11 +198,13 @@ export default function LaboratoirePage() {
 
   const visible = useMemo(() => {
     if (visuel === "pending") {
-      return cases.filter((c) => c.diagnosticStatus === "Suspect");
+      return cases.filter((c) => c.analyses.some((a) => a.statut === "Demandee"));
     }
     if (visuel === "processed") {
       return cases.filter(
-        (c) => c.diagnosticStatus !== "Suspect" && processedByMe(c),
+        (c) => c.analyses.some(
+          (a) => a.statut === "Realisee" && (me?.role === "Administrateur" || a.laboratory?.id === me?.id)
+        )
       );
     }
     return cases;
@@ -460,38 +462,37 @@ export default function LaboratoirePage() {
           showStatut={false}
         />
 
-        <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setScanKey((k) => k + 1);
-                setScannerOpen(true);
-              }}
-            >
-              <QrCode className="size-4" />
-              Scanner un QR Code
-            </Button>
-            <p className="text-sm text-text-muted">
-              {cases.length} cas · les cas déjà traités restent visibles.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            {(["all", "pending", "processed"] as Visuel[]).map((v) => (
-              <Button
-                key={v}
-                type="button"
-                size="sm"
-                variant={visuel === v ? "primary" : "outline"}
-                onClick={() => setVisuel(v)}
-              >
-                {v === "all"
-                  ? "Tous"
-                  : v === "pending"
-                    ? "En attente"
-                    : "Traités"}
-              </Button>
-            ))}
+        <div className="flex flex-col gap-4 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between bg-bg-surface">
+          <Button
+            variant="primary"
+            onClick={() => {
+              setScanKey((k) => k + 1);
+              setScannerOpen(true);
+            }}
+          >
+            <QrCode className="mr-2 size-4" />
+            Scanner un QR Code
+          </Button>
+
+          <div className="flex rounded-md p-1 bg-bg-muted/30 border border-border">
+            {(["all", "pending", "processed"] as Visuel[]).map((v) => {
+              const active = visuel === v;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setVisuel(v)}
+                  className={cn(
+                    "px-4 py-1.5 text-sm font-medium rounded-sm transition-all",
+                    active
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-text-muted hover:text-text-main hover:bg-white/50"
+                  )}
+                >
+                  {v === "all" ? "Tous" : v === "pending" ? "En attente" : "Traités"}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -506,38 +507,83 @@ export default function LaboratoirePage() {
             }
           />
         ) : (
-          <div className="space-y-4 p-4">
+          <div className="space-y-4 p-4 bg-bg-muted/5">
             {visible.map((c) => {
               const mine = processedByMe(c);
               return (
-                <Card key={c.id} className="p-5">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-sm font-semibold text-text-main">
+                <Card key={c.id} className="p-0 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                  <div className="p-4 sm:p-5">
+                    {/* Ligne d'en-tête */}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 border-b border-border pb-4">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="text-xl font-extrabold text-text-main tracking-tight">
                           {c.patient.anonymousCode}
                         </span>
-                        <Badge variant={STATUT_BADGE[c.diagnosticStatus] ?? "secondary"}>
+                        <Badge variant={STATUT_BADGE[c.diagnosticStatus] ?? "secondary"} dot>
                           {statutLabel(c.diagnosticStatus)}
                         </Badge>
+                        <Badge variant="outline" className="border-text-muted/30 text-text-muted">
+                          {c.maladie.name}
+                        </Badge>
                         {mine ? (
-                          <Badge variant="outline">Votre analyse</Badge>
+                          <Badge variant="info" className="bg-primary/5 text-primary border-primary/20">
+                            Votre analyse
+                          </Badge>
                         ) : null}
-                        <Badge variant="secondary">{c.maladie.name}</Badge>
                       </div>
-                      <p className="mt-1 text-sm text-text-muted">
-                        {c.patient.namePatient ?? "—"} · {c.centre.name} ·{" "}
-                        {c.centre.zone?.name ?? "—"} · Déclaré par {c.agent.name}{" "}
-                        · {formatDate(c.declarationDate)}
-                      </p>
-                      {c.symptoms ? (
-                        <p className="mt-1 text-sm text-text-muted">{c.symptoms}</p>
-                      ) : null}
+                      <div className="flex items-center text-xs font-medium text-text-muted">
+                        <Calendar className="mr-1.5 size-3.5" />
+                        {formatDate(c.diagnosisDate)}
+                      </div>
                     </div>
 
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                      <Button variant="outline" onClick={() => openCase(c)}>
-                        <Stethoscope className="size-4" />
+                    {/* Ligne d'informations */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 gap-x-6 mb-5">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-1.5">
+                          Patient
+                        </p>
+                        <p className="text-sm font-semibold text-text-main">
+                          {c.patient.namePatient || c.patient.anonymousCode}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-1.5">
+                          Établissement & Lieu
+                        </p>
+                        <p className="flex items-start text-sm font-semibold text-text-main">
+                          <Building2 className="mr-1.5 mt-0.5 size-4 text-text-muted shrink-0" />
+                          <span>
+                            {c.centre.name} {c.centre.zone ? <span className="text-text-muted font-normal">({c.centre.zone.name})</span> : ""}
+                          </span>
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-1.5">
+                          Déclaré par
+                        </p>
+                        <p className="text-sm font-semibold text-text-main">
+                          {c.agent.name}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Ligne inférieure */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-border">
+                      <div className="flex items-start gap-2 max-w-2xl">
+                        <Activity className="size-4 text-text-muted shrink-0 mt-0.5" />
+                        <p className="text-sm text-text-muted leading-relaxed line-clamp-2">
+                          <span className="font-semibold text-text-main mr-1">Symptômes :</span>
+                          {c.symptoms || "—"}
+                        </p>
+                      </div>
+                      
+                      <Button 
+                        variant="outline" 
+                        onClick={() => openCase(c)}
+                        className="shrink-0 border-primary text-primary hover:bg-primary/5 hover:text-primary transition-colors"
+                      >
+                        <Stethoscope className="mr-2 size-4" />
                         Analyses ({c.analyses.length})
                       </Button>
                     </div>

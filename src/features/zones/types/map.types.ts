@@ -84,12 +84,19 @@ export const STATUTS = ["Suspect", "Probable", "Confirme", "Invalide"] as const;
 /*  Couches cartographiques                                           */
 /* ================================================================== */
 
-export type LayerKey = "cas" | "centres" | "alertes" | "limites" | "clusters";
+export type LayerKey =
+  | "cas"
+  | "centres"
+  | "alertes"
+  | "regions"
+  | "limites"
+  | "clusters";
 
 export const LAYER_DEFS: { key: LayerKey; label: string }[] = [
+  { key: "regions",  label: "Alertes par région" },
   { key: "cas",      label: "Cas" },
   { key: "centres",  label: "Centres de santé" },
-  { key: "alertes",  label: "Alertes" },
+  { key: "alertes",  label: "Alertes (PostGIS)" },
   { key: "limites",  label: "Limites administratives" },
   { key: "clusters", label: "Clusters de cas" },
 ];
@@ -127,6 +134,44 @@ export interface FocusZone {
 export interface FlyTarget {
   center: [number, number];
   zoom:   number;
+}
+
+/** Alertes agrégées par région (ADM1) — endpoint `/carte/alertes-regions`. */
+export interface AlertRegion {
+  region_name: string;
+  risk_level:  string;
+}
+
+/** Échelle de risque anglaise renvoyée par l'API (High → Very low). */
+export const RISK_COLOR: Record<string, string> = {
+  High:     "#dc2626",
+  Moderate: "#f97316",
+  Low:      "#eab308",
+  "Very low": "#16a34a",
+};
+
+export const RISK_LABEL: Record<string, string> = {
+  High:     "Élevé",
+  Moderate: "Modéré",
+  Low:      "Faible",
+  "Very low": "Très faible",
+};
+
+export const RISK_ORDER = ["High", "Moderate", "Low", "Very low"] as const;
+
+/** Normalisation pour une correspondance robuste des noms (accents/casse). */
+export function normalizeRegionName(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/** Extrait le nom de région depuis les propriétés GeoJSON ADM1. */
+export function regionNameFromFeature(properties: Record<string, unknown>): string {
+  return String(properties.shapeName ?? properties.NAME_1 ?? properties.name ?? "");
 }
 
 /* ================================================================== */

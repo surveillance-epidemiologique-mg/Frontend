@@ -42,6 +42,13 @@ interface CasRow {
   diagnosticStatus: string;
   clinicalOutcome: string;
   symptoms: string | null;
+  decisionAnalyse?: {
+    id: number;
+    laboratory?: {
+      name: string;
+      centre?: { name: string } | null;
+    } | null;
+  } | null;
 }
 
 interface PatientCas {
@@ -52,6 +59,26 @@ interface PatientCas {
   diagnosticStatus: string;
   clinicalOutcome: string;
   declarationDate: string;
+  decisionAnalyse?: {
+    id: number;
+    laboratory?: {
+      name: string;
+      centre?: { name: string } | null;
+    } | null;
+  } | null;
+  analyses: {
+    id: number;
+    label: string;
+    statut: string;
+    resultType: string;
+    resultat: string | null;
+    dateDemande: string;
+    dateAnalyse: string | null;
+    laboratory?: {
+      name: string;
+      centre?: { name: string } | null;
+    } | null;
+  }[];
 }
 
 interface PatientDetail {
@@ -358,9 +385,16 @@ export default function CasCliniquePage() {
       key: "statut",
       header: "Statut",
       cell: (c) => (
-        <Badge variant={statusBadge(c.diagnosticStatus)} dot>
-          {STATUS_LABEL[c.diagnosticStatus] ?? c.diagnosticStatus}
-        </Badge>
+        <div className="flex flex-col gap-1 items-start">
+          <Badge variant={statusBadge(c.diagnosticStatus)} dot>
+            {STATUS_LABEL[c.diagnosticStatus] ?? c.diagnosticStatus}
+          </Badge>
+          {["Confirme", "Invalide"].includes(c.diagnosticStatus) && c.decisionAnalyse?.laboratory && (
+             <span className="text-[10px] text-text-muted max-w-[150px] truncate" title={`Confirmé par: ${c.decisionAnalyse.laboratory.centre?.name ?? c.decisionAnalyse.laboratory.name}`}>
+               Labo: {c.decisionAnalyse.laboratory.centre?.name ?? c.decisionAnalyse.laboratory.name}
+             </span>
+          )}
+        </div>
       ),
     },
     {
@@ -466,120 +500,185 @@ export default function CasCliniquePage() {
           <div className="py-8 text-center text-sm text-text-muted">
             Chargement…
           </div>
-        ) : viewPatient ? (
-          <div className="space-y-5">
-            {/* QR Code + impression */}
-            {viewQr && viewCas ? (
-              <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border p-4">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={viewQr}
-                  alt={`QR code du cas #${viewCas.id}`}
-                  className="size-28 shrink-0 rounded-lg border border-border bg-white p-1"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-text-main">
-                    Cas #{viewCas.id}
-                  </p>
-                  <p className="mt-0.5 text-xs text-text-muted">
-                    {viewCas.code} · {viewCas.maladie} · {viewCas.centre}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    void import("@/lib/qr").then(({ printFicheLabel }) =>
-                      printFicheLabel(
-                        {
-                          code: viewCas.code,
-                          maladie: viewCas.maladie,
-                          centre: viewCas.centre,
-                        },
-                        viewQr,
-                      ),
-                    );
-                  }}
-                >
-                  <Printer className="size-4" />
-                  Imprimer
-                </Button>
-              </div>
-            ) : null}
+        ) : viewPatient && viewCas ? (
+          <div className="space-y-6">
+            {(() => {
+              const currentCas = viewPatient.cas.find(c => c.id === viewCas.id);
+              if (!currentCas) return null;
+              
+              return (
+                <>
+                  {/* BLOC 1: EN-TÊTE */}
+                  <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-bg-surface p-4 shadow-sm">
+                    {viewQr && (
+                      <img
+                        src={viewQr}
+                        alt={`QR code du cas #${viewCas.id}`}
+                        className="size-30 shrink-0 rounded-lg border border-border bg-bg-surface p-1"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xl font-extrabold text-text-main tracking-tight">
+                        {viewPatient.anonymousCode}
+                      </h3>
+                      <p className="mt-1.5 flex items-center text-sm font-medium text-text-muted">
+                        {currentCas.centre.name}
+                      </p>
+                      <p className="mt-1 text-xs text-text-muted">
+                        Déclaré le {formatDate(currentCas.declarationDate)}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="border-primary text-primary hover:bg-primary hover:text-white font-medium"
+                      onClick={() => {
+                        void import("@/lib/qr").then(({ printFichePatient }) => {
+                          printFichePatient(
+                            {
+                              codeAnonyme: viewPatient.anonymousCode,
+                              centre: currentCas.centre.name,
+                              dateDeclaration: currentCas.declarationDate,
+                              nomPatient: viewPatient.namePatient,
+                              age: viewPatient.age,
+                              sexe: viewPatient.gender,
+                              analyses: currentCas.analyses.map(a => ({
+                                id: a.id,
+                                label: a.label,
+                                statut: a.statut,
+                                resultat: a.resultat,
+                                dateDemande: a.dateDemande,
+                                dateAnalyse: a.dateAnalyse,
+                              })),
+                            },
+                            viewQr,
+                          );
+                        });
+                      }}
+                    >
+                      <Printer className="mr-2 size-4" />
+                      Imprimer la fiche
+                    </Button>
+                  </div>
 
-            <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <DetailItem label="Nom" value={viewPatient.namePatient ?? "—"} />
-              <DetailItem
-                label="Code anonyme"
-                value={
-                  <span className="font-mono">{viewPatient.anonymousCode}</span>
-                }
-              />
-              <DetailItem
-                label="Âge"
-                value={viewPatient.age != null ? `${viewPatient.age} ans` : "—"}
-              />
-              <DetailItem
-                label="Sexe"
-                value={genderLabel(viewPatient.gender)}
-              />
-              <DetailItem
-                label="Zone de résidence"
-                value={viewPatient.residenceZone?.name ?? "—"}
-              />
-            </dl>
+                  {/* BLOC 2: INFORMATIONS GÉNÉRALES */}
+                  <div className="rounded-xl border border-border bg-bg-surface p-5 shadow-sm">
+                    <h4 className="mb-5 text-sm font-bold tracking-wide text-primary border-b border-border pb-2 uppercase">
+                      Informations Générales
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
+                      <div className="sm:col-span-2">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                          Nom et prénom(s)
+                        </p>
+                        <p className="mt-1.5 text-base font-semibold text-text-main break-words">
+                          {viewPatient.namePatient || "—"}
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                            Âge
+                          </p>
+                          <p className="mt-1.5 text-sm font-semibold text-text-main">
+                            {viewPatient.age != null ? `${viewPatient.age} ans` : "—"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                            Sexe
+                          </p>
+                          <p className="mt-1.5 text-sm font-semibold text-text-main">
+                            {genderLabel(viewPatient.gender)}
+                          </p>
+                        </div>
+                      </div>
 
-            <div>
-              <h4 className="mb-2 text-sm font-semibold text-text-main">
-                Historique des cas ({viewPatient.cas.length})
-              </h4>
-              {viewPatient.cas.length === 0 ? (
-                <p className="text-sm text-text-muted">
-                  Aucun cas déclaré pour ce patient.
-                </p>
-              ) : (
-                <div className="overflow-x-auto rounded-xl border border-border">
-                  <table className="w-full min-w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border bg-bg-muted/60">
-                        <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-                          Maladie
-                        </th>
-                        <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-                          Statut
-                        </th>
-                        <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-                          Médecin
-                        </th>
-                        <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-                          Date
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {viewPatient.cas.map((c) => (
-                        <tr key={c.id}>
-                          <td className="px-4 py-3 text-text-main">
-                            {c.maladie.name}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge variant={statusBadge(c.diagnosticStatus)} dot>
-                              {STATUS_LABEL[c.diagnosticStatus] ??
-                                c.diagnosticStatus}
+                      <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                            Zone de résidence
+                          </p>
+                          <p className="mt-1.5 text-sm font-semibold text-text-main">
+                            {viewPatient.residenceZone?.name ?? "—"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                            Centre de traitement
+                          </p>
+                          <p className="mt-1.5 text-sm font-semibold text-text-main">
+                            {currentCas.centre.name}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                            Statut du cas
+                          </p>
+                          <div className="mt-1.5">
+                            <Badge variant={statusBadge(currentCas.diagnosticStatus)} dot>
+                              {STATUS_LABEL[currentCas.diagnosticStatus] ?? currentCas.diagnosticStatus}
                             </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-text-muted">
-                            {c.agent.name}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-3 text-text-muted">
-                            {formatDate(c.declarationDate)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* BLOC 3: ANALYSES & LABORATOIRE */}
+                  <div>
+                    <h4 className="mb-4 text-xs font-bold tracking-wider text-text-muted uppercase">
+                      Analyses & Laboratoire
+                    </h4>
+                    <div className="max-h-[350px] overflow-y-auto pr-2 space-y-3">
+                      {currentCas.analyses && currentCas.analyses.length > 0 ? (
+                        currentCas.analyses.map((a) => {
+                          const isRealisee = a.statut === "Realisee";
+                          return (
+                            <div key={a.id} className="relative rounded-lg border border-border bg-bg-surface p-4 shadow-sm">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                                <div className="space-y-3 flex-1">
+                                  <h5 className="font-bold text-text-main text-[15px]">{a.label}</h5>
+                                  
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-text-muted">Résultat :</span>
+                                    {isRealisee && a.resultat ? (
+                                      <Badge variant="info">{a.resultat}</Badge>
+                                    ) : (
+                                      <Badge variant="secondary">En cours</Badge>
+                                    )}
+                                  </div>
+
+                                  <div className="text-xs text-text-muted">
+                                    Par : {isRealisee && a.laboratory ? <span className="font-medium text-text-main">{a.laboratory.name}</span> : "—"}
+                                  </div>
+                                </div>
+                                
+                                <div className="flex flex-col items-start sm:items-end gap-3 shrink-0">
+                                  <div className="text-xs text-text-muted">
+                                    Réalisée le : {isRealisee && a.dateAnalyse ? <span className="font-medium text-text-main">{formatDate(a.dateAnalyse)}</span> : "—"}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-text-muted">Statut :</span>
+                                    <Badge variant={isRealisee ? "info" : "warning"}>
+                                      {a.statut}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <p className="text-sm text-text-muted p-4 border border-border rounded-lg bg-bg-muted/10 text-center">
+                          Aucune analyse liée à ce cas.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         ) : null}
       </Modal>
