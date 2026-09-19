@@ -630,7 +630,7 @@ export default function CasCliniquePage() {
                     <h4 className="mb-4 text-xs font-bold tracking-wider text-text-muted uppercase">
                       Analyses & Laboratoire
                     </h4>
-                    <div className="max-h-[350px] overflow-y-auto pr-2 space-y-3">
+                    <div className="space-y-3">
                       {currentCas.analyses && currentCas.analyses.length > 0 ? (
                         currentCas.analyses.map((a) => {
                           const isRealisee = a.statut === "Realisee";
@@ -688,13 +688,23 @@ export default function CasCliniquePage() {
         open={editPatient !== null}
         onClose={() => setEditPatient(null)}
         title="Modifier le patient"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setEditPatient(null)}>
+              Annuler
+            </Button>
+            <Button type="submit" form="patient-edit-form" loading={editSubmitting}>
+              Enregistrer
+            </Button>
+          </>
+        }
         description={
           editPatient
             ? `Code anonyme : ${editPatient.anonymousCode} (non modifiable)`
             : undefined
         }
       >
-        <form onSubmit={submitEdit} className="space-y-4">
+        <form id="patient-edit-form" onSubmit={submitEdit} className="space-y-4">
           <Input
             label="Nom du patient"
             value={editForm.namePatient}
@@ -720,18 +730,6 @@ export default function CasCliniquePage() {
                 { value: "F", label: "Féminin" },
               ]}
             />
-          </div>
-          <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setEditPatient(null)}
-            >
-              Annuler
-            </Button>
-            <Button type="submit" loading={editSubmitting}>
-              Enregistrer
-            </Button>
           </div>
         </form>
       </Modal>

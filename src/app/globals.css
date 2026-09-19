@@ -1,5 +1,38 @@
 @import "tailwindcss";
 
+/* Shared pop-ups: shrink fields and wrap actions inside narrow panels. */
+.modal-body :where(.grid > *, .flex > *) {
+  min-width: 0;
+}
+
+.modal-body :where(input, select, textarea) {
+  max-width: 100%;
+}
+
+.modal-footer > button {
+  min-height: 2.75rem;
+  height: auto;
+  padding-block: 0.625rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 639px) {
+  .modal-body :where(input, select, textarea) {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .modal-root[open] .modal-panel {
+    animation: modal-enter 180ms ease-out;
+  }
+}
+
+@keyframes modal-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ==========================================================================
    Design Tokens — Palette « Bleu médical »
    Famille Sky (hsl(201 96% 32%)) · contrastes WCAG 2.1 AA vérifiés
