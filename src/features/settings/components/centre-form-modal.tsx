@@ -7,6 +7,7 @@ import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import {
   CENTRE_TYPES,
+  centreTypeLabel,
   type CentreFormValues,
   type CentreSante,
   type CentreType,
@@ -133,7 +134,7 @@ export function CentreFormModal({
             }
             options={CENTRE_TYPES.map((type) => ({
               value: type,
-              label: type,
+              label: centreTypeLabel(type),
             }))}
           />
           <Select

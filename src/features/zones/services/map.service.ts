@@ -27,35 +27,43 @@ async function fetchGeoLayer(path: string): Promise<GeojsonCollection> {
 /* ================================================================== */
 
 /**
- * Charge simultanément les 6 couches GeoJSON de la carte épidémique.
+ * Charge simultanément les couches visibles GeoJSON de la carte épidémique.
  * En cas d'erreur réseau partielle, les couches indisponibles sont
  * remplacées par une FeatureCollection vide (pas de crash).
  */
-export async function fetchAllMapLayers(): Promise<{
-  regions:  GeojsonCollection;
-  zones:    GeojsonCollection;
-  centres:  GeojsonCollection;
-  alertes:  GeojsonCollection;
+export async function fetchAllMapLayers(maladieId?: number): Promise<{
+  regions: GeojsonCollection;
+  zones: GeojsonCollection;
+  centres: GeojsonCollection;
   clusters: GeojsonCollection;
-  cas:      GeojsonCollection;
+  cas: GeojsonCollection;
 }> {
-  const [regions, zones, centres, alertes, clusters, cas] = await Promise.all([
-    fetchGeoLayer("/carte/regions"),
-    fetchGeoLayer("/carte/zones"),
+  const query = maladieId === undefined ? "" : `?id_maladie=${maladieId}`;
+  const [regions, zones, centres, clusters, cas] = await Promise.all([
+    fetchGeoLayer(`/carte/regions${query}`),
+    fetchGeoLayer(`/carte/zones${query}`),
     fetchGeoLayer("/carte/centres"),
-    fetchGeoLayer("/carte/alertes"),
-    fetchGeoLayer("/carte/clusters"),
-    fetchGeoLayer("/carte/cas"),
+    maladieId === undefined
+      ? EMPTY_COLLECTION
+      : fetchGeoLayer(`/carte/clusters${query}`),
+    maladieId === undefined
+      ? EMPTY_COLLECTION
+      : fetchGeoLayer(`/carte/cas${query}`),
   ]);
-  return { regions, zones, centres, alertes, clusters, cas };
+  return { regions, zones, centres, clusters, cas };
 }
 
 /**
  * Récupère le résumé épidémiologique d'une zone (alerte, cas, centres).
  * Lève une erreur si la réponse HTTP n'est pas OK.
  */
-export async function fetchZoneSummary(id: number): Promise<ZoneInfo> {
-  return await apiFetch<ZoneInfo>(`/carte/zone/${id}`);
+export async function fetchZoneSummary(
+  id: number,
+  maladieId?: number,
+): Promise<ZoneInfo> {
+  return await apiFetch<ZoneInfo>(
+    `/carte/zone/${id}${maladieId === undefined ? "" : `?id_maladie=${maladieId}`}`,
+  );
 }
 
 /**

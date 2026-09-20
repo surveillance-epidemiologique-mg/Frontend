@@ -17,7 +17,8 @@ interface MaladieFormModalProps {
 const EMPTY: MaladieFormValues = {
   name: "",
   icd10Code: "",
-  alertThreshold: 1,
+  alertThresholdCentre: 1,
+  alertThresholdRegion: 1,
   description: "",
 };
 
@@ -32,7 +33,8 @@ export function MaladieFormModal({
       ? {
           name: disease.name,
           icd10Code: disease.icd10Code ?? "",
-          alertThreshold: disease.alertThreshold,
+          alertThresholdCentre: disease.alertThresholdCentre,
+          alertThresholdRegion: disease.alertThresholdRegion,
           description: disease.description ?? "",
         }
       : EMPTY,
@@ -57,8 +59,10 @@ export function MaladieFormModal({
     if (!values.icd10Code.trim()) {
       next.icd10Code = "Le code ICD-10 est requis.";
     }
-    if (!Number.isFinite(values.alertThreshold) || values.alertThreshold < 1) {
-      next.alertThreshold = "Le seuil doit être un nombre positif.";
+    for (const field of ["alertThresholdCentre", "alertThresholdRegion"] as const) {
+      if (!Number.isInteger(values[field]) || values[field] < 1 || values[field] > 2147483647) {
+        next[field] = "Saisissez un entier entre 1 et 2 147 483 647.";
+      }
     }
 
     setErrors(next);
@@ -85,6 +89,7 @@ export function MaladieFormModal({
       onClose={onClose}
       title={isEdit ? "Modifier la maladie" : "Ajouter une maladie"}
       description="Renseignez les informations de la maladie."
+      size="lg"
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
@@ -110,7 +115,6 @@ export function MaladieFormModal({
           error={errors.name}
           autoFocus
         />
-        <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="Code ICD-10"
             value={values.icd10Code}
@@ -118,20 +122,16 @@ export function MaladieFormModal({
             placeholder="Ex. B54"
             error={errors.icd10Code}
           />
-          <Input
-            label="Seuil d'alerte"
-            type="number"
-            min={1}
-            value={
-              Number.isFinite(values.alertThreshold)
-                ? values.alertThreshold
-                : ""
-            }
-            onChange={(e) =>
-              updateField("alertThreshold", Number(e.target.value))
-            }
-            error={errors.alertThreshold}
-          />
+        <div className="grid gap-4 rounded-xl border border-border bg-bg-muted/30 p-4 sm:grid-cols-2">
+          {([
+            ["alertThresholdCentre", "Seuil d'alerte — Centre de santé", "Nombre de cas confirmés dans un même établissement sur la fenêtre de surveillance."],
+            ["alertThresholdRegion", "Seuil d'alerte — Zone administrative", "Nombre de cas confirmés cumulés sur toute la zone, tous établissements confondus, sur la même fenêtre."],
+          ] as const).map(([field, label, hint]) => (
+            <Input key={field} label={label} hint={hint} type="number" min={1} max={2147483647} step={1}
+              value={Number.isFinite(values[field]) ? values[field] : ""}
+              onChange={(e) => updateField(field, e.target.value === "" ? NaN : Number(e.target.value))}
+              error={errors[field]} />
+          ))}
         </div>
         <Textarea
           label="Description / Consignes"

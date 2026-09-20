@@ -8,7 +8,11 @@ import type {
 
 export type { CentreSante, InviteResponse, Role, User, Zone };
 
-export type CentreType = "CSB1" | "CSB2" | "CHRD" | "CHRR" | "CHU";
+export type CentreType = "CSB1" | "CSB2" | "CHRD" | "CHRR" | "CHU" | "CentreSante" | "PosteSante" | "Hopital";
+
+export function centreTypeLabel(type: string): string {
+  return ({ CentreSante: "Centre de santé (niveau non précisé)", PosteSante: "Poste de santé", Hopital: "Hôpital (niveau non précisé)" } as Record<string, string>)[type] ?? type;
+}
 
 export const CENTRE_TYPES: CentreType[] = [
   "CSB1",
@@ -16,6 +20,9 @@ export const CENTRE_TYPES: CentreType[] = [
   "CHRD",
   "CHRR",
   "CHU",
+  "CentreSante",
+  "PosteSante",
+  "Hopital",
 ];
 
 export const INVITABLE_ROLE_NAMES = [
@@ -28,7 +35,8 @@ export interface Maladie {
   name: string;
   icd10Code: string | null;
   iconName: string | null;
-  alertThreshold: number;
+  alertThresholdCentre: number;
+  alertThresholdRegion: number;
   description: string | null;
 }
 
@@ -45,7 +53,8 @@ export interface UserFormValues {
 export interface MaladieFormValues {
   name: string;
   icd10Code: string;
-  alertThreshold: number;
+  alertThresholdCentre: number;
+  alertThresholdRegion: number;
   description: string;
 }
 

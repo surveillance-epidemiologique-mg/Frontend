@@ -22,6 +22,7 @@ import {
 } from "@/features/settings/components/centre-form-modal";
 import {
   CENTRE_TYPES,
+  centreTypeLabel,
   type CentreFormValues,
   type CentreSante,
   type Zone,
@@ -132,7 +133,7 @@ export function CentresTab({
     {
       key: "type",
       header: "Type",
-      cell: (row) => <Badge variant="info">{row.type}</Badge>,
+      cell: (row) => <Badge variant="info">{centreTypeLabel(row.type)}</Badge>,
     },
     {
       key: "zone",
@@ -207,7 +208,7 @@ export function CentresTab({
               placeholder="Tous les types"
               options={CENTRE_TYPES.map((type) => ({
                 value: type,
-                label: type,
+                label: centreTypeLabel(type),
               }))}
               className="sm:w-40"
             />

@@ -12,9 +12,6 @@ import {
 import {
   GRAVITES_LEGEND,
   LAYER_DEFS,
-  RISK_COLOR,
-  RISK_LABEL,
-  RISK_ORDER,
   STATUT_COLOR,
   STATUT_LABEL,
   STATUTS,
@@ -26,7 +23,7 @@ interface MapControlsPanelProps {
   layers: Record<LayerKey, boolean>;
   statuts: Set<string>;
   maladie: string;
-  maladieOptions: string[];
+  maladieOptions: { id: number; name: string }[];
   loading: boolean;
   onToggleLayer: (key: LayerKey) => void;
   onToggleStatut: (s: string) => void;
@@ -134,18 +131,23 @@ function LayerToggle({
   label,
   active,
   onToggle,
+  disabled = false,
+  description,
 }: {
   label: string;
   active: boolean;
   onToggle: () => void;
+  disabled?: boolean;
+  description?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onToggle}
+      disabled={disabled}
       aria-pressed={active}
       className={cn(
-        "flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left transition-colors",
+        "flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         active
           ? "bg-primary/8 ring-1 ring-inset ring-primary/25"
           : "hover:bg-bg-surface/80",
@@ -158,6 +160,11 @@ function LayerToggle({
         )}
       >
         {label}
+        {description ? (
+          <span className="mt-0.5 block text-[11px] font-normal text-text-muted">
+            {description}
+          </span>
+        ) : null}
       </span>
       <span
         className={cn(
@@ -188,7 +195,9 @@ export function MapControlsPanel({
   onSetMaladie,
 }: MapControlsPanelProps) {
   const [panelOpen, setPanelOpen] = useState(true);
-  const casLayerActive = layers.cas;
+  const diseaseLabel =
+    maladieOptions.find((item) => String(item.id) === maladie)?.name ?? maladie;
+  const alertMode = maladie ? `Filtré : ${diseaseLabel}` : "Toutes maladies";
 
   return (
     <div className="absolute bottom-3 left-3 z-[1000] w-[min(100%,20rem)] max-w-[calc(100%-24px)] overflow-hidden rounded-2xl border border-border bg-bg-surface/95 shadow-card backdrop-blur-md">
@@ -207,7 +216,9 @@ export function MapControlsPanel({
               Contrôles de la carte
             </span>
             <span className="block text-[11px] text-text-muted">
-              {loading ? "Chargement des données…" : "Couches, légende et filtres"}
+              {loading
+                ? "Chargement des données…"
+                : "Couches, légende et filtres"}
             </span>
           </span>
         </span>
@@ -223,6 +234,63 @@ export function MapControlsPanel({
       {panelOpen ? (
         <div className="max-h-[min(70vh,520px)] space-y-3 overflow-y-auto p-3">
           <ControlSection
+            icon={Filter}
+            title="Filtres"
+            description="La maladie filtre les alertes régionales, les cas et les clusters."
+            defaultOpen
+          >
+            <div>
+              <label
+                htmlFor="carte-maladie"
+                className="mb-1.5 block text-xs font-medium text-text-muted"
+              >
+                Maladie
+              </label>
+              <select
+                id="carte-maladie"
+                value={maladie}
+                onChange={(e) => onSetMaladie(e.target.value)}
+                className="w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">Toutes les maladies</option>
+                {maladieOptions.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mt-3">
+              <p className="mb-2 text-xs font-medium text-text-muted">
+                Statut diagnostique — couche Cas
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {STATUTS.map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    disabled={!maladie || !layers.cas}
+                    onClick={() => onToggleStatut(status)}
+                    aria-pressed={statuts.has(status)}
+                    className={cn(
+                      "rounded-full px-2.5 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-50",
+                      statuts.has(status)
+                        ? "bg-primary/12 text-primary ring-1 ring-primary/30"
+                        : "bg-bg-surface text-text-muted ring-1 ring-border",
+                    )}
+                  >
+                    {STATUT_LABEL[status]}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1.5 text-[11px] text-text-muted">
+                Aucune sélection = tous les statuts. Les clusters regroupent
+                uniquement les cas confirmés.
+              </p>
+            </div>
+          </ControlSection>
+
+          <ControlSection
             icon={Layers}
             title="Couches affichées"
             description="Activez ou masquez chaque niveau de données sur la carte."
@@ -234,10 +302,20 @@ export function MapControlsPanel({
                   key={layer.key}
                   label={layer.label}
                   active={layers[layer.key]}
+                  disabled={
+                    !maladie &&
+                    (layer.key === "cas" || layer.key === "clusters")
+                  }
+                  description={layer.key === "regions" ? alertMode : undefined}
                   onToggle={() => onToggleLayer(layer.key)}
                 />
               ))}
             </div>
+            {!maladie ? (
+              <p className="mt-2 px-2 text-xs text-text-muted">
+                Sélectionnez une maladie pour afficher les cas et les clusters.
+              </p>
+            ) : null}
           </ControlSection>
 
           <ControlSection
@@ -247,22 +325,12 @@ export function MapControlsPanel({
             defaultOpen
           >
             <LegendGroup title="Alertes par région">
-              {RISK_ORDER.map((risk) => (
-                <LegendItem
-                  key={risk}
-                  label={RISK_LABEL[risk]}
-                  fill={RISK_COLOR[risk]}
-                  stroke="rgba(51, 65, 85, 0.35)"
-                />
-              ))}
-              <LegendItem
-                label="Aucune alerte"
-                fill="#e2e8f0"
-                stroke="#94a3b8"
-              />
-            </LegendGroup>
-
-            <LegendGroup title="Couches PostGIS">
+              <p
+                className="mb-2 text-[11px] text-text-muted"
+                aria-live="polite"
+              >
+                {alertMode}
+              </p>
               {GRAVITES_LEGEND.map((g) => (
                 <LegendItem
                   key={g.key}
@@ -285,84 +353,6 @@ export function MapControlsPanel({
                 ))}
               </div>
             </LegendGroup>
-          </ControlSection>
-
-          <ControlSection
-            icon={Filter}
-            title="Filtres des cas"
-            description={
-              casLayerActive
-                ? "Affinez les points affichés lorsque la couche Cas est active."
-                : "Activez la couche Cas pour utiliser ces filtres."
-            }
-            defaultOpen={casLayerActive}
-          >
-            {!casLayerActive ? (
-              <p className="rounded-lg border border-dashed border-border bg-bg-surface/60 px-3 py-2.5 text-xs leading-relaxed text-text-muted">
-                Les filtres s&apos;appliquent uniquement à la couche{" "}
-                <span className="font-medium text-text-main">Cas</span>.
-              </p>
-            ) : (
-              <>
-                <div>
-                  <p className="mb-2 text-xs font-medium text-text-muted">
-                    Statut diagnostique
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {STATUTS.map((s) => {
-                      const active = statuts.has(s);
-                      return (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => onToggleStatut(s)}
-                          aria-pressed={active}
-                          className={cn(
-                            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
-                            active
-                              ? "bg-primary/12 text-text-main ring-1 ring-inset ring-primary/30"
-                              : "bg-bg-surface text-text-muted ring-1 ring-inset ring-border hover:bg-bg-app",
-                          )}
-                        >
-                          <span
-                            className="size-2.5 shrink-0 rounded-full"
-                            style={{ backgroundColor: STATUT_COLOR[s] }}
-                            aria-hidden="true"
-                          />
-                          {STATUT_LABEL[s]}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="mt-1.5 text-[11px] text-text-muted">
-                    Aucune sélection = tous les statuts.
-                  </p>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="carte-maladie"
-                    className="mb-1.5 block text-xs font-medium text-text-muted"
-                  >
-                    Maladie
-                  </label>
-                  <select
-                    id="carte-maladie"
-                    value={maladie}
-                    onChange={(e) => onSetMaladie(e.target.value)}
-                    disabled={!casLayerActive}
-                    className="w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <option value="">Toutes les maladies</option>
-                    {maladieOptions.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            )}
           </ControlSection>
         </div>
       ) : null}

@@ -1,9 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiFetch } from "@/services/api";
 import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
 import type { GeoJSON as LeafletGeoJSON } from "leaflet";
 import "leaflet/dist/leaflet.css";
+import {
+  alertStyle,
+  GRAVITE_FILL,
+  GRAVITE_LABEL,
+  GRAVITES_LEGEND,
+  NO_ALERT_FILL,
+} from "@/features/zones/types/map.types";
 import { CENTRE_MADAGASCAR } from "@/features/zones/data/map-data";
 
 interface GeoFeatureCollection {
@@ -15,22 +23,6 @@ interface GeoFeatureCollection {
   }>;
 }
 
-const RISK_COLOR: Record<string, string> = {
-  High: "#dc2626",
-  Moderate: "#f97316",
-  Low: "#eab308",
-  "Very low": "#16a34a",
-};
-
-const RISK_LABEL: Record<string, string> = {
-  High: "Élevé",
-  Moderate: "Modéré",
-  Low: "Faible",
-  "Very low": "Très faible",
-};
-
-const RISK_ORDER = ["High", "Moderate", "Low", "Very low"];
-
 export function RiskRegionMapInner() {
   const [geo, setGeo] = useState<GeoFeatureCollection | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,12 +31,9 @@ export function RiskRegionMapInner() {
     let active = true;
     (async () => {
       try {
-        const res = await fetch("/api/carte/regions");
+        const data = await apiFetch<GeoFeatureCollection>("/carte/regions");
         if (!active) return;
-        if (res.ok) {
-          const data = await res.json();
-          setGeo(data as GeoFeatureCollection);
-        }
+        setGeo(data);
       } catch {
         // API indisponible
       } finally {
@@ -56,34 +45,14 @@ export function RiskRegionMapInner() {
     };
   }, []);
 
-  const featureStyle = (feature?: { properties: Record<string, unknown> }) => {
-    const risk = feature?.properties?.risk_level as string | undefined;
-    const color = risk ? RISK_COLOR[risk] : undefined;
-    if (!color) {
-      return {
-        color: "#94a3b8",
-        weight: 1,
-        fillColor: "#e2e8f0",
-        fillOpacity: 0.5,
-      };
-    }
-    return {
-      color: "#334155",
-      weight: 1.2,
-      fillColor: color,
-      fillOpacity: 0.55,
-    };
-  };
-
   function onEachFeature(
     feature: { properties: Record<string, unknown> },
     layer: LeafletGeoJSON,
   ) {
     const name = String(feature.properties?.nom ?? "—");
-    const risk = (feature.properties?.risk_level as string) ?? null;
     const gravite = (feature.properties?.gravite as string) ?? null;
-    const label = risk ? RISK_LABEL[risk] ?? risk : "Aucune alerte";
-    const color = risk ? RISK_COLOR[risk] ?? "#94a3b8" : "#94a3b8";
+    const label = GRAVITE_LABEL[gravite ?? ""] ?? "Aucune alerte";
+    const color = GRAVITE_FILL[gravite ?? ""] ?? NO_ALERT_FILL;
     layer.bindPopup(
       `<div style="font-family:system-ui,sans-serif;font-size:13px;line-height:1.5">
         <strong>${name}</strong><br/>
@@ -116,7 +85,7 @@ export function RiskRegionMapInner() {
         {geo ? (
           <GeoJSON
             data={geo}
-            style={featureStyle}
+            style={alertStyle}
             onEachFeature={onEachFeature}
           />
         ) : null}
@@ -128,22 +97,18 @@ export function RiskRegionMapInner() {
           Niveau d&apos;alerte
         </p>
         <div className="space-y-1">
-          {RISK_ORDER.map((risk) => (
+          {GRAVITES_LEGEND.map((entry) => (
             <span
-              key={risk}
+              key={entry.key}
               className="flex items-center gap-2 text-xs text-text-muted"
             >
               <span
                 className="size-2.5 shrink-0 rounded-full"
-                style={{ backgroundColor: RISK_COLOR[risk] }}
+                style={{ backgroundColor: entry.fill }}
               />
-              {RISK_LABEL[risk]}
+              {entry.label}
             </span>
           ))}
-          <span className="flex items-center gap-2 text-xs text-text-muted">
-            <span className="size-2.5 shrink-0 rounded-full bg-slate-300" />
-            Aucune alerte
-          </span>
         </div>
         {loading ? (
           <p className="mt-2 text-[11px] text-text-muted">Chargement…</p>

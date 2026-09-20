@@ -140,11 +140,20 @@ export function MaladiesTab({
       ),
     },
     {
-      key: "seuil",
-      header: "Seuil d'alerte",
+      key: "seuilCentre",
+      header: "Seuil — Centre de santé",
       cell: (disease) => (
         <span className="inline-flex rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning ring-1 ring-inset ring-warning/25">
-          {disease.alertThreshold}
+          {disease.alertThresholdCentre}
+        </span>
+      ),
+    },
+    {
+      key: "seuilRegion",
+      header: "Seuil — Zone administrative",
+      cell: (disease) => (
+        <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+          {disease.alertThresholdRegion}
         </span>
       ),
     },
