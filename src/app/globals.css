@@ -48,7 +48,7 @@
     "Liberation Mono", monospace;
 
   /* --- Primary — bleu médical (#0369A1 · sky-700) ----------------------- */
-  --primary:  ;
+  --primary: #0369A1 ;
   --primary-hover: #075985;   /* sky-800 */
   --primary-active: #0c4a6e;  /* sky-900 */
   --primary-light: #e0f2fe;   /* sky-100 (fonds, badges, hover doux) */
