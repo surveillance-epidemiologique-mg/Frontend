@@ -179,8 +179,6 @@ export default function CasCliniquePage() {
         setYears(y);
       } catch {
         // API indisponible : on laisse les listes vides
-      } finally {
-        if (active) setLoading(false);
       }
     })();
     return () => {
@@ -189,6 +187,7 @@ export default function CasCliniquePage() {
   }, []);
 
   useEffect(() => {
+    setLoading(true);
     const id = setTimeout(() => {
       void (async () => {
         try {
@@ -207,6 +206,7 @@ export default function CasCliniquePage() {
   }, [filters]);
 
   const isMedecin = me?.role === ROLES.MEDECIN;
+  const hasActiveFilters = Object.values(filters).some(Boolean);
   const medecinCentre = isMedecin
     ? centres.find((c) => c.id === me?.centreId)
     : undefined;
@@ -478,13 +478,19 @@ export default function CasCliniquePage() {
           emptyState={
             <EmptyState
               icon={Activity}
-              title={loading ? "Chargement…" : "Aucun cas déclaré"}
-              description={
-                loading
-                  ? "Récupération des cas en cours."
-                  : "Les cas déclarés apparaîtront ici. Utilisez « Déclarer un cas » pour en créer un."
-              }
-            />
+              imageSrc="/images/nothing.svg"
+              imageAlt="Aucun cas"
+              title={hasActiveFilters ? "Aucun patient trouvé" : "Aucun cas déclaré"}
+              description={hasActiveFilters
+                ? "Aucun résultat ne correspond à vos filtres."
+                : "Aucun cas n'a encore été déclaré."}
+            >
+              {hasActiveFilters ? (
+                <Button variant="outline" onClick={() => setFilters(EMPTY_FILTERS)}>
+                  Réinitialiser les filtres
+                </Button>
+              ) : null}
+            </EmptyState>
           }
         />
       </Card>

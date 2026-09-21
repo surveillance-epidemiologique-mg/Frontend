@@ -145,8 +145,6 @@ export default function LaboratoirePage() {
         setYears(y);
       } catch {
         // API indisponible
-      } finally {
-        if (active) setLoading(false);
       }
     })();
     return () => {
@@ -155,6 +153,7 @@ export default function LaboratoirePage() {
   }, []);
 
   useEffect(() => {
+    setLoading(true);
     const id = setTimeout(() => {
       void (async () => {
         try {
@@ -211,6 +210,7 @@ export default function LaboratoirePage() {
     return cases;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cases, visuel, me]);
+  const hasActiveFilters = Object.values(filters).some(Boolean);
 
   function openCase(c: LabCase) {
     setSelectedCas(c);
@@ -498,16 +498,32 @@ export default function LaboratoirePage() {
           </div>
         </div>
 
-        {visible.length === 0 ? (
+        {loading ? (
           <EmptyState
             icon={FlaskConical}
-            title={loading ? "Chargement…" : "Aucun cas"}
-            description={
-              loading
-                ? "Récupération des cas…"
-                : "Aucun cas ne correspond aux filtres sélectionnés."
-            }
+            title="Chargement…"
+            description="Récupération des cas…"
           />
+        ) : visible.length === 0 ? (
+          <EmptyState
+            icon={FlaskConical}
+            imageSrc="/images/nothing.svg"
+            imageAlt="Aucun cas"
+            title="Aucun cas dans cette catégorie"
+            description={hasActiveFilters
+              ? "Aucun résultat ne correspond à vos filtres."
+              : visuel === "pending"
+                ? "Aucune analyse n'est actuellement en attente."
+                : visuel === "processed"
+                  ? "Aucun cas traité par ce laboratoire."
+                  : "Aucun cas n'a encore été déclaré."}
+          >
+            {hasActiveFilters ? (
+              <Button variant="outline" onClick={() => setFilters(EMPTY_FILTERS)}>
+                Réinitialiser les filtres
+              </Button>
+            ) : null}
+          </EmptyState>
         ) : (
           <div className="space-y-4 p-4 bg-bg-muted/5">
             {visible.map((c) => {
