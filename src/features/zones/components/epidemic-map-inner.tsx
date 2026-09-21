@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "@/services/api";
 import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
 import L, { type GeoJSON as LeafletGeoJSON } from "leaflet";
@@ -32,6 +32,7 @@ import {
 import { MapActions } from "@/features/zones/components/map-actions";
 import { ZoneInfoPanel } from "@/features/zones/components/zone-info-panel";
 import { MapControlsPanel } from "@/features/zones/components/map-controls-panel";
+import { MAP_DATA_CHANGED_EVENT } from "@/services/live-events";
 
 /* ================================================================== */
 /*  EpidemicMapInner — Orchestrateur                                  */
@@ -57,11 +58,13 @@ export function EpidemicMapInner() {
   const [centres, setCentres] = useState<GeojsonCollection | null>(null);
   const [clusters, setClusters] = useState<GeojsonCollection | null>(null);
   const [cas, setCas] = useState<GeojsonCollection | null>(null);
+  const [mapVersion, setMapVersion] = useState(0);
   const [loadedMaladie, setLoadedMaladie] = useState<string | null>(null);
   const loading = loadedMaladie !== maladie;
   const [maladieOptions, setMaladieOptions] = useState<
     { id: number; name: string }[]
   >([]);
+  const layersRequestRef = useRef(0);
 
   /* ── State : navigation & panneau zone ────────────────────────── */
   const [focusZone, setFocusZone] = useState<FocusZone | null>(null);
@@ -70,29 +73,45 @@ export function EpidemicMapInner() {
   const [zoneLoading, setZoneLoading] = useState(false);
 
   /* ── Chargement initial des couches ───────────────────────────── */
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const data = await fetchAllMapLayers(
-          maladie ? Number(maladie) : undefined,
-        );
-        if (!active) return;
-        setRegions(data.regions);
-        setZones(data.zones);
-        setCentres(data.centres);
-        setClusters(data.clusters);
-        setCas(data.cas);
-      } catch {
-        // API indisponible : les couches restent vides
-      } finally {
-        if (active) setLoadedMaladie(maladie);
+  const refreshMapLayers = useCallback(async () => {
+    const requestId = ++layersRequestRef.current;
+    const selectedMaladie = maladie;
+    try {
+      const data = await fetchAllMapLayers(
+        selectedMaladie ? Number(selectedMaladie) : undefined,
+        true,
+      );
+      if (requestId !== layersRequestRef.current) return;
+      setRegions(data.regions);
+      setZones(data.zones);
+      setCentres(data.centres);
+      setClusters(data.clusters);
+      setCas(data.cas);
+      setMapVersion((version) => version + 1);
+    } catch {
+      // API indisponible : conserver les dernières données affichées
+    } finally {
+      if (requestId === layersRequestRef.current) {
+        setLoadedMaladie(selectedMaladie);
       }
-    })();
-    return () => {
-      active = false;
-    };
+    }
   }, [maladie]);
+
+  useEffect(() => {
+    void refreshMapLayers();
+  }, [refreshMapLayers]);
+
+  // Le polling couvre les autres onglets/utilisateurs. L'événement local
+  // rend la mise à jour immédiate après une action effectuée dans cet onglet.
+  useEffect(() => {
+    const refresh = () => void refreshMapLayers();
+    window.addEventListener(MAP_DATA_CHANGED_EVENT, refresh);
+    const interval = window.setInterval(refresh, 15_000);
+    return () => {
+      window.removeEventListener(MAP_DATA_CHANGED_EVENT, refresh);
+      window.clearInterval(interval);
+    };
+  }, [refreshMapLayers]);
   /* ── Chargement des maladies (pour le filtre) ─────────────────── */
   useEffect(() => {
     let active = true;
@@ -384,7 +403,7 @@ export function EpidemicMapInner() {
 
         {layers.regions && !loading && regions ? (
           <GeoJSON
-            key={`regions-${loadedMaladie}`}
+            key={`regions-${loadedMaladie}-${mapVersion}`}
             data={regions}
             style={regionStyle}
             onEachFeature={regionEach}
@@ -392,7 +411,7 @@ export function EpidemicMapInner() {
         ) : null}
         {layers.limites && !loading && zones ? (
           <GeoJSON
-            key={`zones-${loadedMaladie}`}
+            key={`zones-${loadedMaladie}-${mapVersion}`}
             data={zones}
             style={zoneStyle}
             onEachFeature={zoneEach}
@@ -400,7 +419,7 @@ export function EpidemicMapInner() {
         ) : null}
         {layers.centres && filteredCentres ? (
           <GeoJSON
-            key={`centres-${zoneName}`}
+            key={`centres-${zoneName}-${mapVersion}`}
             data={filteredCentres}
             pointToLayer={centrePoint}
             onEachFeature={centreEach}
@@ -408,7 +427,7 @@ export function EpidemicMapInner() {
         ) : null}
         {layers.cas && filteredCas ? (
           <GeoJSON
-            key={`cas-${Array.from(statuts).sort().join("|")}-${maladie}-${zoneName}`}
+            key={`cas-${Array.from(statuts).sort().join("|")}-${maladie}-${zoneName}-${mapVersion}`}
             data={filteredCas}
             pointToLayer={casPoint}
             onEachFeature={casEach}
@@ -416,7 +435,7 @@ export function EpidemicMapInner() {
         ) : null}
         {layers.clusters && maladie && !loading && clusters && !focusZone ? (
           <GeoJSON
-            key={`clusters-${loadedMaladie}`}
+            key={`clusters-${loadedMaladie}-${mapVersion}`}
             data={clusters}
             pointToLayer={clusterPoint}
             onEachFeature={clusterEach}

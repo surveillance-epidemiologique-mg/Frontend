@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/toast";
 import { ROLES } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import { notifyMapDataChanged } from "@/services/live-events";
 
 interface Option {
   id: number;
@@ -196,9 +197,10 @@ export default function DeclarerCasPage() {
 
       toast({
         title: "Cas déclaré",
-        description: `Cas #${body.id} enregistré (${body.patient.anonymousCode}) avec ${body.analyses?.length ?? 0} analyse(s).`,
+        description: `Le ${body.patient.anonymousCode} a été déclaré avec ${body.analyses?.length ?? 0} analyse(s).`,
         variant: "success",
       });
+      notifyMapDataChanged();
       router.push("/cases");
     } catch (e) {
       toast({

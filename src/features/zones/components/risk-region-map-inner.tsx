@@ -13,6 +13,7 @@ import {
   NO_ALERT_FILL,
 } from "@/features/zones/types/map.types";
 import { CENTRE_MADAGASCAR } from "@/features/zones/data/map-data";
+import { MAP_DATA_CHANGED_EVENT } from "@/services/live-events";
 
 interface GeoFeatureCollection {
   type: "FeatureCollection";
@@ -26,22 +27,32 @@ interface GeoFeatureCollection {
 export function RiskRegionMapInner() {
   const [geo, setGeo] = useState<GeoFeatureCollection | null>(null);
   const [loading, setLoading] = useState(true);
+  const [geoVersion, setGeoVersion] = useState(0);
 
   useEffect(() => {
     let active = true;
-    (async () => {
+    const load = async () => {
       try {
-        const data = await apiFetch<GeoFeatureCollection>("/carte/regions");
+        const data = await apiFetch<GeoFeatureCollection>(
+          "/carte/regions?refresh=1",
+        );
         if (!active) return;
         setGeo(data);
+        setGeoVersion((version) => version + 1);
       } catch {
         // API indisponible
       } finally {
         if (active) setLoading(false);
       }
-    })();
+    };
+    void load();
+    const refresh = () => void load();
+    window.addEventListener(MAP_DATA_CHANGED_EVENT, refresh);
+    const interval = window.setInterval(refresh, 15_000);
     return () => {
       active = false;
+      window.removeEventListener(MAP_DATA_CHANGED_EVENT, refresh);
+      window.clearInterval(interval);
     };
   }, []);
 
@@ -84,6 +95,7 @@ export function RiskRegionMapInner() {
         />
         {geo ? (
           <GeoJSON
+            key={`risk-regions-${geoVersion}`}
             data={geo}
             style={alertStyle}
             onEachFeature={onEachFeature}

@@ -72,7 +72,7 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
                 aria-label="Maladie"
                 className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-600"
               >
-                <option>Toutes les maladies</option>
+                <option data-reset>Toutes les maladies</option>
                 <option>VIH / SIDA</option>
                 <option>Paludisme</option>
                 <option>Tuberculose</option>
@@ -84,7 +84,7 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
                 aria-label="Région"
                 className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-600"
               >
-                <option>Toutes les régions</option>
+                <option data-reset>Toutes les régions</option>
                 <option>Analamanga</option>
                 <option>Atsinanana</option>
                 <option>Boeny</option>

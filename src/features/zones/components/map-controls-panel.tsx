@@ -18,6 +18,7 @@ import {
   type LayerKey,
 } from "@/features/zones/types/map.types";
 import { cn } from "@/lib/utils";
+import { Select } from "@/components/ui/select";
 
 interface MapControlsPanelProps {
   layers: Record<LayerKey, boolean>;
@@ -246,19 +247,16 @@ export function MapControlsPanel({
               >
                 Maladie
               </label>
-              <select
+              <Select
                 id="carte-maladie"
+                options={[
+                  { value: "", label: "Toutes les maladies" },
+                  ...maladieOptions.map((item) => ({ value: String(item.id), label: item.name })),
+                ]}
                 value={maladie}
                 onChange={(e) => onSetMaladie(e.target.value)}
                 className="w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="">Toutes les maladies</option>
-                {maladieOptions.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
             <div className="mt-3">
               <p className="mb-2 text-xs font-medium text-text-muted">

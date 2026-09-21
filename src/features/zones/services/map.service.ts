@@ -31,14 +31,21 @@ async function fetchGeoLayer(path: string): Promise<GeojsonCollection> {
  * En cas d'erreur réseau partielle, les couches indisponibles sont
  * remplacées par une FeatureCollection vide (pas de crash).
  */
-export async function fetchAllMapLayers(maladieId?: number): Promise<{
+export async function fetchAllMapLayers(
+  maladieId?: number,
+  refresh = false,
+): Promise<{
   regions: GeojsonCollection;
   zones: GeojsonCollection;
   centres: GeojsonCollection;
   clusters: GeojsonCollection;
   cas: GeojsonCollection;
 }> {
-  const query = maladieId === undefined ? "" : `?id_maladie=${maladieId}`;
+  const queryParts = [
+    ...(maladieId === undefined ? [] : [`id_maladie=${maladieId}`]),
+    ...(refresh ? ["refresh=1"] : []),
+  ];
+  const query = queryParts.length ? `?${queryParts.join("&")}` : "";
   const [regions, zones, centres, clusters, cas] = await Promise.all([
     fetchGeoLayer(`/carte/regions${query}`),
     fetchGeoLayer(`/carte/zones${query}`),
@@ -70,9 +77,11 @@ export async function fetchZoneSummary(
  * Alertes par région (ADM1) : `[{ region_name, risk_level }]`.
  * Conservé pour compatibilité ; la couche « Régions » inclut déjà `risk_level`.
  */
-export async function fetchAlertesRegions(): Promise<AlertRegion[]> {
+export async function fetchAlertesRegions(refresh = false): Promise<AlertRegion[]> {
   try {
-    return await apiFetch<AlertRegion[]>("/carte/alertes-regions");
+    return await apiFetch<AlertRegion[]>(
+      `/carte/alertes-regions${refresh ? "?refresh=1" : ""}`,
+    );
   } catch {
     return [];
   }

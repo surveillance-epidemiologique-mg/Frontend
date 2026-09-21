@@ -501,7 +501,7 @@ export default function CasCliniquePage() {
             Chargement…
           </div>
         ) : viewPatient && viewCas ? (
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-4 sm:space-y-6">
             {(() => {
               const currentCas = viewPatient.cas.find(c => c.id === viewCas.id);
               if (!currentCas) return null;
@@ -509,28 +509,28 @@ export default function CasCliniquePage() {
               return (
                 <>
                   {/* BLOC 1: EN-TÊTE */}
-                  <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-bg-surface p-4 shadow-sm">
+                  <div className="flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-bg-surface p-3 shadow-sm sm:flex-row sm:items-center sm:p-4">
                     {viewQr && (
                       <img
                         src={viewQr}
                         alt={`QR code du cas #${viewCas.id}`}
-                        className="size-30 shrink-0 rounded-lg border border-border bg-bg-surface p-1"
+                        className="h-24 w-24 shrink-0 self-center rounded-lg border border-border bg-bg-surface p-1 sm:h-30 sm:w-30 sm:self-auto"
                       />
                     )}
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-xl font-extrabold text-text-main tracking-tight">
+                      <h3 className="break-words text-lg font-extrabold tracking-tight text-text-main sm:text-xl">
                         {viewPatient.anonymousCode}
                       </h3>
-                      <p className="mt-1.5 flex items-center text-sm font-medium text-text-muted">
+                      <p className="mt-1.5 break-words text-sm font-medium text-text-muted">
                         {currentCas.centre.name}
                       </p>
-                      <p className="mt-1 text-xs text-text-muted">
+                      <p className="mt-1 break-words text-xs text-text-muted">
                         Déclaré le {formatDate(currentCas.declarationDate)}
                       </p>
                     </div>
                     <Button
                       variant="outline"
-                      className="border-primary text-primary hover:bg-primary hover:text-white font-medium"
+                      className="w-full shrink-0 border-primary font-medium text-primary hover:bg-primary hover:text-white sm:w-auto"
                       onClick={() => {
                         void import("@/lib/qr").then(({ printFichePatient }) => {
                           printFichePatient(
@@ -561,11 +561,11 @@ export default function CasCliniquePage() {
                   </div>
 
                   {/* BLOC 2: INFORMATIONS GÉNÉRALES */}
-                  <div className="rounded-xl border border-border bg-bg-surface p-5 shadow-sm">
-                    <h4 className="mb-5 text-sm font-bold tracking-wide text-primary border-b border-border pb-2 uppercase">
+                  <div className="rounded-xl border border-border bg-bg-surface p-4 shadow-sm sm:p-5">
+                    <h4 className="mb-4 border-b border-border pb-2 text-sm font-bold uppercase tracking-wide text-primary sm:mb-5">
                       Informations Générales
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
+                    <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 sm:gap-y-6">
                       <div className="sm:col-span-2">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
                           Nom et prénom(s)
@@ -575,7 +575,7 @@ export default function CasCliniquePage() {
                         </p>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
                             Âge
@@ -594,12 +594,12 @@ export default function CasCliniquePage() {
                         </div>
                       </div>
 
-                      <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-3 sm:gap-6">
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
                             Zone de résidence
                           </p>
-                          <p className="mt-1.5 text-sm font-semibold text-text-main">
+                            <p className="mt-1.5 break-words text-sm font-semibold text-text-main">
                             {viewPatient.residenceZone?.name ?? "—"}
                           </p>
                         </div>
@@ -607,7 +607,7 @@ export default function CasCliniquePage() {
                           <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
                             Centre de traitement
                           </p>
-                          <p className="mt-1.5 text-sm font-semibold text-text-main">
+                            <p className="mt-1.5 break-words text-sm font-semibold text-text-main">
                             {currentCas.centre.name}
                           </p>
                         </div>
@@ -626,8 +626,8 @@ export default function CasCliniquePage() {
                   </div>
 
                   {/* BLOC 3: ANALYSES & LABORATOIRE */}
-                  <div>
-                    <h4 className="mb-4 text-xs font-bold tracking-wider text-text-muted uppercase">
+                  <div className="min-w-0">
+                    <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-text-muted sm:mb-4">
                       Analyses & Laboratoire
                     </h4>
                     <div className="space-y-3">
@@ -635,30 +635,30 @@ export default function CasCliniquePage() {
                         currentCas.analyses.map((a) => {
                           const isRealisee = a.statut === "Realisee";
                           return (
-                            <div key={a.id} className="relative rounded-lg border border-border bg-bg-surface p-4 shadow-sm">
-                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-                                <div className="space-y-3 flex-1">
-                                  <h5 className="font-bold text-text-main text-[15px]">{a.label}</h5>
+                            <div key={a.id} className="relative min-w-0 rounded-lg border border-border bg-bg-surface p-3 shadow-sm sm:p-4">
+                              <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="min-w-0 flex-1 space-y-3">
+                                  <h5 className="break-words text-[15px] font-bold text-text-main">{a.label}</h5>
                                   
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex min-w-0 flex-wrap items-center gap-2">
                                     <span className="text-xs text-text-muted">Résultat :</span>
                                     {isRealisee && a.resultat ? (
-                                      <Badge variant="info">{a.resultat}</Badge>
+                                      <Badge variant="info" className="max-w-full break-words">{a.resultat}</Badge>
                                     ) : (
                                       <Badge variant="secondary">En cours</Badge>
                                     )}
                                   </div>
 
-                                  <div className="text-xs text-text-muted">
+                                  <div className="break-words text-xs text-text-muted">
                                     Par : {isRealisee && a.laboratory ? <span className="font-medium text-text-main">{a.laboratory.name}</span> : "—"}
                                   </div>
                                 </div>
                                 
-                                <div className="flex flex-col items-start sm:items-end gap-3 shrink-0">
-                                  <div className="text-xs text-text-muted">
+                                <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
+                                  <div className="break-words text-xs text-text-muted sm:text-right">
                                     Réalisée le : {isRealisee && a.dateAnalyse ? <span className="font-medium text-text-main">{formatDate(a.dateAnalyse)}</span> : "—"}
                                   </div>
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                                     <span className="text-xs text-text-muted">Statut :</span>
                                     <Badge variant={isRealisee ? "info" : "warning"}>
                                       {a.statut}

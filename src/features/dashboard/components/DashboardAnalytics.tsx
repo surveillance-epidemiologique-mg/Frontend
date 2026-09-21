@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { StatCard, StatCardSkeleton } from "@/components/ui/stat-card";
+import { Select } from "@/components/ui/select";
 import {
   ConfirmedTrendChart,
   DiseasePieChart,
@@ -269,19 +270,16 @@ export function DashboardAnalytics() {
               <MapPin className="size-3" />
               Région / District
             </label>
-            <select
+            <Select
               id="filter-zone"
+              options={[
+                { value: "", label: "Toutes les zones" },
+                ...zones.map((z) => ({ value: String(z.id), label: z.name })),
+              ]}
               value={filters.zoneId}
               onChange={(e) => update("zoneId", e.target.value)}
               className={FIELD}
-            >
-              <option value="">Toutes les zones</option>
-              {zones.map((z) => (
-                <option key={z.id} value={z.id}>
-                  {z.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Maladie */}
@@ -293,19 +291,16 @@ export function DashboardAnalytics() {
               <Activity className="size-3" />
               Maladie
             </label>
-            <select
+            <Select
               id="filter-maladie"
+              options={[
+                { value: "", label: "Toutes" },
+                ...maladies.map((m) => ({ value: String(m.id), label: m.name })),
+              ]}
               value={filters.maladieId}
               onChange={(e) => update("maladieId", e.target.value)}
               className={FIELD}
-            >
-              <option value="">Toutes</option>
-              {maladies.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
         </div>
       </div>

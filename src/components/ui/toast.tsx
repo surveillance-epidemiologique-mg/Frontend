@@ -4,18 +4,13 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  X,
-  XCircle,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { createPortal } from "react-dom";
+import { AlertTriangle, CheckCircle2, Info, X, XCircle } from "lucide-react";
 
 type ToastVariant = "success" | "error" | "info" | "warning";
 
@@ -41,29 +36,66 @@ const VARIANT_STYLES: Record<
 > = {
   success: {
     icon: CheckCircle2,
-    className: "text-success",
+    className: "toast-success",
   },
   error: {
     icon: XCircle,
-    className: "text-error",
+    className: "toast-error",
   },
   info: {
     icon: Info,
-    className: "text-info",
+    className: "toast-info",
   },
   warning: {
     icon: AlertTriangle,
-    className: "text-warning",
+    className: "toast-warning",
   },
 };
 
-const AUTO_DISMISS_MS = 4500;
+// Roughly 180 words/minute, plus time to notice the notification.
+function readingTime(input: ToastInput) {
+  const words = `${input.title} ${input.description ?? ""}`
+    .trim()
+    .split(/\s+/).length;
+  return Math.max(input.variant === "error" ? 10000 : 7000, 2000 + words * 350);
+}
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const idRef = useRef(0);
+  const timers = useRef(new Map<number, number>());
+  const [portalHost, setPortalHost] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Content outside a modal dialog is inert, even in the top layer. Place
+    // notifications inside the active dialog so their close button stays usable.
+    const syncHost = () => {
+      const dialogs =
+        document.querySelectorAll<HTMLDialogElement>("dialog[open]");
+      setPortalHost(dialogs.item(dialogs.length - 1) ?? document.body);
+    };
+    syncHost();
+    const observer = new MutationObserver(syncHost);
+    observer.observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["open"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const pending = timers.current;
+    return () => {
+      pending.forEach((timer) => window.clearTimeout(timer));
+      pending.clear();
+    };
+  }, []);
 
   const dismiss = useCallback((id: number) => {
+    window.clearTimeout(timers.current.get(id));
+    timers.current.delete(id);
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
@@ -72,11 +104,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       const id = ++idRef.current;
       setToasts((prev) => [...prev, { ...input, id }]);
 
-      window.setTimeout(() => {
-        setToasts((prev) => prev.filter((toast) => toast.id !== id));
-      }, AUTO_DISMISS_MS);
+      timers.current.set(
+        id,
+        window.setTimeout(() => dismiss(id), readingTime(input)),
+      );
     },
-    [],
+    [dismiss],
   );
 
   const value = useMemo(() => ({ toast }), [toast]);
@@ -85,46 +118,45 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
 
-      <div
-        className="pointer-events-none fixed top-4 right-4 z-[100] flex w-full max-w-sm flex-col gap-3"
-        aria-live="polite"
-        aria-label="Notifications"
-      >
-        {toasts.map((toast) => {
-          const style = VARIANT_STYLES[toast.variant ?? "info"];
-          const Icon = style.icon;
+      {portalHost &&
+        createPortal(
+          <div
+            className="toast-region"
+            data-open={toasts.length > 0 ? "true" : "false"}
+            aria-live="polite"
+            aria-label="Notifications"
+          >
+            {toasts.map((toast) => {
+              const style = VARIANT_STYLES[toast.variant ?? "info"];
+              const Icon = style.icon;
 
-          return (
-            <div
-              key={toast.id}
-              className="animate-toast-in pointer-events-auto flex items-start gap-3 rounded-xl border border-border bg-bg-surface p-4 shadow-lg"
-              role="status"
-            >
-              <Icon
-                className={cn("mt-0.5 size-5 shrink-0", style.className)}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-text-main">
-                  {toast.title}
-                </p>
-                {toast.description ? (
-                  <p className="mt-0.5 text-sm text-text-muted">
-                    {toast.description}
-                  </p>
-                ) : null}
-              </div>
-              <button
-                type="button"
-                onClick={() => dismiss(toast.id)}
-                aria-label="Fermer la notification"
-                className="grid size-6 shrink-0 place-items-center rounded-md text-text-muted transition-colors hover:bg-bg-app hover:text-text-main"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-          );
-        })}
-      </div>
+              return (
+                <div
+                  key={toast.id}
+                  className={`toast-card animate-toast-in ${style.className}`}
+                  role="status"
+                >
+                  <Icon aria-hidden="true" className="toast-icon" />
+                  <div className="min-w-0 flex-1">
+                    <p className="toast-title">{toast.title}</p>
+                    {toast.description ? (
+                      <p className="toast-description">{toast.description}</p>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => dismiss(toast.id)}
+                    aria-label="Fermer la notification"
+                    className="toast-close"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>,
+          portalHost,
+        )}
     </ToastContext.Provider>
   );
 }

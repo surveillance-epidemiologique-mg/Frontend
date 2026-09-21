@@ -35,6 +35,7 @@ import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
 import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { notifyMapDataChanged } from "@/services/live-events";
 
 interface LabAnalyse {
   id: number;
@@ -351,7 +352,7 @@ export default function LaboratoirePage() {
       if (!res.ok) {
         throw new Error(typeof body?.message === "string" ? body.message : "Impossible d'ajouter l'analyse.");
       }
-      toast({ title: "Analyse ajoutée", description: `« ${body.label} » ajoutée au cas #${selectedCas.id}.`, variant: "success" });
+      toast({ title: "Analyse ajoutée", description: `« ${body.label} » ajoutée au ${selectedCas.patient.anonymousCode}.`, variant: "success" });
       setAddForm({ label: "", resultType: "" });
       await reload();
     } catch (e) {
@@ -381,9 +382,10 @@ export default function LaboratoirePage() {
       }
       toast({
         title: "Cas validé",
-        description: `Cas #${validateAction.casId} → ${validateAction.status === "Confirme" ? "Confirmé" : "Invalidé"}.`,
+        description: `${selectedCas.patient.anonymousCode} → ${validateAction.status === "Confirme" ? "Confirmé" : "Invalidé"}.`,
         variant: "success",
       });
+      notifyMapDataChanged();
       setValidateAction(null);
       await reload();
     } catch (e) {
