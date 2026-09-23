@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
   Bell,
@@ -44,6 +44,7 @@ interface Filters {
   to: string;
   zoneId: string;
   maladieId: string;
+  centreId: string;
 }
 
 const EMPTY_FILTERS: Filters = {
@@ -51,6 +52,7 @@ const EMPTY_FILTERS: Filters = {
   to: "",
   zoneId: "",
   maladieId: "",
+  centreId: "all",
 };
 
 const KPI_ICONS: Record<string, LucideIcon> = {
@@ -76,6 +78,7 @@ function buildQuery(f: Filters): string {
   if (f.to)       params.set("to", f.to);
   if (f.zoneId)   params.set("zoneId", f.zoneId);
   if (f.maladieId) params.set("maladieId", f.maladieId);
+  if (f.centreId) params.set("centreId", f.centreId === "all" ? "0" : f.centreId);
   const s = params.toString();
   return s ? `?${s}` : "";
 }
@@ -84,8 +87,11 @@ function buildQuery(f: Filters): string {
 
 export function DashboardAnalytics() {
   const [zones,    setZones]    = useState<Option[]>([]);
+  const [centres,  setCentres]  = useState<Option[]>([]);
   const [maladies, setMaladies] = useState<Option[]>([]);
   const [filters,  setFilters]  = useState<Filters>(EMPTY_FILTERS);
+  const [defaultCentreId, setDefaultCentreId] = useState("all");
+  const defaultsApplied = useRef(false);
   const [loading,  setLoading]  = useState(true);
 
   const [kpi,       setKpi]       = useState<KpiData | null>(null);
@@ -99,12 +105,25 @@ export function DashboardAnalytics() {
     let active = true;
     (async () => {
       try {
-        const [z, m] = await Promise.all([
+        const [me, z, c, m] = await Promise.all([
+          fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)),
           fetch("/api/centres/zones").then((r) => (r.ok ? r.json() : [])),
+          fetch("/api/centres").then((r) => (r.ok ? r.json() : [])),
           fetch("/api/maladies").then((r) => (r.ok ? r.json() : [])),
         ]);
         if (!active) return;
+        const role = me?.role?.name;
+        const ownCentreId = me?.centreId != null ? String(me.centreId) : "all";
+        const initialCentreId =
+          role === "Medecin" || role === "Laboratoire" ? ownCentreId : "all";
+        setDefaultCentreId(initialCentreId);
+        setFilters((previous) => {
+          if (defaultsApplied.current) return previous;
+          defaultsApplied.current = true;
+          return { ...previous, centreId: initialCentreId };
+        });
         setZones(z);
+        setCentres(c);
         setMaladies(m);
       } catch {
         // API indisponible : listes vides
@@ -150,12 +169,14 @@ export function DashboardAnalytics() {
   }
 
   function resetFilters() {
-    setFilters(EMPTY_FILTERS);
+    setFilters({ ...EMPTY_FILTERS, centreId: defaultCentreId });
   }
 
   const activeCount = useMemo(
-    () => Object.values(filters).filter(Boolean).length,
-    [filters],
+    () => Object.entries(filters).filter(([key, value]) =>
+      Boolean(value) && !(key === "centreId" && value === defaultCentreId),
+    ).length,
+    [filters, defaultCentreId],
   );
   const hasActive = activeCount > 0;
 
@@ -262,7 +283,7 @@ export function DashboardAnalytics() {
           </div>
 
           {/* Zone */}
-          <div className="space-y-1.5 xl:col-span-4">
+          <div className="space-y-1.5 xl:col-span-3">
             <label
               htmlFor="filter-zone"
               className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted"
@@ -282,8 +303,32 @@ export function DashboardAnalytics() {
             />
           </div>
 
+          {/* Centre de santé */}
+          <div className="space-y-1.5 xl:col-span-2">
+            <label
+              htmlFor="filter-centre"
+              className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted"
+            >
+              <MapPin className="size-3" />
+              Centre de santé
+            </label>
+            <Select
+              id="filter-centre"
+              options={[
+                { value: "all", label: "Tous les centres" },
+                ...centres.map((centre) => ({
+                  value: String(centre.id),
+                  label: centre.name,
+                })),
+              ]}
+              value={filters.centreId}
+              onChange={(e) => update("centreId", e.target.value)}
+              className={FIELD}
+            />
+          </div>
+
           {/* Maladie */}
-          <div className="space-y-1.5 xl:col-span-3">
+          <div className="space-y-1.5 xl:col-span-2">
             <label
               htmlFor="filter-maladie"
               className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted"
