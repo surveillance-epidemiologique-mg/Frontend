@@ -38,21 +38,21 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </h1>
 
           {/* Paragraphe explicatif */}
-          <p className="text-base lg:text-lg text-slate-300 leading-relaxed font-normal">
+          <p className="text-base lg:text-lg text-text-muted leading-relaxed font-normal">
             Plateforme centralisée de suivi épidémiologique. Analysez en temps réel l&apos;évolution des foyers infectieux, croisez les indicateurs sanitaires et coordonnez les interventions d&apos;urgence avec précision.
           </p>
 
           {/* Groupe de boutons CTA informatifs */}
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/15 px-4 py-3 rounded-xl text-white text-sm">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
+              <span className="h-2.5 w-2.5 rounded-full bg-status-success animate-ping" />
               <span>Surveillance active 24/7 de la zone</span>
             </div>
           </div>
         </div>
 
         {/* Footer du panneau gauche */}
-        <div className="relative z-25 text-xs text-slate-400">
+        <div className="relative z-25 text-xs text-text-muted">
           Réservé aux autorités sanitaires, chercheurs et professionnels accrédités.
         </div>
       </div>

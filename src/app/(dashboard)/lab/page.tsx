@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { FlaskConical, Plus, QrCode, Stethoscope, Calendar, Building2, Activity } from "lucide-react";
+import { FlaskConical, QrCode, Stethoscope, Calendar, Building2, Activity } from "lucide-react";
 import type { ScanResult } from "@/components/lab/qr-scanner";
 
 const QrScanner = dynamic(
@@ -80,12 +80,6 @@ const RESULT_TYPE_LABEL: Record<string, string> = {
   TexteLibre: "Texte libre",
 };
 
-const RESULT_TYPE_OPTIONS = [
-  { value: "Numerique", label: "Numérique" },
-  { value: "ChoixPositifNegatif", label: "Positif / Négatif" },
-  { value: "TexteLibre", label: "Texte libre" },
-];
-
 const STATUT_BADGE: Record<string, "warning" | "success" | "danger" | "secondary"> = {
   Suspect: "warning",
   Confirme: "success",
@@ -114,8 +108,6 @@ export default function LaboratoirePage() {
   const [selectedCas, setSelectedCas] = useState<LabCase | null>(null);
   const [draft, setDraft] = useState<Record<number, string>>({});
   const [savingId, setSavingId] = useState<number | null>(null);
-  const [addForm, setAddForm] = useState({ label: "", resultType: "" });
-  const [adding, setAdding] = useState(false);
   const [validateAction, setValidateAction] = useState<{
     casId: number;
     status: string;
@@ -219,7 +211,6 @@ export default function LaboratoirePage() {
       drafts[a.id] = a.resultat ?? "";
     }
     setDraft(drafts);
-    setAddForm({ label: "", resultType: "" });
   }
 
   /** Récupère un cas par id (vérifie l'accès) puis ouvre sa fiche analyses. */
@@ -332,33 +323,6 @@ export default function LaboratoirePage() {
       toast({ title: "Erreur", description: e instanceof Error ? e.message : "Erreur.", variant: "error" });
     } finally {
       setSavingId(null);
-    }
-  }
-
-  async function addAnalyse() {
-    if (!selectedCas) return;
-    if (addForm.label.trim().length < 2 || !addForm.resultType) {
-      toast({ title: "Champs requis", description: "Libellé (≥2 car.) et type de résultat requis.", variant: "warning" });
-      return;
-    }
-    setAdding(true);
-    try {
-      const res = await fetch(`/api/cas/${selectedCas.id}/analyses`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label: addForm.label.trim(), typeResultatAttendu: addForm.resultType }),
-      });
-      const body = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(typeof body?.message === "string" ? body.message : "Impossible d'ajouter l'analyse.");
-      }
-      toast({ title: "Analyse ajoutée", description: `« ${body.label} » ajoutée au ${selectedCas.patient.anonymousCode}.`, variant: "success" });
-      setAddForm({ label: "", resultType: "" });
-      await reload();
-    } catch (e) {
-      toast({ title: "Erreur", description: e instanceof Error ? e.message : "Erreur.", variant: "error" });
-    } finally {
-      setAdding(false);
     }
   }
 
@@ -488,7 +452,7 @@ export default function LaboratoirePage() {
                     "px-4 py-1.5 text-sm font-medium rounded-sm transition-all",
                     active
                       ? "bg-primary text-white shadow-sm"
-                      : "text-text-muted hover:text-text-main hover:bg-white/50"
+                      : "text-text-muted hover:text-text-main hover:bg-bg-surface-hover"
                   )}
                 >
                   {v === "all" ? "Tous" : v === "pending" ? "En attente" : "Traités"}
@@ -617,7 +581,7 @@ export default function LaboratoirePage() {
       <Modal
         open={selectedCas !== null}
         onClose={() => setSelectedCas(null)}
-        title={`Analyses — cas #${selectedCas?.id ?? ""}`}
+        title="Analyses"
         description={
           selectedCas
             ? `${selectedCas.patient.anonymousCode} · ${selectedCas.maladie.name} · ${selectedCas.centre.name}`
@@ -641,7 +605,7 @@ export default function LaboratoirePage() {
 
             {selectedCas.analyses.length === 0 ? (
               <p className="text-sm text-text-muted">
-                Aucune analyse pour ce cas. Ajoutez-en une ci-dessous.
+                Aucune analyse demandée pour ce cas.
               </p>
             ) : (
               <div className="space-y-3">
@@ -692,34 +656,6 @@ export default function LaboratoirePage() {
                 })}
               </div>
             )}
-
-            {/* Ajouter une analyse complémentaire */}
-            <div className="rounded-xl border border-dashed border-border p-4">
-              <p className="mb-3 text-sm font-semibold text-text-main">
-                Ajouter une analyse complémentaire
-              </p>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <Input
-                  label="Libellé"
-                  value={addForm.label}
-                  onChange={(e) => setAddForm((p) => ({ ...p, label: e.target.value }))}
-                  placeholder="Ex : TDR paludisme, PCR…"
-                  className="sm:flex-1"
-                />
-                <Select
-                  label="Type de résultat"
-                  value={addForm.resultType}
-                  onChange={(e) => setAddForm((p) => ({ ...p, resultType: e.target.value }))}
-                  placeholder="—"
-                  options={RESULT_TYPE_OPTIONS}
-                  className="sm:w-52"
-                />
-                <Button variant="outline" onClick={() => void addAnalyse()} loading={adding}>
-                  <Plus className="size-4" />
-                  Ajouter
-                </Button>
-              </div>
-            </div>
 
             {/* Validation du cas */}
             <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">

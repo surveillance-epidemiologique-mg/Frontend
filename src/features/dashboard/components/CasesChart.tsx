@@ -42,7 +42,7 @@ export default function CasesChart({ values }: { values: number[] }) {
           <Line
             type="monotone"
             dataKey="cas"
-            stroke="#0369a1"
+            stroke="#1E3A8A"
             strokeWidth={3}
             dot={{ r: 3 }}
           />

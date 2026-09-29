@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Activity, Edit, Plus, Search, SearchX, Trash2 } from "lucide-react";
+import Image from "next/image";
+import { Edit, Plus, Search, SearchX, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -124,7 +125,14 @@ export function MaladiesTab({
       cell: (disease) => (
         <span className="flex items-center gap-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary-light text-primary">
-            <Activity className="size-4" />
+            <Image
+              src="/images/disease.svg"
+              alt=""
+              width={22}
+              height={22}
+              className="size-5 object-contain"
+              aria-hidden="true"
+            />
           </span>
           <span className="font-medium text-text-main">{disease.name}</span>
         </span>

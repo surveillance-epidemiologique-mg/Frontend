@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 const CHART = {
   grid:    "#e2e8f0",
   tick:    "#94a3b8",
-  primary: "#0369a1",
+  primary: "#1E3A8A",
   warning: "#f59e0b",
   success: "#16a34a",
   danger:  "#ef4444",

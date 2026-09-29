@@ -34,8 +34,8 @@
 }
 
 /* ==========================================================================
-   Design Tokens — Palette « Bleu médical »
-   Famille Sky (hsl(201 96% 32%)) · contrastes WCAG 2.1 AA vérifiés
+   Design Tokens — Charte institutionnelle ÉpiSuivi
+   Primitives + variables sémantiques alignées sur la charte Figma
    ========================================================================== */
 
 :root {
@@ -47,68 +47,127 @@
   --font-geist-mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas,
     "Liberation Mono", monospace;
 
-  /* --- Primary — bleu médical (#0369A1 · sky-700) ----------------------- */
-  --primary: #0369A1 ;
-  --primary-hover: #075985;   /* sky-800 */
-  --primary-active: #0c4a6e;  /* sky-900 */
-  --primary-light: #e0f2fe;   /* sky-100 (fonds, badges, hover doux) */
-  --primary-foreground: #ffffff; /* contraste 5.2:1 sur --primary */
+  /* --- Primitives — palette alignée sur la charte Figma ----------------- */
+  --primitive-primary-50: #EEF3FB;
+  --primitive-primary-100: #DBE5F6;
+  --primitive-primary-200: #B7CBEE;
+  --primitive-primary-300: #8CAAE1;
+  --primitive-primary-400: #5C84D0;
+  --primitive-primary-500: #3A63B4;
+  --primitive-primary-600: #284C97;
+  --primitive-primary-700: #1E3A8A;
+  --primitive-primary-800: #172C68;
+  --primitive-primary-900: #101E48;
+  --primitive-primary-950: #0A1330;
 
-  /* --- Secondary (Slate, neutre) ---------------------------------------- */
-  --secondary: #475569;
-  --secondary-hover: #334155;
-  --secondary-foreground: #ffffff; /* contraste 7.58:1 sur --secondary */
+  --primitive-gold-100: #FBF0D2;
+  --primitive-gold-300: #EAC96A;
+  --primitive-gold-500: #D4AF37;
+  --primitive-gold-700: #A6841F;
+  --primitive-gold-900: #6B5410;
 
-  /* --- Accent (complémentaire orange) ----------------------------------- */
-  --accent: #ea580c;
-  --accent-hover: #c2410c;
-  --accent-foreground: #ffffff; /* contraste 4.63:1 sur --accent */
+  --primitive-gray-25: #FCFCFD;
+  --primitive-gray-50: #F8FAFC;
+  --primitive-gray-100: #F1F4F8;
+  --primitive-gray-200: #E2E8F0;
+  --primitive-gray-300: #CBD5E1;
+  --primitive-gray-400: #94A3B8;
+  --primitive-gray-500: #64748B;
+  --primitive-gray-600: #475569;
+  --primitive-gray-700: #334155;
+  --primitive-gray-800: #1F2937;
+  --primitive-gray-900: #0F172A;
 
-  /* --- Surfaces & typographie ------------------------------------------- */
-  --bg-app: #fff;          /* fond de page (léger bleu-gris) */
-  --bg-surface: #ffffff;      /* cartes / panneaux */
-  --bg-muted: #eef3f7;        /* fonds insérés (champs, zones secondaires) */
-  --bg-surface-hover: #f8fafc;/* survol des cartes / lignes */
-  --border: #e2e8f0;          /* bordures */
-  --border-strong: #cbd5e1;   /* bordures renforcées */
-  --text-main: #0f172a;       /* contraste 15.8:1 sur --bg-app */
-  --text-muted: #64748b;      /* contraste 4.76:1 sur --bg-surface */
-  --text-subtle: #94a3b8;     /* texte tertiaire / placeholders */
+  --primitive-green-100: #DCFCE7;
+  --primitive-green-500: #16A34A;
+  --primitive-green-700: #15803D;
+  --primitive-orange-100: #FEF3C7;
+  --primitive-orange-500: #F59E0B;
+  --primitive-orange-700: #B45309;
+  --primitive-red-100: #FEE2E2;
+  --primitive-red-500: #DC2626;
+  --primitive-red-700: #B91C1C;
 
-  /* --- Focus & accessibilité -------------------------------------------- */
-  --focus-ring: rgb(3 105 161 / 0.35);
+  /* --- Semantic — mode clair (les composants utilisent ces alias) ------- */
+  --bg-default: var(--primitive-gray-25);
+  --bg-subtle: var(--primitive-gray-50);
+  --bg-muted-semantic: var(--primitive-gray-100);
+  --bg-surface-semantic: #FFFFFF;
+  --bg-inverse: var(--primitive-primary-900);
+  --text-primary: var(--primitive-gray-900);
+  --text-secondary: var(--primitive-gray-600);
+  --text-muted-semantic: var(--primitive-gray-400);
+  --text-inverse: #FFFFFF;
+  --text-link: var(--primitive-primary-700);
+  --border-default: var(--primitive-gray-200);
+  --border-subtle: var(--primitive-gray-100);
+  --border-focus: var(--primitive-primary-500);
+  --brand-primary: var(--primitive-primary-700);
+  --brand-primary-hover: var(--primitive-primary-800);
+  --brand-primary-pressed: var(--primitive-primary-900);
+  --brand-primary-subtle: var(--primitive-primary-50);
+  --brand-accent: var(--primitive-gold-500);
+  --status-success: var(--primitive-green-500);
+  --status-success-bg: var(--primitive-green-100);
+  --status-warning: var(--primitive-orange-500);
+  --status-warning-bg: var(--primitive-orange-100);
+  --status-error: var(--primitive-red-500);
+  --status-error-bg: var(--primitive-red-100);
 
-  /* --- États système ---------------------------------------------------- */
-  --success: #16a34a;
-  --success-foreground: #ffffff;
-  --warning: #d97706;
-  --warning-foreground: #ffffff;
-  --error: #dc2626;
-  --error-foreground: #ffffff;
-  --info: #0284c7;
-  --info-foreground: #ffffff;
+  /* --- Alias utilisés par les composants existants --------------------- */
+  --primary: var(--brand-primary);
+  --primary-hover: var(--brand-primary-hover);
+  --primary-active: var(--brand-primary-pressed);
+  --primary-light: var(--brand-primary-subtle);
+  --primary-foreground: var(--text-inverse);
+  --secondary: var(--primitive-gray-600);
+  --secondary-hover: var(--primitive-gray-700);
+  --secondary-foreground: var(--text-inverse);
+  --accent: var(--brand-accent);
+  --accent-hover: var(--primitive-gold-700);
+  --accent-foreground: var(--primitive-gray-900);
+  --bg-app: var(--bg-default);
+  --bg-surface: var(--bg-surface-semantic);
+  --bg-muted: var(--bg-muted-semantic);
+  --bg-surface-hover: var(--bg-subtle);
+  --border: var(--border-default);
+  --border-strong: var(--primitive-gray-300);
+  --text-main: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --text-subtle: var(--text-muted-semantic);
+
+  /* --- Focus & états système ------------------------------------------- */
+  --focus-ring: rgb(30 58 138 / 0.35);
+  --success: var(--status-success);
+  --success-foreground: var(--text-inverse);
+  --warning: var(--status-warning);
+  --warning-foreground: var(--primitive-gray-900);
+  --error: var(--status-error);
+  --error-foreground: var(--text-inverse);
+  --info: var(--primitive-primary-500);
+  --info-foreground: var(--text-inverse);
 
   /* --- Statuts épidémiologiques (badges pastel, couleurs distinctes) ---- */
-  --status-suspect-bg: #fef3c7;   /* ambre pastel */
-  --status-suspect-fg: #92400e;
-  --status-probable-bg: #ffedd5;  /* orange pastel */
-  --status-probable-fg: #c2410c;
-  --status-confirmed-bg: #fee2e2; /* rouge pastel */
-  --status-confirmed-fg: #991b1b;
-  --status-recovered-bg: #dcfce7; /* vert pastel */
-  --status-recovered-fg: #166534;
-  --status-deceased-bg: #f1f5f9;  /* gris neutre */
-  --status-deceased-fg: #334155;
+  --status-suspect-bg: var(--status-warning-bg);
+  --status-suspect-fg: var(--primitive-orange-700);
+  --status-probable-bg: var(--primitive-gold-100);
+  --status-probable-fg: var(--primitive-gold-900);
+  --status-confirmed-bg: var(--status-error-bg);
+  --status-confirmed-fg: var(--primitive-red-700);
+  --status-recovered-bg: var(--status-success-bg);
+  --status-recovered-fg: var(--primitive-green-700);
+  --status-deceased-bg: var(--primitive-gray-100);
+  --status-deceased-fg: var(--primitive-gray-700);
 
   /* --- Palette graphiques (data-viz, analytics) ------------------------- */
-  --chart-1: #0369a1;  /* bleu médical */
-  --chart-2: #0ea5e9;  /* ciel */
-  --chart-3: #10b981;  /* émeraude */
-  --chart-4: #f59e0b;  /* ambre */
-  --chart-5: #ef4444;  /* rouge */
-  --chart-6: #8b5cf6;  /* violet */
-  --chart-7: #14b8a6;  /* sarcelle */
-  --chart-8: #f97316;  /* orange */
+  --chart-1: var(--primitive-primary-700);
+  --chart-2: var(--primitive-primary-500);
+  --chart-3: var(--primitive-green-500);
+  --chart-4: var(--primitive-orange-500);
+  --chart-5: var(--primitive-red-500);
+  --chart-6: #8B5CF6;
+  --chart-7: #14B8A6;
+  --chart-8: #F97316;
 
   /* --- Élévations (ombres douces & naturelles) -------------------------- */
   --elevation-card:
@@ -135,40 +194,66 @@
 .dark {
   color-scheme: dark;
 
-  --primary: #38bdf8;         /* sky-400 */
-  --primary-hover: #0ea5e9;   /* sky-500 */
-  --primary-active: #0284c7;  /* sky-600 */
-  --primary-light: #0c4a6e;   /* sky-900 */
-  --primary-foreground: #082f49; /* sky-950 */
+  /* Semantic tokens stay stable when a dark mode is enabled later. */
+  --bg-default: #0F172A;
+  --bg-subtle: #1E293B;
+  --bg-muted-semantic: #0F172A;
+  --bg-surface-semantic: #1E293B;
+  --bg-inverse: #000000;
+  --text-primary: #F1F4F8;
+  --text-secondary: #CBD5E1;
+  --text-muted-semantic: #94A3B8;
+  --text-inverse: #0F172A;
+  --text-link: #8CAAE1;
+  --border-default: #334155;
+  --border-subtle: #1F2937;
+  --border-focus: #8CAAE1;
+  --brand-primary: #5C84D0;
+  --brand-primary-hover: #8CAAE1;
+  --brand-primary-pressed: #B7CBEE;
+  --brand-primary-subtle: #172C68;
+  --brand-accent: #EAC96A;
+  --status-success: #22C55E;
+  --status-success-bg: #052E16;
+  --status-warning: #F59E0B;
+  --status-warning-bg: #451A03;
+  --status-error: #EF4444;
+  --status-error-bg: #450A0A;
+
+  --primary: var(--brand-primary);
+  --primary-hover: var(--brand-primary-hover);
+  --primary-active: var(--brand-primary-pressed);
+  --primary-light: var(--brand-primary-subtle);
+  --primary-foreground: var(--text-inverse);
 
   --secondary: #94a3b8;
   --secondary-hover: #64748b;
   --secondary-foreground: #0f172a;
 
-  --accent: #fb923c;
-  --accent-hover: #f97316;
-  --accent-foreground: #0f172a;
+  --accent: var(--brand-accent);
+  --accent-hover: #F6D98A;
+  --accent-foreground: var(--text-inverse);
 
-  --bg-app: #0f172a;
-  --bg-surface: #1e293b;
-  --bg-muted: #0f172a;
+  --bg-app: var(--bg-default);
+  --bg-surface: var(--bg-surface-semantic);
+  --bg-muted: var(--bg-muted-semantic);
   --bg-surface-hover: #243149;
-  --border: #334155;
+  --border: var(--border-default);
   --border-strong: #475569;
-  --text-main: #f1f5f9;
-  --text-muted: #94a3b8;
-  --text-subtle: #64748b;
+  --text-main: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --text-subtle: var(--text-muted-semantic);
 
   --focus-ring: rgb(56 189 248 / 0.50);
 
-  --success: #22c55e;
-  --success-foreground: #0f172a;
-  --warning: #f59e0b;
-  --warning-foreground: #0f172a;
-  --error: #ef4444;
-  --error-foreground: #ffffff;
-  --info: #38bdf8;
-  --info-foreground: #0f172a;
+  --success: var(--status-success);
+  --success-foreground: var(--text-inverse);
+  --warning: var(--status-warning);
+  --warning-foreground: var(--text-inverse);
+  --error: var(--status-error);
+  --error-foreground: var(--text-inverse);
+  --info: var(--brand-primary-hover);
+  --info-foreground: var(--text-inverse);
 
   --status-suspect-bg: #451a03;
   --status-suspect-fg: #fde68a;
@@ -211,6 +296,29 @@
    ========================================================================== */
 
 @theme inline {
+  /* Semantic Figma tokens disponibles pour les nouveaux composants. */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-hover: var(--brand-primary-hover);
+  --color-brand-primary-pressed: var(--brand-primary-pressed);
+  --color-brand-primary-subtle: var(--brand-primary-subtle);
+  --color-brand-accent: var(--brand-accent);
+  --color-bg-default: var(--bg-default);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-bg-inverse: var(--bg-inverse);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-inverse: var(--text-inverse);
+  --color-text-link: var(--text-link);
+  --color-border-default: var(--border-default);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-focus: var(--border-focus);
+  --color-status-success: var(--status-success);
+  --color-status-success-bg: var(--status-success-bg);
+  --color-status-warning: var(--status-warning);
+  --color-status-warning-bg: var(--status-warning-bg);
+  --color-status-error: var(--status-error);
+  --color-status-error-bg: var(--status-error-bg);
+
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-active: var(--primary-active);
@@ -652,28 +760,28 @@ select option[value=""]:not(:disabled), select option[data-reset] {
 }
 .toast-region[data-open="true"] { visibility: visible; opacity: 1; }
 .toast-card {
-  --toast-accent: #075985;
+  --toast-accent: var(--brand-primary-hover);
   display: flex;
   align-items: flex-start;
   flex-shrink: 0;
   gap: 0.75rem;
   padding: 1rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border-default);
   border-left: 4px solid var(--toast-accent);
   border-radius: 0.875rem;
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 4px 12px #0f172a24, 0 12px 32px #0f172a26;
+  background: var(--bg-surface-semantic);
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px rgb(15 23 42 / 0.14), 0 12px 32px rgb(15 23 42 / 0.15);
   pointer-events: auto;
   overflow-wrap: anywhere;
 }
-.toast-success { --toast-accent: #047857; }
-.toast-error { --toast-accent: #b91c1c; }
-.toast-warning { --toast-accent: #92400e; }
-.toast-info { --toast-accent: #075985; }
+.toast-success { --toast-accent: var(--primitive-green-700); }
+.toast-error { --toast-accent: var(--primitive-red-700); }
+.toast-warning { --toast-accent: var(--primitive-orange-700); }
+.toast-info { --toast-accent: var(--brand-primary-hover); }
 .toast-icon { width: 1.375rem; height: 1.375rem; flex-shrink: 0; margin-top: 0.1875rem; color: var(--toast-accent); }
 .toast-title { font-size: 1rem; line-height: 1.5; font-weight: 700; }
-.toast-description { margin-top: 0.375rem; font-size: 0.9375rem; line-height: 1.6; color: #334155; }
+.toast-description { margin-top: 0.375rem; font-size: 0.9375rem; line-height: 1.6; color: var(--primitive-gray-700); }
 .toast-close {
   display: grid;
   place-items: center;
@@ -682,18 +790,18 @@ select option[value=""]:not(:disabled), select option[data-reset] {
   flex-shrink: 0;
   margin: -0.5rem -0.5rem 0 0;
   border-radius: 0.5rem;
-  color: #475569;
+  color: var(--text-secondary);
   cursor: pointer;
 }
-.toast-close:hover { background: #e0f2fe; color: #0c4a6e; }
-.toast-close:focus-visible { outline: 2px solid #0369a1; outline-offset: -2px; }
-.dark .toast-card { background: #1e293b; color: #f1f5f9; border-color: #64748b; border-left-color: var(--toast-accent); }
-.dark .toast-success { --toast-accent: #6ee7b7; }
-.dark .toast-error { --toast-accent: #fca5a5; }
-.dark .toast-warning { --toast-accent: #fcd34d; }
-.dark .toast-info { --toast-accent: #7dd3fc; }
-.dark .toast-description, .dark .toast-close { color: #cbd5e1; }
-.dark .toast-close:hover { background: #0c4a6e; color: #f1f5f9; }
+.toast-close:hover { background: var(--brand-primary-subtle); color: var(--brand-primary-pressed); }
+.toast-close:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+.dark .toast-card { background: var(--bg-surface-semantic); color: var(--text-primary); border-color: var(--border-strong); border-left-color: var(--toast-accent); }
+.dark .toast-success { --toast-accent: #6EE7B7; }
+.dark .toast-error { --toast-accent: #FCA5A5; }
+.dark .toast-warning { --toast-accent: #FCD34D; }
+.dark .toast-info { --toast-accent: #B7CBEE; }
+.dark .toast-description, .dark .toast-close { color: var(--text-secondary); }
+.dark .toast-close:hover { background: var(--brand-primary-subtle); color: var(--text-primary); }
 @media (max-width: 639px) {
   .toast-region {
     top: max(0.75rem, env(safe-area-inset-top));

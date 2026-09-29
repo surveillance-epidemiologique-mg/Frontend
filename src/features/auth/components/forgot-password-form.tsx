@@ -249,7 +249,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
                   }}
                   inputMode="numeric"
                   autoComplete={i === 0 ? "one-time-code" : "off"}
-                  className="w-12 h-14 sm:w-14 sm:h-16 rounded-xl border-2 border-primary/40 bg-white/55 text-center font-mono text-2xl text-text-main backdrop-blur-sm placeholder:text-text-subtle focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-12 h-14 sm:w-14 sm:h-16 rounded-xl border-2 border-primary/40 bg-bg-surface/55 text-center font-mono text-2xl text-text-main backdrop-blur-sm placeholder:text-text-subtle focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   maxLength={2}
                 />
               ))}

@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import {
-  Building2,
   Edit,
   MapPin,
   Plus,
@@ -118,7 +118,14 @@ export function CentresTab({
       cell: (row) => (
         <div className="flex items-center gap-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary-light text-primary">
-            <Building2 className="size-4" />
+            <Image
+              src="/images/health-center.svg"
+              alt=""
+              width={22}
+              height={22}
+              className="size-5 object-contain"
+              aria-hidden="true"
+            />
           </span>
           <div className="min-w-0">
             <p className="truncate font-medium text-text-main">{row.name}</p>
@@ -236,7 +243,7 @@ export function CentresTab({
           ariaLabel="Liste des centres de santé"
           emptyState={
             <EmptyState
-              icon={Building2}
+              icon={MapPin}
               title="Aucun centre trouvé"
               description="Aucun établissement ne correspond à votre recherche."
             />

@@ -35,13 +35,13 @@ export const CENTRE_MADAGASCAR: [number, number] = [-18.8792, 47.5079];
 export function severityColor(severity: Severity): string {
   switch (severity) {
     case "Faible":
-      return "#16a34a";
+      return "#D4AF37";
     case "Modéré":
-      return "#d97706";
+      return "#F59E0B";
     case "Élevé":
-      return "#ea580c";
+      return "#DC2626";
     case "Critique":
-      return "#dc2626";
+      return "#B91C1C";
   }
 }
 

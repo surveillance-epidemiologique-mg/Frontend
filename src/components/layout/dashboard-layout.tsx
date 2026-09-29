@@ -49,20 +49,20 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
 
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-bg-default">
         {/* HEADER */}
-        <header className="fixed left-0 right-0 top-0 z-50 h-16 border-b border-slate-200 bg-white">
+        <header className="fixed left-0 right-0 top-0 z-50 h-16 border-b border-border bg-bg-surface">
           <div className="flex h-full items-center justify-between px-6">
             {/* Logo + nom */}
             <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-blue-700">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary">
                 <Activity className="text-white" size={21} />
               </div>
               <div>
-                <h1 className="text-sm font-bold text-slate-800">
+                <h1 className="text-sm font-bold text-text-main">
                   Surveillance Épidémiologique
                 </h1>
-                <p className="text-xs text-slate-400">Madagascar</p>
+                <p className="text-xs text-text-subtle">Madagascar</p>
               </div>
             </div>
 
@@ -70,7 +70,7 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
             <div className="hidden items-center gap-3 md:flex">
               <select
                 aria-label="Maladie"
-                className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-600"
+                className="h-9 rounded-lg border border-border bg-bg-surface px-3 text-sm outline-none focus:border-primary"
               >
                 <option data-reset>Toutes les maladies</option>
                 <option>VIH / SIDA</option>
@@ -82,7 +82,7 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
 
               <select
                 aria-label="Région"
-                className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-600"
+                className="h-9 rounded-lg border border-border bg-bg-surface px-3 text-sm outline-none focus:border-primary"
               >
                 <option data-reset>Toutes les régions</option>
                 <option>Analamanga</option>
@@ -94,16 +94,16 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
               <Link
                 href="/notifications"
                 aria-label="Notifications"
-                className="rounded-lg p-2 transition hover:bg-slate-100"
+                className="rounded-lg p-2 transition hover:bg-bg-subtle"
               >
-                <Bell size={20} className="text-slate-600" />
+                <Bell size={20} className="text-text-secondary" />
               </Link>
 
               <Link
                 href="/profile"
                 aria-label="Profil"
                 title={user.name}
-                className="flex size-9 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white"
+                className="flex size-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
               >
                 {initials}
               </Link>
@@ -112,7 +112,7 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
         </header>
 
         {/* SIDEBAR */}
-        <aside className="fixed bottom-0 left-0 top-16 w-60 overflow-y-auto border-r border-slate-200 bg-white">
+        <aside className="fixed bottom-0 left-0 top-16 w-60 overflow-y-auto border-r border-border bg-bg-surface">
           <nav className="space-y-1 p-3">
             {NAV_ITEMS.map((item) => {
               const active =
@@ -129,11 +129,11 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
               );
             })}
 
-            <div className="mt-4 border-t border-slate-100 pt-4">
+            <div className="mt-4 border-t border-border-subtle pt-4">
               <button
                 type="button"
                 onClick={() => logoutAction()}
-                className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-slate-600 transition hover:bg-slate-50"
+                className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-text-secondary transition hover:bg-bg-subtle"
               >
                 <LogOut size={19} />
                 <span>Déconnexion</span>
@@ -166,8 +166,8 @@ function NavItem({
       className={cn(
         "flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm transition",
         active
-          ? "bg-blue-50 font-medium text-blue-700"
-          : "text-slate-600 hover:bg-slate-50",
+          ? "bg-primary-light font-medium text-primary"
+          : "text-text-secondary hover:bg-bg-subtle",
       )}
     >
       {icon}

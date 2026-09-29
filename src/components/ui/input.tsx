@@ -65,7 +65,9 @@ export function Input({
 
                   "disabled:cursor-not-allowed disabled:opacity-60",
 
-                  Icon ? "pl-5" : undefined,
+                  // Réserve l'espace de l'icône (16 px) et un écart visuel
+                  // constant avant le placeholder et la saisie.
+                  Icon ? "pl-11" : undefined,
                   rightSlot ? "pr-5" : undefined,
 
                   variant === "glass"

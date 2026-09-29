@@ -60,7 +60,7 @@ export function Modal({
   return (
     <dialog
       ref={dialogRef}
-      className="modal-root fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none bg-transparent p-0 text-text-main outline-none backdrop:bg-slate-950/55 backdrop:backdrop-blur-sm"
+      className="modal-root fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none bg-transparent p-0 text-text-main outline-none backdrop:bg-bg-inverse/55 backdrop:backdrop-blur-sm"
       aria-modal="true"
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}

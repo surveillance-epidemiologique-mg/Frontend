@@ -19,6 +19,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning className="h-full antialiased">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+              try {
+                const stored = localStorage.getItem("episuivi-theme");
+                const dark = stored === "dark" ||
+                  (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
+                document.documentElement.classList.toggle("dark", dark);
+                document.documentElement.style.colorScheme = dark ? "dark" : "light";
+              } catch (_) {}
+            })();`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <ToastProvider>

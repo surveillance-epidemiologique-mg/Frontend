@@ -350,7 +350,7 @@ export function EpidemicMapInner() {
     return L.marker(latlng ?? [0, 0], {
       icon: L.divIcon({
         className: "",
-        html: `<div style="display:grid;place-items:center;width:${size}px;height:${size}px;border-radius:50%;background:#0369a1;color:#ffffff;font-weight:600;font-size:12px;border:2px solid #ffffff;box-shadow:0 1px 4px rgba(0,0,0,.35)">${nb}</div>`,
+        html: `<div style="display:grid;place-items:center;width:${size}px;height:${size}px;border-radius:50%;background:#1E3A8A;color:#ffffff;font-weight:600;font-size:12px;border:2px solid #ffffff;box-shadow:0 1px 4px rgba(0,0,0,.35)">${nb}</div>`,
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
       }),
@@ -377,7 +377,7 @@ export function EpidemicMapInner() {
           background: rgba(255,255,255,0.72); padding: 2px 6px;
           border-radius: 6px 0 0 0; backdrop-filter: blur(2px);
         }
-        .leaflet-control-attribution a { color: #0369a1; }
+        .leaflet-control-attribution a { color: #1E3A8A; }
       `}</style>
 
       <MapContainer
