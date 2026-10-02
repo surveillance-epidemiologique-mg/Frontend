@@ -9,11 +9,11 @@ import {
   Phone,
   User,
 } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
-import { ChangePasswordForm } from "@/components/auth/change-password-form";
+import { Avatar } from "@/components/avatar/component";
+import { Badge } from "@/components/badge/component";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/card/component";
+import { PageHeader } from "@/components/page-header/component";
+import { ChangePasswordForm } from "@/components/change-password-form/component";
 import { verifySession } from "@/lib/session";
 import { getMe } from "@/services/auth";
 import { formatDate } from "@/lib/utils";

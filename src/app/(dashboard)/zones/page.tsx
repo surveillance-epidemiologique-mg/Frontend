@@ -1,5 +1,5 @@
-import { PageHeader } from "@/components/ui/page-header";
-import { EpidemicMap } from "@/features/zones/components/epidemic-map";
+import { PageHeader } from "@/components/page-header/component";
+import { EpidemicMap } from "@/components/epidemic-map/component";
 
 export default function CarteEpidemiquePage() {
   return (

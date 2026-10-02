@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, FlaskConical, Plus, Stethoscope, Trash2, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PageHeader } from "@/components/ui/page-header";
-import { Select } from "@/components/ui/select";
-import { useToast } from "@/components/ui/toast";
+import { Button } from "@/components/button/component";
+import { Input } from "@/components/input/component";
+import { PageHeader } from "@/components/page-header/component";
+import { Select } from "@/components/select/component";
+import { useToast } from "@/components/toast/component";
 import { ROLES } from "@/config/navigation";
 import { cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/textarea/component";
 import { notifyMapDataChanged } from "@/services/live-events";
 
 interface Option {
@@ -54,9 +54,11 @@ export default function DeclarerCasPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [me, setMe] = useState<{ role: string; centreId: number | null } | null>(
-    null,
-  );
+  const [me, setMe] = useState<{
+    role: string;
+    centreId: number | null;
+    laboratoryCanDeclareCases: boolean;
+  } | null>(null);
   const [maladies, setMaladies] = useState<Option[]>([]);
   const [centres, setCentres] = useState<Option[]>([]);
 
@@ -77,10 +79,13 @@ export default function DeclarerCasPage() {
     let active = true;
     (async () => {
       try {
-        const [meData, m, c] = await Promise.all([
+        const [meData, m, c, permissions] = await Promise.all([
           fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)),
           fetch("/api/maladies").then((r) => (r.ok ? r.json() : [])),
           fetch("/api/centres").then((r) => (r.ok ? r.json() : [])),
+          fetch("/api/auth/permissions").then((r) =>
+            r.ok ? r.json() : { laboratoryCanDeclareCases: false },
+          ),
         ]);
         if (!active) return;
         setMe(
@@ -88,6 +93,9 @@ export default function DeclarerCasPage() {
             ? {
                 role: meData.role?.name ?? "",
                 centreId: meData.centreId ?? null,
+                laboratoryCanDeclareCases:
+                  permissions?.laboratoryCanDeclareCases === true &&
+                  process.env.NEXT_PUBLIC_LABO_PEUT_DECLARER_CAS === "true",
               }
             : null,
         );
@@ -104,27 +112,29 @@ export default function DeclarerCasPage() {
 
   const isMedecin = me?.role === ROLES.MEDECIN;
   const isLabo = me?.role === ROLES.LABORATOIRE;
-  const medecinCentre = isMedecin
+  const laboCanDeclare = isLabo && me?.laboratoryCanDeclareCases === true;
+  const actsAsMedecin = isMedecin || laboCanDeclare;
+  const medecinCentre = actsAsMedecin
     ? centres.find((c) => c.id === me?.centreId)
     : undefined;
-  const effectiveCentreId = isMedecin
+  const effectiveCentreId = actsAsMedecin
     ? me?.centreId
       ? String(me.centreId)
       : ""
     : centreId;
 
-  // Un agent de laboratoire ne peut pas déclarer de cas.
+  // L'accès Laboratoire est piloté exclusivement par la permission backend.
   useEffect(() => {
-    if (isLabo) {
+    if (isLabo && !laboCanDeclare) {
       router.replace("/cases");
     }
-  }, [isLabo, router]);
+  }, [isLabo, laboCanDeclare, router]);
 
   function canNext(step: number): boolean {
     if (step === 0) {
       return (
         patient.namePatient.trim().length >= 2 &&
-        (isMedecin ? Boolean(me?.centreId) : Boolean(centreId))
+        (actsAsMedecin ? Boolean(me?.centreId) : Boolean(centreId))
       );
     }
     if (step === 1) {
@@ -172,7 +182,7 @@ export default function DeclarerCasPage() {
         },
         maladieId: Number(clinical.maladieId),
         symptoms: clinical.symptoms || undefined,
-        ...(isMedecin ? {} : { centreId: Number(centreId) }),
+        ...(actsAsMedecin ? {} : { centreId: Number(centreId) }),
         analyses: analyses
           .filter((a) => a.label.trim() && a.resultType)
           .map((a) => ({
@@ -376,7 +386,7 @@ export default function DeclarerCasPage() {
                     { value: "F", label: "Féminin" },
                   ]}
                 />
-                {isMedecin ? (
+                {actsAsMedecin ? (
                   <div className="space-y-1.5">
                     <Select
                       label="Centre de santé"

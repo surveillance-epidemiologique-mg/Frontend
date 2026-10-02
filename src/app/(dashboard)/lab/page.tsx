@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { FlaskConical, QrCode, Stethoscope, Calendar, Building2, Activity } from "lucide-react";
-import type { ScanResult } from "@/components/lab/qr-scanner";
+import type { ScanResult } from "@/components/qr-scanner/component";
 
 const QrScanner = dynamic(
-  () => import("@/components/lab/qr-scanner").then((mod) => mod.QrScanner),
+  () => import("@/components/qr-scanner/component").then((mod) => mod.QrScanner),
   {
     ssr: false,
     loading: () => (
@@ -16,23 +16,23 @@ const QrScanner = dynamic(
     ),
   },
 );
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/badge/component";
+import { Button } from "@/components/button/component";
+import { Card } from "@/components/card/component";
 import {
   buildCasQueryString,
   CaseFilters,
   EMPTY_FILTERS,
   type CaseFiltersValues,
   type FilterOption,
-} from "@/components/cases/case-filters";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { Modal } from "@/components/ui/modal";
-import { PageHeader } from "@/components/ui/page-header";
-import { Select } from "@/components/ui/select";
-import { useToast } from "@/components/ui/toast";
+} from "@/components/case-filters/component";
+import { ConfirmDialog } from "@/components/confirm-dialog/component";
+import { EmptyState } from "@/components/empty-state/component";
+import { Input } from "@/components/input/component";
+import { Modal } from "@/components/modal/component";
+import { PageHeader } from "@/components/page-header/component";
+import { Select } from "@/components/select/component";
+import { useToast } from "@/components/toast/component";
 import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { notifyMapDataChanged } from "@/services/live-events";
@@ -124,7 +124,9 @@ export default function LaboratoirePage() {
           fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)),
           fetch("/api/maladies").then((r) => (r.ok ? r.json() : [])),
           fetch("/api/centres").then((r) => (r.ok ? r.json() : [])),
-          fetch("/api/cas/years").then((r) => (r.ok ? r.json() : [])),
+          fetch("/api/cas/laboratoire/years").then((r) =>
+            r.ok ? r.json() : [],
+          ),
         ]);
         if (!active) return;
         setMe(
@@ -216,7 +218,7 @@ export default function LaboratoirePage() {
   /** Récupère un cas par id (vérifie l'accès) puis ouvre sa fiche analyses. */
   async function fetchAndOpen(casId: number, expectedCode?: string) {
     try {
-      const res = await fetch(`/api/cas/${casId}`);
+      const res = await fetch(`/api/cas/laboratoire/${casId}`);
       if (res.status === 403) {
         toast({
           title: "Accès refusé",
@@ -269,7 +271,9 @@ export default function LaboratoirePage() {
       return;
     }
     try {
-      const res = await fetch(`/api/cas?search=${encodeURIComponent(v)}`);
+      const res = await fetch(
+        `/api/cas/laboratoire?search=${encodeURIComponent(v)}`,
+      );
       const list = await res.json();
       const arr = Array.isArray(list) ? list : [];
       const match =

@@ -61,6 +61,15 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
   [ROLES.LABORATOIRE]: [DASHBOARD, CARTE, LABORATOIRE],
 };
 
-export function getNavForRole(role?: string): NavItem[] {
+export function getNavForRole(
+  role?: string,
+  options?: { laboratoryCanDeclareCases?: boolean },
+): NavItem[] {
+  if (
+    role === ROLES.LABORATOIRE &&
+    options?.laboratoryCanDeclareCases === true
+  ) {
+    return [DASHBOARD, CARTE, CAS_CLINIQUE, LABORATOIRE];
+  }
   return NAV_BY_ROLE[role ?? ""] ?? [DASHBOARD];
 }

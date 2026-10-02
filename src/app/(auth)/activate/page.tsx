@@ -1,5 +1,5 @@
-import { ActivateForm } from "@/components/auth/activate-form";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { ActivateForm } from "@/components/activate-form/component";
+import { ThemeToggle } from "@/components/theme-toggle/component";
 import Image from "next/image";
 
 interface ActivatePageProps {

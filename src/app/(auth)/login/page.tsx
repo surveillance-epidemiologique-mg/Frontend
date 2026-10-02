@@ -1,5 +1,5 @@
-import { LoginForm } from "@/components/auth/login-form";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LoginForm } from "@/components/login-form/component";
+import { ThemeToggle } from "@/components/theme-toggle/component";
 import Image from "next/image";
 
 interface LoginPageProps {

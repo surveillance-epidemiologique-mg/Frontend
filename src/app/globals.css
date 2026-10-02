@@ -48,17 +48,17 @@
     "Liberation Mono", monospace;
 
   /* --- Primitives — palette alignée sur la charte Figma ----------------- */
-  --primitive-primary-50: #EEF3FB;
-  --primitive-primary-100: #DBE5F6;
-  --primitive-primary-200: #B7CBEE;
-  --primitive-primary-300: #8CAAE1;
-  --primitive-primary-400: #5C84D0;
-  --primitive-primary-500: #3A63B4;
-  --primitive-primary-600: #284C97;
-  --primitive-primary-700: #1E3A8A;
-  --primitive-primary-800: #172C68;
-  --primitive-primary-900: #101E48;
-  --primitive-primary-950: #0A1330;
+  --primitive-primary-50: #F0F9FF;
+  --primitive-primary-100: #E0F2FE;
+  --primitive-primary-200: #BAE6FD;
+  --primitive-primary-300: #7DD3FC;
+  --primitive-primary-400: #38BDF8;
+  --primitive-primary-500: #0EA5E9;
+  --primitive-primary-600: #0284C7;
+  --primitive-primary-700: #0369A1;
+  --primitive-primary-800: #075985;
+  --primitive-primary-900: #0C4A6E;
+  --primitive-primary-950: #082F49;
 
   --primitive-gold-100: #FBF0D2;
   --primitive-gold-300: #EAC96A;
@@ -137,7 +137,7 @@
   --text-subtle: var(--text-muted-semantic);
 
   /* --- Focus & états système ------------------------------------------- */
-  --focus-ring: rgb(30 58 138 / 0.35);
+  --focus-ring: rgb(3 105 161 / 0.35);
   --success: var(--status-success);
   --success-foreground: var(--text-inverse);
   --warning: var(--status-warning);
@@ -167,7 +167,7 @@
   --chart-5: var(--primitive-red-500);
   --chart-6: #8B5CF6;
   --chart-7: #14B8A6;
-  --chart-8: #F97316;
+  --chart-8: #B45309;
 
   /* --- Élévations (ombres douces & naturelles) -------------------------- */
   --elevation-card:
@@ -204,14 +204,14 @@
   --text-secondary: #CBD5E1;
   --text-muted-semantic: #94A3B8;
   --text-inverse: #0F172A;
-  --text-link: #8CAAE1;
+  --text-link: #7DD3FC;
   --border-default: #334155;
   --border-subtle: #1F2937;
-  --border-focus: #8CAAE1;
-  --brand-primary: #5C84D0;
-  --brand-primary-hover: #8CAAE1;
-  --brand-primary-pressed: #B7CBEE;
-  --brand-primary-subtle: #172C68;
+  --border-focus: #7DD3FC;
+  --brand-primary: #7DD3FC;
+  --brand-primary-hover: #BAE6FD;
+  --brand-primary-pressed: #E0F2FE;
+  --brand-primary-subtle: #075985;
   --brand-accent: #EAC96A;
   --status-success: #22C55E;
   --status-success-bg: #052E16;
@@ -244,7 +244,7 @@
   --text-muted: var(--text-secondary);
   --text-subtle: var(--text-muted-semantic);
 
-  --focus-ring: rgb(56 189 248 / 0.50);
+  --focus-ring: rgb(125 211 252 / 0.50);
 
   --success: var(--status-success);
   --success-foreground: var(--text-inverse);
@@ -266,14 +266,14 @@
   --status-deceased-bg: #1e293b;
   --status-deceased-fg: #cbd5e1;
 
-  --chart-1: #38bdf8;
-  --chart-2: #7dd3fc;
-  --chart-3: #34d399;
-  --chart-4: #fbbf24;
-  --chart-5: #f87171;
-  --chart-6: #a78bfa;
-  --chart-7: #2dd4bf;
-  --chart-8: #fb923c;
+  --chart-1: #7DD3FC;
+  --chart-2: #BAE6FD;
+  --chart-3: #34D399;
+  --chart-4: #EAC96A;
+  --chart-5: #FCA5A5;
+  --chart-6: #A78BFA;
+  --chart-7: #2DD4BF;
+  --chart-8: #F6D98A;
 
   --elevation-card:
     0 1px 2px 0 rgb(0 0 0 / 0.40),
@@ -799,7 +799,7 @@ select option[value=""]:not(:disabled), select option[data-reset] {
 .dark .toast-success { --toast-accent: #6EE7B7; }
 .dark .toast-error { --toast-accent: #FCA5A5; }
 .dark .toast-warning { --toast-accent: #FCD34D; }
-.dark .toast-info { --toast-accent: #B7CBEE; }
+.dark .toast-info { --toast-accent: #BAE6FD; }
 .dark .toast-description, .dark .toast-close { color: var(--text-secondary); }
 .dark .toast-close:hover { background: var(--brand-primary-subtle); color: var(--text-primary); }
 @media (max-width: 639px) {

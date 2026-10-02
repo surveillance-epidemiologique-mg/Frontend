@@ -99,7 +99,7 @@ export interface SliceData {
 }
 
 export const CASES_BY_DISEASE: SliceData[] = [
-  { nom: "Paludisme", valeur: 542, couleur: "#0ea5e9" },
+  { nom: "Paludisme", valeur: 542, couleur: "#0EA5E9" },
   { nom: "Fièvre typhoïde", valeur: 262, couleur: "#8b5cf6" },
   { nom: "Choléra", valeur: 203, couleur: "#f59e0b" },
   { nom: "Rougeole", valeur: 156, couleur: "#ef4444" },

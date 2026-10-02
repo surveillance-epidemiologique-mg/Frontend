@@ -2,26 +2,27 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Activity, Eye, Pencil, Plus, Printer, Trash2 } from "lucide-react";
-import { ActionMenu } from "@/components/ui/action-menu";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { ActionMenu } from "@/components/action-menu/component";
+import { Badge } from "@/components/badge/component";
+import { Button } from "@/components/button/component";
+import { Card } from "@/components/card/component";
 import {
   buildCasQueryString,
   CaseFilters,
   EMPTY_FILTERS,
   type CaseFiltersValues,
   type FilterOption,
-} from "@/components/cases/case-filters";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { DataTable, type Column } from "@/components/ui/data-table";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { Modal } from "@/components/ui/modal";
-import { PageHeader } from "@/components/ui/page-header";
-import { Select } from "@/components/ui/select";
-import { useToast } from "@/components/ui/toast";
+} from "@/components/case-filters/component";
+import { ConfirmDialog } from "@/components/confirm-dialog/component";
+import { DataTable, type Column } from "@/components/data-table/component";
+import { EmptyState } from "@/components/empty-state/component";
+import { Input } from "@/components/input/component";
+import { Modal } from "@/components/modal/component";
+import { PageHeader } from "@/components/page-header/component";
+import { Select } from "@/components/select/component";
+import { useToast } from "@/components/toast/component";
 import { ROLES } from "@/config/navigation";
 import { formatDate } from "@/lib/utils";
 
@@ -124,10 +125,13 @@ function genderLabel(gender: string | null): string {
 }
 
 export default function CasCliniquePage() {
+  const router = useRouter();
   const { toast } = useToast();
-  const [me, setMe] = useState<{ role: string; centreId: number | null } | null>(
-    null,
-  );
+  const [me, setMe] = useState<{
+    role: string;
+    centreId: number | null;
+    laboratoryCanDeclareCases: boolean;
+  } | null>(null);
   const [maladies, setMaladies] = useState<FilterOption[]>([]);
   const [centres, setCentres] = useState<FilterOption[]>([]);
   const [years, setYears] = useState<number[]>([]);
@@ -159,11 +163,14 @@ export default function CasCliniquePage() {
     let active = true;
     (async () => {
       try {
-        const [meData, m, c, y] = await Promise.all([
+        const [meData, m, c, y, permissions] = await Promise.all([
           fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)),
           fetch("/api/maladies").then((r) => (r.ok ? r.json() : [])),
           fetch("/api/centres").then((r) => (r.ok ? r.json() : [])),
           fetch("/api/cas/years").then((r) => (r.ok ? r.json() : [])),
+          fetch("/api/auth/permissions").then((r) =>
+            r.ok ? r.json() : { laboratoryCanDeclareCases: false },
+          ),
         ]);
         if (!active) return;
         setMe(
@@ -171,6 +178,9 @@ export default function CasCliniquePage() {
             ? {
                 role: meData.role?.name ?? "",
                 centreId: meData.centreId ?? null,
+                laboratoryCanDeclareCases:
+                  permissions?.laboratoryCanDeclareCases === true &&
+                  process.env.NEXT_PUBLIC_LABO_PEUT_DECLARER_CAS === "true",
               }
             : null,
         );
@@ -206,8 +216,18 @@ export default function CasCliniquePage() {
   }, [filters]);
 
   const isMedecin = me?.role === ROLES.MEDECIN;
+  const isLabo = me?.role === ROLES.LABORATOIRE;
+  const isAdmin = me?.role === ROLES.ADMINISTRATEUR;
+  const canUseClinicalCases =
+    isAdmin || isMedecin || (isLabo && me?.laboratoryCanDeclareCases === true);
+
+  useEffect(() => {
+    if (isLabo && me && !canUseClinicalCases) {
+      router.replace("/dashboard");
+    }
+  }, [canUseClinicalCases, isLabo, me, router]);
   const hasActiveFilters = Object.values(filters).some(Boolean);
-  const medecinCentre = isMedecin
+  const medecinCentre = canUseClinicalCases
     ? centres.find((c) => c.id === me?.centreId)
     : undefined;
 
@@ -448,10 +468,12 @@ export default function CasCliniquePage() {
         description="Déclarer un cas suspect ou confirmé et suivre les cas de votre périmètre."
       >
         <Button asChild>
-          <Link href="/cases/declarer">
-            <Plus className="size-4" />
-            Déclarer un cas
-          </Link>
+          {canUseClinicalCases ? (
+            <Link href="/cases/declarer">
+              <Plus className="size-4" />
+              Déclarer un cas
+            </Link>
+          ) : null}
         </Button>
       </PageHeader>
 
@@ -463,7 +485,7 @@ export default function CasCliniquePage() {
           centres={centres}
           maladies={maladies}
           lockedCentre={
-            isMedecin && medecinCentre
+            canUseClinicalCases && medecinCentre
               ? { id: medecinCentre.id, name: medecinCentre.name }
               : null
           }

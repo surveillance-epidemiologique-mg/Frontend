@@ -1,5 +1,5 @@
-import { AuthShell } from "@/components/auth/auth-shell";
-import { ChangePasswordForm } from "@/components/auth/change-password-form";
+import { AuthShell } from "@/components/auth-shell/component";
+import { ChangePasswordForm } from "@/components/change-password-form/component";
 
 export default function ChangePasswordPage() {
   return (

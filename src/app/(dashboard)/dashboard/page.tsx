@@ -7,8 +7,8 @@ import {
   Settings,
   type LucideIcon,
 } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
-import { DashboardAnalytics } from "@/features/dashboard/components/DashboardAnalytics";
+import { PageHeader } from "@/components/page-header/component";
+import { DashboardAnalytics } from "@/components/dashboard-analytics/component";
 import { verifySession } from "@/lib/session";
 import { getMe } from "@/services/auth";
 import { formatDate } from "@/lib/utils";

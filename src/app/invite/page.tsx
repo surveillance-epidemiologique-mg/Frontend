@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { AuthShell } from "@/components/auth/auth-shell";
-import { InviteForm } from "@/features/users/components/invite-form";
+import { AuthShell } from "@/components/auth-shell/component";
+import { InviteForm } from "@/components/invite-form/component";
 import { verifySession } from "@/lib/session";
 import { ROLES } from "@/types/auth";
 

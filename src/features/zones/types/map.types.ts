@@ -21,7 +21,7 @@ export const NO_ALERT_STROKE = "#15803D"; // green-700 de la charte
 
 /** Zone dont les données sont absentes / non renseignées. */
 export const NO_DATA_FILL = "#DBE5F6"; // primary-100 de la charte
-export const NO_DATA_STROKE = "#5C84D0"; // primary-400 de la charte
+export const NO_DATA_STROKE = "#38BDF8"; // primary-400 de la charte
 
 export const GRAVITE_LABEL: Record<string, string> = {
   Faible: "Faible",
@@ -203,7 +203,7 @@ export function regionNameFromFeature(
  */
 export const crossIcon = L.divIcon({
   className: "",
-  html: `<div style="display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#1E3A8A;border:2.5px solid #fff;box-shadow:0 0 0 1.5px rgba(30,58,138,0.4),0 2px 6px rgba(0,0,0,.5)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>`,
+  html: `<div style="display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#0369A1;border:2.5px solid #fff;box-shadow:0 0 0 1.5px rgba(3,105,161,0.4),0 2px 6px rgba(0,0,0,.5)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>`,
   iconSize: [24, 24],
   iconAnchor: [12, 12],
   popupAnchor: [0, -12],

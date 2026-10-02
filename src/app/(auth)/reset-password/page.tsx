@@ -1,5 +1,5 @@
-import { AuthShell } from "@/components/auth/auth-shell";
-import { ResetPasswordForm } from "@/components/auth/reset-password-form";
+import { AuthShell } from "@/components/auth-shell/component";
+import { ResetPasswordForm } from "@/components/reset-password-form/component";
 
 interface ResetPasswordPageProps {
   searchParams: Promise<{ token?: string }>;

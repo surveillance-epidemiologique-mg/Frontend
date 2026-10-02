@@ -75,3 +75,11 @@ export async function changePassword(
 export async function getMe(): Promise<User> {
   return apiFetch<User>("/auth/me");
 }
+
+export interface AuthPermissions {
+  laboratoryCanDeclareCases: boolean;
+}
+
+export async function getAuthPermissions(): Promise<AuthPermissions> {
+  return apiFetch<AuthPermissions>("/auth/permissions");
+}
