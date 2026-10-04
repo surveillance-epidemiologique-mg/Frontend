@@ -8,20 +8,20 @@ interface AuthShellProps {
 
 export function AuthShell({ title, subtitle, children }: AuthShellProps) {
   return (
-    <main className="relative flex min-h-dvh items-center justify-center px-4 py-12">
+    <main className="relative flex min-h-dvh items-center justify-center bg-bg-app px-4 py-12">
       <div className="absolute right-6 top-6 z-30">
         <ThemeToggle />
       </div>
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-xl font-semibold tracking-tight text-text-main">
+        <div className="mb-6 text-center sm:mb-8">
+          <h1 className="text-2xl font-semibold tracking-tight text-text-main">
             {title}
           </h1>
           {subtitle ? (
             <p className="mt-1.5 text-sm text-text-muted">{subtitle}</p>
           ) : null}
         </div>
-        <div className="rounded-xl border border-border bg-bg-surface p-8 shadow-sm">
+        <div className="rounded-3xl border border-border bg-bg-surface p-5 shadow-card sm:p-8">
           {children}
         </div>
       </div>

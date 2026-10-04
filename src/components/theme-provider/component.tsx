@@ -47,23 +47,28 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
 
   useEffect(() => {
-    const raf = requestAnimationFrame(() => setThemeState(getInitialTheme()));
-    return () => cancelAnimationFrame(raf);
+    // Le script du layout a déjà appliqué le thème avant le premier affichage.
+    // Lire son état sans écrire la valeur provisoire "light" dans le stockage.
+    setThemeState(getInitialTheme());
   }, []);
 
-  useEffect(() => {
-    applyTheme(theme);
+  const setTheme = useCallback((next: Theme) => {
+    const root = document.documentElement;
+    root.classList.add("theme-switching");
+    applyTheme(next);
     try {
-      window.localStorage.setItem(STORAGE_KEY, theme);
+      window.localStorage.setItem(STORAGE_KEY, next);
     } catch {
       // stockage indisponible
     }
-  }, [theme]);
-
-  const setTheme = useCallback((next: Theme) => setThemeState(next), []);
+    setThemeState(next);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => root.classList.remove("theme-switching"));
+    });
+  }, []);
   const toggleTheme = useCallback(
-    () => setThemeState((prev) => (prev === "dark" ? "light" : "dark")),
-    [],
+    () => setTheme(theme === "dark" ? "light" : "dark"),
+    [setTheme, theme],
   );
 
   return (

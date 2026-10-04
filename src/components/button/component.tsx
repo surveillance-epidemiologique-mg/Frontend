@@ -25,7 +25,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   secondary:
     "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary-hover focus-visible:outline-secondary",
   outline:
-    "border border-border bg-bg-surface text-text-main shadow-sm hover:border-primary/30 hover:bg-bg-app hover:text-text-main focus-visible:outline-border",
+    "border border-border bg-bg-surface text-text-main shadow-sm hover:border-primary/50 hover:bg-bg-app hover:text-text-main focus-visible:outline-border",
   danger:
     "bg-error text-error-foreground shadow-sm hover:opacity-90 focus-visible:outline-error",
   ghost:

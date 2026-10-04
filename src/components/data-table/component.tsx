@@ -7,7 +7,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { Skeleton } from "@/components/skeleton/component";
+import { LoadingState } from "@/components/loading-state/component";
 import { cn } from "@/lib/utils";
 
 export interface Column<T> {
@@ -57,10 +57,8 @@ export function DataTable<T>({
     [data, start, pageSize],
   );
 
-  const skeletonRows = Array.from({ length: pageSize });
-
   return (
-      <div className="flex flex-col">
+      <div className={cn("flex flex-col", loading && "data-table-loading")}>
         <div className="overflow-x-auto">
           <table
               className="w-full min-w-full border-collapse text-sm"
@@ -83,17 +81,15 @@ export function DataTable<T>({
               ))}
             </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/20">
             {loading
-                ? skeletonRows.map((_, index) => (
-                    <tr key={index}>
-                      {columns.map((column) => (
-                          <td key={column.key} className="px-4 py-3.5">
-                            <Skeleton className="h-4 w-full max-w-[10rem]" />
-                          </td>
-                      ))}
+                ? (
+                    <tr>
+                      <td colSpan={columns.length} className="px-6 py-10">
+                        <LoadingState />
+                      </td>
                     </tr>
-                ))
+                )
                 : visibleRows.map((row) => (
                     <tr
                         key={getRowId(row)}

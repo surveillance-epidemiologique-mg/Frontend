@@ -15,9 +15,9 @@ export const MADAGASCAR_BOUNDS: L.LatLngBoundsExpression = [
 /*  épidémiologique (ref. HMIS Malaria Risk Stratification)           */
 /* ================================================================== */
 
-/** Zone sans alerte active (risque très faible confirmé). */
-export const NO_ALERT_FILL = "#DCFCE7"; // green-100 de la charte
-export const NO_ALERT_STROKE = "#15803D"; // green-700 de la charte
+/** Zone sans alerte active : elle conserve le fond neutre de la carte. */
+export const NO_ALERT_FILL = "transparent";
+export const NO_ALERT_STROKE = "transparent";
 
 /** Zone dont les données sont absentes / non renseignées. */
 export const NO_DATA_FILL = "#DBE5F6"; // primary-100 de la charte
@@ -124,7 +124,6 @@ export const LAYER_DEFS: { key: LayerKey; label: string }[] = [
   { key: "regions", label: "Alertes par région" },
   { key: "cas", label: "Cas" },
   { key: "centres", label: "Centres de santé" },
-  { key: "limites", label: "Limites administratives" },
   { key: "clusters", label: "Clusters de cas" },
 ];
 
@@ -269,7 +268,7 @@ export function computeBounds(
 /* ================================================================== */
 
 export function popupHtml(html: string): string {
-  return `<div style="font-family:system-ui,sans-serif;font-size:12px;line-height:1.5;min-width:160px">${html}</div>`;
+  return `<div style="font-family:Montserrat,system-ui,sans-serif;font-size:12px;line-height:1.5;min-width:160px">${html}</div>`;
 }
 
 export function statutDot(statut: string, label: string): string {

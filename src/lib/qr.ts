@@ -102,7 +102,7 @@ export function printFichePatient(content: FichePatientContent, qr: string) {
   * { box-sizing: border-box; margin: 0; padding: 0; }
   @page { size: A4; margin: 0; }
   body {
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: Montserrat, system-ui, -apple-system, "Segoe UI", sans-serif;
     color: #0f172a;
     background: #fff;
     -webkit-print-color-adjust: exact;

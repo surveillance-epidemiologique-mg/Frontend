@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronDown, LogOut, Menu, User, X } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import { Avatar } from "@/components/avatar/component";
-import { ThemeToggle } from "@/components/theme-toggle/component";
 import { cn } from "@/lib/utils";
 
 export interface NavbarUser {
@@ -18,9 +18,10 @@ interface NavbarProps {
   user: NavbarUser;
   mobileOpen: boolean;
   onMenuClick: () => void;
+  className?: string;
 }
 
-export function Navbar({ user, mobileOpen, onMenuClick }: NavbarProps) {
+export function Navbar({ user, mobileOpen, onMenuClick, className }: NavbarProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -50,7 +51,7 @@ export function Navbar({ user, mobileOpen, onMenuClick }: NavbarProps) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-bg-surface/80 px-4 backdrop-blur-md sm:px-6">
+    <header className={cn("sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b border-border/70 bg-bg-surface/95 px-3 shadow-sm backdrop-blur-md sm:px-5", className)}>
       {/* Bouton d'ouverture/fermeture de la sidebar (mobile & tablette) */}
       <button
         type="button"
@@ -58,7 +59,7 @@ export function Navbar({ user, mobileOpen, onMenuClick }: NavbarProps) {
         aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
         aria-expanded={mobileOpen}
         aria-controls="app-sidebar"
-        className="grid size-9 shrink-0 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-app hover:text-text-main lg:hidden"
+        className="grid size-10 shrink-0 place-items-center rounded-xl border border-border/70 bg-bg-app/60 text-text-main transition-colors hover:border-primary/40 hover:bg-primary-light/30 focus-visible:outline-2 focus-visible:outline-primary lg:hidden"
       >
         <span className="relative grid size-5" aria-hidden="true">
           <Menu
@@ -80,11 +81,7 @@ export function Navbar({ user, mobileOpen, onMenuClick }: NavbarProps) {
         </span>
       </button>
 
-      {/* Gauche : aucun rôle affiché ici (affiché uniquement dans le bloc profil) */}
       <div className="flex-1" />
-
-      {/* Basculer le thème clair / sombre */}
-      <ThemeToggle />
 
       {/* Droite : nom + email + menu profil */}
       <div ref={menuRef} className="relative">
@@ -93,7 +90,7 @@ export function Navbar({ user, mobileOpen, onMenuClick }: NavbarProps) {
           onClick={() => setOpen((prev) => !prev)}
           aria-haspopup="menu"
           aria-expanded={open}
-          className="flex items-center gap-2.5 rounded-full p-1.5 transition-colors hover:bg-bg-app sm:pr-2.5"
+          className="flex items-center gap-2.5 rounded-xl border border-border/70 bg-bg-app/50 p-1 transition-colors hover:border-primary/40 hover:bg-primary-light/20 sm:pr-2.5"
         >
           <Avatar name={user.name} />
           <span className="hidden min-w-0 text-left sm:block">
@@ -118,7 +115,7 @@ export function Navbar({ user, mobileOpen, onMenuClick }: NavbarProps) {
         {open ? (
           <div
             role="menu"
-            className="animate-scale-in absolute right-0 top-full mt-2 w-72 origin-top-right overflow-hidden rounded-2xl border border-border bg-bg-surface shadow-lg"
+            className="animate-scale-in absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-1rem)] origin-top-right overflow-hidden rounded-2xl border border-border/70 bg-bg-surface shadow-xl"
           >
             <div className="flex items-center gap-3 border-b border-border px-4 py-3.5">
               <Avatar name={user.name} size="lg" />

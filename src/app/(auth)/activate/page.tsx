@@ -1,4 +1,4 @@
-import { ActivateForm } from "@/components/activate-form/component";
+import { ActivateForm } from "@/features/auth/components/ActivateForm/ActivateForm";
 import { ThemeToggle } from "@/components/theme-toggle/component";
 import Image from "next/image";
 

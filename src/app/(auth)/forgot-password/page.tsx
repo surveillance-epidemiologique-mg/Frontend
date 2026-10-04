@@ -1,5 +1,5 @@
 import { AuthShell } from "@/components/auth-shell/component";
-import { ForgotPasswordForm } from "@/components/forgot-password-form/component";
+import { ForgotPasswordForm } from "@/features/auth/components/ForgotPasswordForm/ForgotPasswordForm";
 
 export default function ForgotPasswordPage() {
   return (

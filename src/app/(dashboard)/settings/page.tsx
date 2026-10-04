@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { SettingsPage } from "@/components/settings-page/component";
+import { SettingsPage } from "@/features/settings/components/SettingsPage/SettingsPage";
 import { verifySession } from "@/lib/session";
 import { ROLES } from "@/types/auth";
 

@@ -70,18 +70,18 @@ export function Modal({
       }}
     >
       <div
-        className="flex h-full items-end justify-center px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:items-center sm:p-6"
+        className="flex h-full items-center justify-center px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-6"
         onClick={(event) => {
           if (event.target === event.currentTarget) onClose();
         }}
       >
         <div
           className={cn(
-            "modal-panel relative flex max-h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-border bg-bg-surface shadow-2xl sm:rounded-3xl",
+            "modal-panel relative flex max-h-[min(92dvh,56rem)] min-h-0 w-full flex-col overflow-hidden rounded-[1.5rem] border border-border/80 bg-bg-surface shadow-[0_24px_80px_-24px_rgb(15_23_42/0.45)] ring-1 ring-black/5 dark:ring-white/10 sm:rounded-[1.75rem]",
             SIZE_CLASSES[size],
           )}
         >
-          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-border bg-primary/5 px-4 py-3 sm:px-6 sm:py-5">
+          <div className="flex shrink-0 items-start justify-between gap-4 px-5 pb-3 pt-6 sm:px-7 sm:pb-4 sm:pt-7">
             <div className="min-w-0">
               <h2
                 id={titleId}
@@ -97,16 +97,16 @@ export function Modal({
               type="button"
               onClick={onClose}
               aria-label="Fermer"
-              className="grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-bg-surface text-text-muted shadow-sm transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="grid size-9 shrink-0 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-muted hover:text-text-main focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:size-10"
             >
               <X className="size-5" />
             </button>
           </div>
 
-          <div className="modal-body min-h-0 overflow-y-auto overscroll-contain px-4 py-4 [overflow-wrap:anywhere] sm:px-6 sm:py-6">{children}</div>
+          <div className="modal-body min-h-0 overflow-y-auto overscroll-contain px-5 pb-6 pt-2 [overflow-wrap:anywhere] sm:px-7 sm:pb-7 sm:pt-2">{children}</div>
 
           {footer ? (
-            <div className="modal-footer flex shrink-0 flex-col-reverse gap-2 border-t border-border bg-bg-muted/40 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-3 sm:px-6 sm:py-4">
+            <div className="modal-footer flex shrink-0 flex-col-reverse gap-2 border-t border-border/70 bg-bg-surface px-5 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-3 sm:px-7 sm:py-5">
               {footer}
             </div>
           ) : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, RotateCcw, Search } from "lucide-react";
+import { ChevronDown, ListFilter, RotateCcw, Search } from "lucide-react";
 import { Button } from "@/components/button/component";
 import { Input } from "@/components/input/component";
 import { Select } from "@/components/select/component";
@@ -118,6 +118,7 @@ export function CaseFilters({
   const [open, setOpen] = useState(false);
 
   const hasActive = Object.values(values).some(Boolean);
+  const activeCount = Object.values(values).filter(Boolean).length;
 
   function set<K extends keyof CaseFiltersValues>(key: K, value: string) {
     onChange({ ...values, [key]: value });
@@ -128,33 +129,41 @@ export function CaseFilters({
   }
 
   return (
-    <div className="border-b border-border p-4">
-      <div className="flex items-center justify-between gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setOpen((o) => !o)}
-          aria-expanded={open}
-        >
-          Filtres
-          <ChevronDown
-            className={cn(
-              "size-4 transition-transform duration-200",
-              open && "rotate-180",
-            )}
-          />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={reset}
-          disabled={!hasActive}
-        >
-          <RotateCcw className="size-4" />
-          Réinitialiser
-        </Button>
+    <div className="border-b border-border/60 bg-primary-light/10 px-4 py-4 sm:px-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-text-main">Recherche et filtres</p>
+          <p className="mt-0.5 hidden text-xs text-text-muted sm:block">Affinez la liste selon vos critères.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+          >
+            <ListFilter className="size-4" />
+            Filtres
+            {hasActive ? (
+              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[11px] font-bold text-primary">
+                {activeCount}
+              </span>
+            ) : null}
+            <ChevronDown
+              className={cn(
+                "size-4 transition-transform duration-200",
+                open && "rotate-180",
+              )}
+            />
+          </Button>
+          {open && hasActive ? (
+            <Button type="button" variant="ghost" size="sm" onClick={reset}>
+              <RotateCcw className="size-4" />
+              Réinitialiser
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {open ? (

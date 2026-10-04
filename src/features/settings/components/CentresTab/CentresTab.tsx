@@ -1,0 +1,281 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Image from "next/image";
+import {
+  Building2,
+  Edit,
+  MapPin,
+  Plus,
+  Search,
+} from "lucide-react";
+import { ActionMenu } from "@/components/action-menu/component";
+import { Badge } from "@/components/badge/component";
+import { Button } from "@/components/button/component";
+import { Card } from "@/components/card/component";
+import { DataTable, type Column } from "@/components/data-table/component";
+import { EmptyState } from "@/components/empty-state/component";
+import { Input } from "@/components/input/component";
+import { Select } from "@/components/select/component";
+import { useToast } from "@/components/toast/component";
+import {
+  CentreFormModal,
+} from "@/features/settings/components/CentreFormModal/CentreFormModal";
+import {
+  CENTRE_TYPES,
+  centreTypeLabel,
+  type CentreFormValues,
+  type CentreSante,
+  type Zone,
+} from "@/features/settings/types";
+
+interface CentresTabProps {
+  centres: CentreSante[];
+  zones: Zone[];
+  loading: boolean;
+  onAdd: (values: CentreFormValues) => Promise<void>;
+  onUpdate: (id: number, values: CentreFormValues) => Promise<void>;
+}
+
+export function CentresTab({
+  centres,
+  zones,
+  loading,
+  onAdd,
+  onUpdate,
+}: CentresTabProps) {
+  const { toast } = useToast();
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [zoneFilter, setZoneFilter] = useState("");
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingCentre, setEditingCentre] = useState<CentreSante | null>(null);
+
+  const zoneOptions = useMemo(() => {
+    const names = new Set<string>(
+      centres.map((centre) => centre.zone?.name ?? "").filter(Boolean),
+    );
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
+  }, [centres]);
+
+  const filteredCentres = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    return centres.filter((centre) => {
+      const matchesSearch = !q || centre.name.toLowerCase().includes(q);
+      const matchesType = !typeFilter || centre.type === typeFilter;
+      const matchesZone =
+        !zoneFilter || centre.zone?.name === zoneFilter;
+
+      return matchesSearch && matchesType && matchesZone;
+    });
+  }, [centres, search, typeFilter, zoneFilter]);
+
+  function openCreate() {
+    setEditingCentre(null);
+    setFormOpen(true);
+  }
+
+  function openEdit(centre: CentreSante) {
+    setEditingCentre(centre);
+    setFormOpen(true);
+  }
+
+  async function handleSubmit(values: CentreFormValues) {
+    try {
+      if (editingCentre) {
+        await onUpdate(editingCentre.id, values);
+        toast({
+          title: "Centre mis à jour",
+          description: `${values.name} a été modifié.`,
+          variant: "success",
+        });
+      } else {
+        await onAdd(values);
+        toast({
+          title: "Centre ajouté",
+          description: `${values.name} a été ajouté.`,
+          variant: "success",
+        });
+      }
+      setFormOpen(false);
+      setEditingCentre(null);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Impossible d'enregistrer le centre.",
+        variant: "error",
+      });
+    }
+  }
+
+  const columns: Column<CentreSante>[] = [
+    {
+      key: "name",
+      header: "Établissement",
+      cell: (row) => (
+        <div className="flex items-center gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary-light/30 text-primary">
+            <Image
+              src="/images/health-center.svg"
+              alt=""
+              width={22}
+              height={22}
+              className="size-5 object-contain"
+              aria-hidden="true"
+            />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate font-medium text-text-main">{row.name}</p>
+            <p className="flex items-center gap-1 text-xs text-text-muted">
+              <MapPin className="size-3" />
+              {row.zone?.name ?? "—"}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "type",
+      header: "Type",
+      cell: (row) => <Badge variant="info">{centreTypeLabel(row.type)}</Badge>,
+    },
+    {
+      key: "zone",
+      header: "Zone",
+      cell: (row) => <span className="text-text-muted">{row.zone?.name ?? "—"}</span>,
+    },
+    {
+      key: "coordinates",
+      header: "Localisation (GPS)",
+      cell: (row) =>
+        row.latitude != null && row.longitude != null ? (
+          <span className="font-mono text-xs text-text-muted">
+            {row.latitude.toFixed(4)}, {row.longitude.toFixed(4)}
+          </span>
+        ) : (
+          <span className="text-text-muted">—</span>
+        ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      cell: (row) => (
+        <ActionMenu
+          ariaLabel={`Actions pour ${row.name}`}
+          items={[
+            {
+              label: "Modifier",
+              icon: Edit,
+              onClick: () => openEdit(row),
+            },
+          ]}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <Card className="overflow-hidden rounded-3xl border border-border/70 bg-bg-surface shadow-card">
+        <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-light text-primary" aria-hidden="true">
+              <Building2 className="size-5" strokeWidth={1.8} />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight text-text-main">
+                Centres de santé
+              </h2>
+              <p className="mt-1 text-sm text-text-muted">
+                {loading
+                  ? "Chargement des centres…"
+                  : `${centres.length} établissement${centres.length > 1 ? "s" : ""} sanitaire${centres.length > 1 ? "s" : ""}.`}
+              </p>
+            </div>
+          </div>
+          <Button onClick={openCreate} className="w-full sm:w-auto">
+            <Plus className="size-4" />
+            Ajouter un centre
+          </Button>
+        </div>
+
+        <div className="border-t border-border/60 bg-primary-light/10 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="flex-1">
+              <Input
+                icon={Search}
+                placeholder="Rechercher un centre..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label="Rechercher un centre"
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:items-center">
+              <Select
+                aria-label="Filtrer par type"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                placeholder="Tous les types"
+                options={CENTRE_TYPES.map((type) => ({
+                  value: type,
+                  label: centreTypeLabel(type),
+                }))}
+                className="sm:w-40"
+              />
+              <Select
+                aria-label="Filtrer par zone"
+                value={zoneFilter}
+                onChange={(e) => setZoneFilter(e.target.value)}
+                placeholder="Toutes les zones"
+                options={zoneOptions.map((zone) => ({
+                  value: zone,
+                  label: zone,
+                }))}
+                className="sm:w-48"
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="overflow-hidden rounded-3xl border border-border/70 bg-bg-surface shadow-card">
+        <DataTable
+          columns={columns}
+          data={filteredCentres}
+          getRowId={(row) => String(row.id)}
+          loading={loading}
+          ariaLabel="Liste des centres de santé"
+          emptyState={
+            <EmptyState
+              icon={MapPin}
+              imageSrc="/images/nothing.svg"
+              imageAlt="Aucun centre de santé"
+              title="Aucun centre trouvé"
+              description="Aucun établissement ne correspond à votre recherche."
+            />
+          }
+        />
+      </Card>
+
+      <CentreFormModal
+        key={
+          editingCentre ? `edit-${editingCentre.id}` : `create-${formOpen}`
+        }
+        open={formOpen}
+        onClose={() => {
+          setFormOpen(false);
+          setEditingCentre(null);
+        }}
+        centre={editingCentre}
+        onSubmit={handleSubmit}
+        zones={zones}
+      />
+    </div>
+  );
+}
+

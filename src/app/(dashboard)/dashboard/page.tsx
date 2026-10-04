@@ -8,7 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header/component";
-import { DashboardAnalytics } from "@/components/dashboard-analytics/component";
+import { DashboardAnalytics } from "@/features/dashboard/components/DashboardAnalytics/DashboardAnalytics";
 import { verifySession } from "@/lib/session";
 import { getMe } from "@/services/auth";
 import { formatDate } from "@/lib/utils";
@@ -85,7 +85,7 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="w-full space-y-6">
       <PageHeader
         title={`Bonjour, ${name}`}
         description={today.charAt(0).toUpperCase() + today.slice(1)}

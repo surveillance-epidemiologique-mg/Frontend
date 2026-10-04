@@ -59,6 +59,7 @@ export function AppShell({
       <InactivityProvider>
         <div className="flex min-h-dvh w-full">
           <Sidebar
+            user={user}
             role={user.role}
             laboratoryCanDeclareCases={laboratoryCanDeclareCases}
             mobileOpen={mobileOpen}
@@ -66,9 +67,14 @@ export function AppShell({
           />
 
           <div className="flex min-w-0 flex-1 flex-col">
-            <Navbar user={user} mobileOpen={mobileOpen} onMenuClick={toggleMobile} />
-            <main className="flex-1">
-              <div className="mx-auto w-full px-4 py-8 sm:px-6 lg:px-8">
+            <Navbar
+              user={user}
+              mobileOpen={mobileOpen}
+              onMenuClick={toggleMobile}
+              className="lg:hidden"
+            />
+            <main className="min-w-0 flex-1 bg-bg-app">
+              <div className="mx-auto w-full px-3 py-6 sm:px-5 sm:py-8 lg:px-10">
                 {children}
               </div>
             </main>

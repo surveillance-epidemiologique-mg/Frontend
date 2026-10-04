@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
   icon: LucideIcon;
@@ -8,6 +9,7 @@ interface EmptyStateProps {
   children?: React.ReactNode;
   imageSrc?: string;
   imageAlt?: string;
+  className?: string;
 }
 
 export function EmptyState({
@@ -17,9 +19,10 @@ export function EmptyState({
   children,
   imageSrc,
   imageAlt = "",
+  className,
 }: EmptyStateProps) {
   return (
-    <div className="flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-bg-surface px-4 py-12 text-center sm:px-6 sm:py-16">
+    <div className={cn("flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-bg-surface px-4 py-12 text-center sm:px-6 sm:py-16", className)}>
       {imageSrc ? (
         <Image
           src={imageSrc}

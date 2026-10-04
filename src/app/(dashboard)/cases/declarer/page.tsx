@@ -74,6 +74,7 @@ export default function DeclarerCasPage() {
   ]);
   const [centreId, setCentreId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [helpStep, setHelpStep] = useState<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -224,128 +225,149 @@ export default function DeclarerCasPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto w-full max-w-[1300px] space-y-6">
       <PageHeader
         title="Déclarer un cas"
         description="Assistant de déclaration en 3 étapes : patient, détails cliniques et analyses."
       />
 
-      <div className="flex flex-col p-0 sm:p-6 lg:flex-row">
-        {/* Stepper vertical — desktop */}
-        <aside className="hidden lg:block flex-1/2">
-          <ol className="relative flex flex-col">
-            {STEPS.map((step, index) => {
-              const state =
-                current > index ? "done" : current === index ? "active" : "todo";
-              const Icon = step.icon;
-              const reachable = index <= current;
-              return (
-                <li
-                  key={step.title}
-                  className="relative flex items-start gap-4 pb-18 last:pb-0"
-                >
-                  {index < STEPS.length - 1 ? (
-                    <span
-                      className={cn(
-                        "absolute left-[25px] top-[63px] h-[calc(100%-52px)] w-1",
-                        current > index ? "bg-primary" : "bg-bg-muted",
-                      )}
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                  <button
-                    type="button"
-                    disabled={!reachable}
-                    onClick={() => setCurrent(index)}
-                    className="flex items-center gap-4 text-left disabled:cursor-not-allowed max-w-md"
+      <div className="overflow-hidden rounded-3xl border border-border/30 p-4 shadow-card sm:p-8">
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
+          {/* Stepper vertical — desktop */}
+          <aside className="hidden lg:block flex-1/2">
+            <ol className="relative flex flex-col">
+              {STEPS.map((step, index) => {
+                const state =
+                  current > index ? "done" : current === index ? "active" : "todo";
+                const Icon = step.icon;
+                const reachable = index <= current;
+                return (
+                  <li
+                    key={step.title}
+                    className="relative flex items-start gap-4 pb-18 last:pb-0"
                   >
-                    <span
+                    {index < STEPS.length - 1 ? (
+                      <span
+                        className={cn(
+                          "absolute left-[25px] top-[73px] h-[calc(100%-52px)] w-1",
+                          current > index ? "bg-primary" : "bg-bg-muted",
+                        )}
+                        aria-hidden="true"
+                      />
+                    ) : null}
+
+                    <button
+                      type="button"
+                      disabled={!reachable}
+                      onClick={() => setCurrent(index)}
+                      className="flex items-center gap-4 text-left disabled:cursor-not-allowed max-w-md"
+                    >
+                      <span
+                        className={cn(
+                          "grid size-14 shrink-0 place-items-center rounded-2xl transition-colors",
+                          state === "todo"
+                            ? "bg-bg-muted text-text-muted ring-1 ring-inset ring-border"
+                            : "bg-primary text-primary-foreground shadow-sm shadow-primary/25",
+                        )}
+                      >
+                        {state === "done" ? (
+                          <Check className="size-6" />
+                        ) : (
+                          <Icon className="size-6" />
+                        )}
+                      </span>
+                      <span className="pt-0.5">
+                        <span
+                          className={cn(
+                            "block text-xl font-semibold",
+                            state === "todo" ? "text-text-muted" : "text-primary",
+                          )}
+                        >
+                          {step.title}
+                        </span>
+                        <span className="block text-sm text-text-muted">
+                          {step.description}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </aside>
+
+          {/* Stepper compact — mobile */}
+          <div className="mb-6 lg:hidden">
+            <div className="flex items-center">
+              {STEPS.map((step, index) => {
+                const state =
+                  current > index ? "done" : current === index ? "active" : "todo";
+                const Icon = step.icon;
+                const isHelpOpen = helpStep === index;
+                return (
+                  <div
+                    key={step.title}
+                    className="relative flex flex-1 items-center last:flex-none"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHelpStep(isHelpOpen ? null : index);
+                        if (index <= current) setCurrent(index);
+                      }}
+                      aria-label={`Afficher l'aide : ${step.title}`}
+                      aria-expanded={isHelpOpen}
                       className={cn(
-                        "grid size-14 shrink-0 place-items-center rounded-2xl transition-colors",
+                        "relative z-10 grid size-9 shrink-0 place-items-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
                         state === "todo"
-                          ? "bg-bg-muted text-text-muted ring-1 ring-inset ring-border"
-                          : "bg-primary text-primary-foreground shadow-sm shadow-primary/25",
+                          ? "bg-bg-app text-text-muted ring-1 ring-inset ring-border"
+                          : "bg-primary text-primary-foreground",
                       )}
                     >
                       {state === "done" ? (
-                        <Check className="size-6" />
+                        <Check className="size-4" />
                       ) : (
-                        <Icon className="size-6" />
+                        <Icon className="size-4" />
                       )}
-                    </span>
-                    <span className="pt-0.5">
-                      <span
+                    </button>
+                    {isHelpOpen ? (
+                      <div
+                        role="status"
                         className={cn(
-                          "block text-xl font-semibold",
-                          state === "todo" ? "text-text-muted" : "text-primary",
+                          "absolute top-12 z-30 w-64 rounded-xl border border-primary/20 bg-bg-surface p-3 text-left text-xs leading-relaxed text-text-muted shadow-dropdown",
+                          index === STEPS.length - 1 ? "right-0" : "left-0",
                         )}
                       >
-                        {step.title}
-                      </span>
-                      <span className="block text-sm text-text-muted">
-                        {step.description}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </aside>
-
-        {/* Stepper compact — mobile */}
-        <div className="mb-6 lg:hidden">
-          <div className="flex items-center">
-            {STEPS.map((step, index) => {
-              const state =
-                current > index ? "done" : current === index ? "active" : "todo";
-              const Icon = step.icon;
-              return (
-                <div key={step.title} className="flex flex-1 items-center last:flex-none">
-                  <button
-                    type="button"
-                    disabled={index > current}
-                    onClick={() => setCurrent(index)}
-                    className={cn(
-                      "grid size-9 shrink-0 place-items-center rounded-xl transition-colors disabled:cursor-not-allowed",
-                      state === "todo"
-                        ? "bg-bg-app text-text-muted ring-1 ring-inset ring-border"
-                        : "bg-primary text-primary-foreground",
-                    )}
-                  >
-                    {state === "done" ? (
-                      <Check className="size-4" />
-                    ) : (
-                      <Icon className="size-4" />
-                    )}
-                  </button>
-                  {index < STEPS.length - 1 ? (
-                    <span
-                      className={cn(
-                        "mx-2 h-0.5 flex-1 rounded-full",
-                        current > index ? "bg-primary" : "bg-border",
-                      )}
-                    />
-                  ) : null}
-                </div>
-              );
-            })}
+                        <p className="font-semibold text-text-main">{step.title}</p>
+                        <p className="mt-1">{step.description}</p>
+                      </div>
+                    ) : null}
+                    {index < STEPS.length - 1 ? (
+                      <span
+                        className={cn(
+                          "mx-2 h-0.5 flex-1 rounded-full",
+                          current > index ? "bg-primary" : "bg-border",
+                        )}
+                      />
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-3 hidden lg:block">
+              <p className="text-lg font-semibold text-text-main">
+                {STEPS[current].title}
+              </p>
+              <p className="text-sm text-text-muted">
+                Étape {current + 1} sur {STEPS.length} · Cliquez sur l’icône pour afficher l’aide.
+              </p>
+            </div>
           </div>
-          <div className="mt-3">
-            <p className="text-lg font-semibold text-text-main">
-              {STEPS[current].title}
-            </p>
-            <p className="text-sm text-text-muted">
-              Étape {current + 1} sur {STEPS.length} · {STEPS[current].description}
-            </p>
-          </div>
-        </div>
-
         {/* Zone de formulaire */}
         <div className="w-full lg:flex-1/2">
           {current === 0 ? (
             <section className="space-y-5">
-              <div>
+              <div className="hidden lg:block">
                 <h2 className="text-xl font-semibold text-text-main">
                   Informations du patient
                 </h2>
@@ -431,7 +453,7 @@ export default function DeclarerCasPage() {
 
           {current === 1 ? (
             <section className="space-y-5">
-              <div>
+              <div className="hidden lg:block">
                 <h2 className="text-lg font-semibold text-text-main">
                   Détails cliniques
                 </h2>
@@ -475,7 +497,7 @@ export default function DeclarerCasPage() {
 
           {current === 2 ? (
             <section className="space-y-5">
-              <div>
+              <div className="hidden lg:block">
                 <h2 className="text-lg font-semibold text-text-main">
                   Analyses à réaliser
                 </h2>
@@ -554,6 +576,7 @@ export default function DeclarerCasPage() {
             </Button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

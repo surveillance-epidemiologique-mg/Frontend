@@ -462,22 +462,22 @@ export default function CasCliniquePage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6 pb-6">
       <PageHeader
         title="Cas clinique"
         description="Déclarer un cas suspect ou confirmé et suivre les cas de votre périmètre."
       >
-        <Button asChild>
-          {canUseClinicalCases ? (
+        {canUseClinicalCases ? (
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/cases/declarer">
               <Plus className="size-4" />
               Déclarer un cas
             </Link>
-          ) : null}
-        </Button>
+          </Button>
+        ) : null}
       </PageHeader>
 
-      <Card>
+      <Card className="overflow-hidden rounded-3xl border border-border/70 bg-bg-surface shadow-card">
         <CaseFilters
           values={filters}
           onChange={setFilters}
@@ -490,6 +490,16 @@ export default function CasCliniquePage() {
               : null
           }
         />
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-4 sm:px-6">
+          <div>
+            <h2 className="text-base font-semibold text-text-main">Dossiers cliniques</h2>
+            <p className="mt-1 text-xs text-text-muted">Retrouvez les cas déclarés dans votre périmètre.</p>
+          </div>
+          <Badge variant="info" className="px-3 py-1">
+            {loading ? "Chargement…" : `${casList.length} cas`}
+          </Badge>
+        </div>
 
         <DataTable
           columns={columns}

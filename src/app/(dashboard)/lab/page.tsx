@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { FlaskConical, QrCode, Stethoscope, Calendar, Building2, Activity } from "lucide-react";
-import type { ScanResult } from "@/components/qr-scanner/component";
+import type { ScanResult } from "@/features/laboratoire/components/QrScanner/QrScanner";
 
 const QrScanner = dynamic(
-  () => import("@/components/qr-scanner/component").then((mod) => mod.QrScanner),
+  () => import("@/features/laboratoire/components/QrScanner/QrScanner").then((mod) => mod.QrScanner),
   {
     ssr: false,
     loading: () => (
@@ -29,6 +30,7 @@ import {
 import { ConfirmDialog } from "@/components/confirm-dialog/component";
 import { EmptyState } from "@/components/empty-state/component";
 import { Input } from "@/components/input/component";
+import { LoadingState } from "@/components/loading-state/component";
 import { Modal } from "@/components/modal/component";
 import { PageHeader } from "@/components/page-header/component";
 import { Select } from "@/components/select/component";
@@ -74,6 +76,8 @@ interface LabCase {
 
 type Visuel = "all" | "pending" | "processed";
 
+const LAB_PAGE_SIZE = 10;
+
 const RESULT_TYPE_LABEL: Record<string, string> = {
   Numerique: "Numérique",
   ChoixPositifNegatif: "Positif / Négatif",
@@ -93,6 +97,14 @@ function statutLabel(s: string) {
   return s;
 }
 
+function buildLaboratoirePageUrl(filters: CaseFiltersValues, view: Visuel, page: number) {
+  const params = new URLSearchParams(buildCasQueryString(filters).slice(1));
+  params.set("laboratoryView", view);
+  params.set("page", String(page));
+  params.set("limit", String(LAB_PAGE_SIZE));
+  return `?${params.toString()}`;
+}
+
 export default function LaboratoirePage() {
   const { toast } = useToast();
   const [me, setMe] = useState<{ id: number; role: string } | null>(null);
@@ -103,6 +115,11 @@ export default function LaboratoirePage() {
   const [filters, setFilters] = useState<CaseFiltersValues>(EMPTY_FILTERS);
   const [visuel, setVisuel] = useState<Visuel>("all");
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const queryVersionRef = useRef(0);
 
   // Modal analyses
   const [selectedCas, setSelectedCas] = useState<LabCase | null>(null);
@@ -146,33 +163,104 @@ export default function LaboratoirePage() {
     };
   }, []);
 
-  useEffect(() => {
+  const fetchLaboratoirePage = useCallback(async (pageNumber: number) => {
+    const response = await fetch(
+      `/api/cas/laboratoire${buildLaboratoirePageUrl(filters, visuel, pageNumber)}`,
+    );
+    if (!response.ok) return [];
+    const data = await response.json();
+    return Array.isArray(data) ? (data as LabCase[]) : [];
+  }, [filters, visuel]);
+
+  function startNewList() {
+    queryVersionRef.current += 1;
     setLoading(true);
+    setLoadingMore(false);
+    setPage(0);
+    setHasMore(true);
+    setCases([]);
+  }
+
+  function changeFilters(next: CaseFiltersValues) {
+    startNewList();
+    setFilters(next);
+  }
+
+  function changeView(next: Visuel) {
+    if (next === visuel) return;
+    startNewList();
+    setVisuel(next);
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    const queryVersion = queryVersionRef.current;
     const id = setTimeout(() => {
       void (async () => {
         try {
-          const data = await fetch(
-            `/api/cas/laboratoire${buildCasQueryString(filters)}`,
-          ).then((r) => (r.ok ? r.json() : []));
-          setCases(Array.isArray(data) ? data : []);
+          const list = await fetchLaboratoirePage(1);
+          if (cancelled || queryVersion !== queryVersionRef.current) return;
+          setCases(list);
+          setPage(1);
+          setHasMore(list.length === LAB_PAGE_SIZE);
         } catch {
+          if (cancelled || queryVersion !== queryVersionRef.current) return;
           setCases([]);
+          setHasMore(false);
         } finally {
-          setLoading(false);
+          if (!cancelled && queryVersion === queryVersionRef.current) setLoading(false);
         }
       })();
     }, 300);
-    return () => clearTimeout(id);
-  }, [filters]);
+    return () => {
+      cancelled = true;
+      clearTimeout(id);
+    };
+  }, [fetchLaboratoirePage]);
+
+  const loadNextPage = useCallback(async () => {
+    if (loading || loadingMore || !hasMore || page === 0) return;
+    const nextPage = page + 1;
+    const queryVersion = queryVersionRef.current;
+    setLoadingMore(true);
+    try {
+      const list = await fetchLaboratoirePage(nextPage);
+      if (queryVersion !== queryVersionRef.current) return;
+      setCases((previous) => {
+        const knownIds = new Set(previous.map((item) => item.id));
+        return [...previous, ...list.filter((item) => !knownIds.has(item.id))];
+      });
+      setPage(nextPage);
+      setHasMore(list.length === LAB_PAGE_SIZE);
+    } finally {
+      if (queryVersion === queryVersionRef.current) setLoadingMore(false);
+    }
+  }, [fetchLaboratoirePage, hasMore, loading, loadingMore, page]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || !hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) void loadNextPage();
+      },
+      { rootMargin: "480px 0px" },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [hasMore, loadNextPage]);
 
   const reload = useCallback(async () => {
-    const data = await fetch(
-      `/api/cas/laboratoire${buildCasQueryString(filters)}`,
-    ).then((r) => (r.ok ? r.json() : []));
-    const list = Array.isArray(data) ? data : [];
+    const queryVersion = queryVersionRef.current;
+    const list = await fetchLaboratoirePage(1);
+    if (queryVersion !== queryVersionRef.current) return;
     setCases(list);
+    setPage(1);
+    setHasMore(list.length === LAB_PAGE_SIZE);
     if (selectedCas) {
-      const fresh = list.find((c: LabCase) => c.id === selectedCas.id) ?? null;
+      const response = await fetch(`/api/cas/laboratoire/${selectedCas.id}`);
+      const fresh = response.ok ? (await response.json() as LabCase) : null;
+      if (queryVersion !== queryVersionRef.current) return;
       setSelectedCas(fresh);
       if (fresh) {
         const drafts: Record<number, string> = {};
@@ -182,7 +270,7 @@ export default function LaboratoirePage() {
         setDraft(drafts);
       }
     }
-  }, [filters, selectedCas]);
+  }, [fetchLaboratoirePage, selectedCas]);
 
   function processedByMe(c: LabCase) {
     return c.analyses.some(
@@ -190,20 +278,6 @@ export default function LaboratoirePage() {
     );
   }
 
-  const visible = useMemo(() => {
-    if (visuel === "pending") {
-      return cases.filter((c) => c.analyses.some((a) => a.statut === "Demandee"));
-    }
-    if (visuel === "processed") {
-      return cases.filter(
-        (c) => c.analyses.some(
-          (a) => a.statut === "Realisee" && (me?.role === "Administrateur" || a.laboratory?.id === me?.id)
-        )
-      );
-    }
-    return cases;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cases, visuel, me]);
   const hasActiveFilters = Object.values(filters).some(Boolean);
 
   function openCase(c: LabCase) {
@@ -257,44 +331,6 @@ export default function LaboratoirePage() {
 
   function handleScanned(result: ScanResult) {
     void fetchAndOpen(result.casId, result.code);
-  }
-
-  async function handleManual(value: string) {
-    const v = value.trim();
-    if (/^\d+$/.test(v)) {
-      await fetchAndOpen(Number(v));
-      return;
-    }
-    const m = v.match(/^(.+)#(\d+)$/);
-    if (m) {
-      await fetchAndOpen(Number(m[2]), m[1]);
-      return;
-    }
-    try {
-      const res = await fetch(
-        `/api/cas/laboratoire?search=${encodeURIComponent(v)}`,
-      );
-      const list = await res.json();
-      const arr = Array.isArray(list) ? list : [];
-      const match =
-        arr.find((c: LabCase) => c.patient?.anonymousCode === v) ?? arr[0];
-      if (match) {
-        setScannerOpen(false);
-        openCase(match as LabCase);
-      } else {
-        toast({
-          title: "Cas introuvable",
-          description: "Aucun cas ne correspond à ce code.",
-          variant: "error",
-        });
-      }
-    } catch (e) {
-      toast({
-        title: "Erreur",
-        description: e instanceof Error ? e.message : "Erreur.",
-        variant: "error",
-      });
-    }
   }
 
   function isEditable(a: LabAnalyse) {
@@ -416,47 +452,37 @@ export default function LaboratoirePage() {
   ).length ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6 pb-6">
       <PageHeader
         title="Laboratoire"
         description="Analyses demandées, saisie des résultats et validation des cas."
       />
 
-      <Card>
+      <Card className="overflow-hidden rounded-3xl border border-border/70 bg-bg-surface shadow-card">
         <CaseFilters
           values={filters}
-          onChange={setFilters}
+          onChange={changeFilters}
           years={years}
           centres={centres}
           maladies={maladies}
           showStatut={false}
         />
 
-        <div className="flex flex-col gap-4 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between bg-bg-surface">
-          <Button
-            variant="primary"
-            onClick={() => {
-              setScanKey((k) => k + 1);
-              setScannerOpen(true);
-            }}
-          >
-            <QrCode className="mr-2 size-4" />
-            Scanner un QR Code
-          </Button>
-
-          <div className="flex rounded-md p-1 bg-bg-muted/30 border border-border">
+        <div className="flex flex-col gap-4 border-b border-border/60 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex w-full rounded-xl border border-border/60 bg-bg-muted/70 p-1 sm:w-auto" aria-label="Catégories de cas">
             {(["all", "pending", "processed"] as Visuel[]).map((v) => {
               const active = visuel === v;
               return (
                 <button
                   key={v}
                   type="button"
-                  onClick={() => setVisuel(v)}
+                  onClick={() => changeView(v)}
+                  aria-pressed={active}
                   className={cn(
-                    "px-4 py-1.5 text-sm font-medium rounded-sm transition-all",
+                    "min-w-0 flex-1 rounded-lg px-3 py-2 text-center text-xs font-semibold transition-colors sm:flex-none sm:px-4 sm:text-sm",
                     active
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-text-muted hover:text-text-main hover:bg-bg-surface-hover"
+                      ? "bg-bg-surface text-primary shadow-sm ring-1 ring-border/60"
+                      : "text-text-muted hover:bg-bg-surface-hover hover:text-text-main"
                   )}
                 >
                   {v === "all" ? "Tous" : v === "pending" ? "En attente" : "Traités"}
@@ -464,15 +490,25 @@ export default function LaboratoirePage() {
               );
             })}
           </div>
+          <Button
+            variant="primary"
+            className="w-full sm:w-auto"
+            onClick={() => {
+              setScanKey((k) => k + 1);
+              setScannerOpen(true);
+            }}
+          >
+            <QrCode className="size-4" />
+            Scanner un QR Code
+          </Button>
         </div>
 
         {loading ? (
-          <EmptyState
-            icon={FlaskConical}
-            title="Chargement…"
-            description="Récupération des cas…"
+          <LoadingState
+            label="Récupération des cas du laboratoire…"
+            className="min-h-64 px-4 py-12 sm:px-6 sm:py-16"
           />
-        ) : visible.length === 0 ? (
+        ) : cases.length === 0 && !hasMore ? (
           <EmptyState
             icon={FlaskConical}
             imageSrc="/images/nothing.svg"
@@ -487,96 +523,120 @@ export default function LaboratoirePage() {
                   : "Aucun cas n'a encore été déclaré."}
           >
             {hasActiveFilters ? (
-              <Button variant="outline" onClick={() => setFilters(EMPTY_FILTERS)}>
+              <Button variant="outline" onClick={() => changeFilters(EMPTY_FILTERS)}>
                 Réinitialiser les filtres
               </Button>
             ) : null}
           </EmptyState>
         ) : (
-          <div className="space-y-4 p-4 bg-bg-muted/5">
-            {visible.map((c) => {
+          <div className="space-y-4 bg-bg-app/40 p-4 sm:p-6">
+            {cases.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-border bg-bg-surface px-4 py-8 text-center text-sm text-text-muted">
+                Recherche de cas correspondant à cet onglet…
+              </p>
+            ) : null}
+            {cases.map((c) => {
               const mine = processedByMe(c);
               return (
-                <Card key={c.id} className="p-0 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                  <div className="p-4 sm:p-5">
-                    {/* Ligne d'en-tête */}
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 border-b border-border pb-4">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-xl font-extrabold text-text-main tracking-tight">
-                          {c.patient.anonymousCode}
-                        </span>
-                        <Badge variant={STATUT_BADGE[c.diagnosticStatus] ?? "secondary"} dot>
-                          {statutLabel(c.diagnosticStatus)}
-                        </Badge>
-                        <Badge variant="outline" className="border-text-muted/30 text-text-muted">
-                          {c.maladie.name}
-                        </Badge>
-                        {mine ? (
-                          <Badge variant="info" className="bg-primary/5 text-primary border-primary/20">
-                            Votre analyse
-                          </Badge>
-                        ) : null}
-                      </div>
-                      <div className="flex items-center text-xs font-medium text-text-muted">
-                        <Calendar className="mr-1.5 size-3.5" />
-                        {formatDate(c.diagnosisDate)}
-                      </div>
+                <Card
+                  key={c.id}
+                  className="overflow-hidden rounded-2xl border border-border/70 bg-bg-surface shadow-card"
+                >
+                  <div className="flex flex-col gap-5 p-4 sm:p-5 lg:flex-row lg:gap-6">
+                    <div className="lab-case-illustration-frame self-center lg:self-stretch">
+                      <Image
+                        src="/images/File-analyse.svg"
+                        alt="Illustration d'une analyse de laboratoire"
+                        width={176}
+                        height={176}
+                        className="lab-case-illustration"
+                      />
                     </div>
 
-                    {/* Ligne d'informations */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 gap-x-6 mb-5">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-1.5">
-                          Patient
-                        </p>
-                        <p className="text-sm font-semibold text-text-main">
-                          {c.patient.namePatient || c.patient.anonymousCode}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-1.5">
-                          Établissement & Lieu
-                        </p>
-                        <p className="flex items-start text-sm font-semibold text-text-main">
-                          <Building2 className="mr-1.5 mt-0.5 size-4 text-text-muted shrink-0" />
-                          <span>
-                            {c.centre.name} {c.centre.zone ? <span className="text-text-muted font-normal">({c.centre.zone.name})</span> : ""}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+                          <span className="text-base font-semibold tracking-tight text-text-main [overflow-wrap:anywhere] sm:text-lg">
+                            {c.patient.anonymousCode}
                           </span>
-                        </p>
+                          <Badge variant={STATUT_BADGE[c.diagnosticStatus] ?? "secondary"} dot>
+                            {statutLabel(c.diagnosticStatus)}
+                          </Badge>
+                          <Badge variant="outline" className="border-text-muted/30 text-text-muted">
+                            {c.maladie.name}
+                          </Badge>
+                          {mine ? (
+                            <Badge variant="info" className="border-primary/20 bg-primary/5 text-primary">
+                              Votre analyse
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <div className="flex shrink-0 items-center self-start rounded-full border border-border bg-bg-app px-3 py-1 text-xs font-medium text-text-muted">
+                          <Calendar className="mr-1.5 size-3.5" />
+                          {formatDate(c.diagnosisDate)}
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-1.5">
-                          Déclaré par
-                        </p>
-                        <p className="text-sm font-semibold text-text-main">
-                          {c.agent.name}
-                        </p>
-                      </div>
-                    </div>
 
-                    {/* Ligne inférieure */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-border">
-                      <div className="flex items-start gap-2 max-w-2xl">
-                        <Activity className="size-4 text-text-muted shrink-0 mt-0.5" />
-                        <p className="text-sm text-text-muted leading-relaxed line-clamp-2">
-                          <span className="font-semibold text-text-main mr-1">Symptômes :</span>
-                          {c.symptoms || "—"}
-                        </p>
+                      <div className="grid gap-4 py-5 sm:grid-cols-2">
+                        <div>
+                          <p className="mb-1.5 text-xs font-medium text-text-muted">
+                            Établissement &amp; Lieu
+                          </p>
+                          <p className="flex items-start text-sm font-medium text-text-main">
+                            <Building2 className="mr-1.5 mt-0.5 size-4 shrink-0 text-text-muted" />
+                            <span>
+                              {c.centre.name}{" "}
+                              {c.centre.zone ? (
+                                <span className="font-normal text-text-muted">({c.centre.zone.name})</span>
+                              ) : null}
+                            </span>
+                          </p>
+                        </div>
+                        <div>
+                          <p className="mb-1.5 text-xs font-medium text-text-muted">
+                            Déclaré par
+                          </p>
+                          <p className="text-sm font-medium text-text-main">
+                            {c.agent.name}
+                          </p>
+                        </div>
                       </div>
-                      
-                      <Button 
-                        variant="outline" 
-                        onClick={() => openCase(c)}
-                        className="shrink-0 border-primary text-primary hover:bg-primary/5 hover:text-primary transition-colors"
-                      >
-                        <Stethoscope className="mr-2 size-4" />
-                        Analyses ({c.analyses.length})
-                      </Button>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex min-w-0 max-w-2xl items-start gap-2">
+                          <Activity className="mt-0.5 size-4 shrink-0 text-text-muted" />
+                          <p className="line-clamp-2 text-sm leading-relaxed text-text-muted">
+                            <span className="mr-1 font-medium text-text-main">Symptômes :</span>
+                            {c.symptoms || "—"}
+                          </p>
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          onClick={() => openCase(c)}
+                          className="shrink-0 border-primary mt-4 sm:mt-0 text-primary transition-colors hover:bg-primary/5 hover:text-primary"
+                        >
+                          <Stethoscope className="mr-2 size-4" />
+                          Analyses ({c.analyses.length})
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </Card>
               );
             })}
+            <div
+              ref={loadMoreRef}
+              className="flex min-h-12 items-center justify-center"
+              aria-live="polite"
+            >
+              {loadingMore ? (
+                <LoadingState
+                  label="Chargement des cas suivants…"
+                  className="w-full rounded-xl border border-dashed border-border bg-bg-surface px-4 py-4"
+                />
+              ) : null}
+            </div>
           </div>
         )}
       </Card>
@@ -694,7 +754,6 @@ export default function LaboratoirePage() {
           open={scannerOpen}
           onClose={() => setScannerOpen(false)}
           onScanned={handleScanned}
-          onManual={(v) => void handleManual(v)}
         />
       ) : null}
 
