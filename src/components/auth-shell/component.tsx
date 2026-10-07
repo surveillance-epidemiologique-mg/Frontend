@@ -14,7 +14,7 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
       </div>
       <div className="w-full max-w-md">
         <div className="mb-6 text-center sm:mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-text-main">
+          <h1 className="text-[1.625rem] font-semibold leading-tight tracking-tight text-text-main">
             {title}
           </h1>
           {subtitle ? (

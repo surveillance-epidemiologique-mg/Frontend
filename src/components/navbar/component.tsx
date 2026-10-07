@@ -100,7 +100,7 @@ export function Navbar({ user, mobileOpen, onMenuClick, className }: NavbarProps
             <span className="block truncate text-xs text-text-muted">
               {user.email}
             </span>
-            <span className="block truncate text-[11px] font-medium capitalize text-primary">
+            <span className="block truncate text-xs font-medium capitalize text-primary">
               {user.role ?? "Utilisateur"}
             </span>
           </span>

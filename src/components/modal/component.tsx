@@ -85,7 +85,7 @@ export function Modal({
             <div className="min-w-0">
               <h2
                 id={titleId}
-                className="text-base font-semibold tracking-tight text-text-main [overflow-wrap:anywhere] sm:text-lg"
+                className="text-lg font-semibold tracking-tight text-text-main [overflow-wrap:anywhere] sm:text-xl"
               >
                 {title}
               </h2>

@@ -144,7 +144,7 @@ export default async function ProfilePage() {
                 <User className="size-5" strokeWidth={1.8} />
               </span>
               <div>
-                <h3 className="text-base font-semibold text-text-main">Informations personnelles</h3>
+                <h3 className="text-lg font-semibold text-text-main">Informations personnelles</h3>
                 <p className="mt-1 text-sm leading-5 text-text-muted">Vos coordonnées et votre identité dans ÉpiSuivi.</p>
               </div>
             </div>
@@ -157,7 +157,7 @@ export default async function ProfilePage() {
                 <Building2 className="size-5" strokeWidth={1.8} />
               </span>
               <div>
-                <h3 className="text-base font-semibold text-text-main">Affectation professionnelle</h3>
+                <h3 className="text-lg font-semibold text-text-main">Affectation professionnelle</h3>
                 <p className="mt-1 text-sm leading-5 text-text-muted">Votre rôle et votre rattachement dans l’application.</p>
               </div>
             </div>
@@ -171,7 +171,7 @@ export default async function ProfilePage() {
               <ShieldCheck className="size-5" strokeWidth={1.8} />
             </span>
             <div>
-              <h3 className="text-base font-semibold text-text-main">Sécurité du compte</h3>
+              <h3 className="text-lg font-semibold text-text-main">Sécurité du compte</h3>
               <p className="mt-1 text-sm leading-5 text-text-muted">Mettez à jour votre mot de passe en toute sécurité.</p>
             </div>
           </div>

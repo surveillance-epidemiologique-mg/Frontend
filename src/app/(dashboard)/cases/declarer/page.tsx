@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, FlaskConical, Plus, Stethoscope, Trash2, User } from "lucide-react";
+import { Check, FlaskConical, Plus, Stethoscope, Trash2, User, X } from "lucide-react";
 import { Button } from "@/components/button/component";
 import { Input } from "@/components/input/component";
 import { PageHeader } from "@/components/page-header/component";
@@ -231,7 +231,7 @@ export default function DeclarerCasPage() {
         description="Assistant de déclaration en 3 étapes : patient, détails cliniques et analyses."
       />
 
-      <div className="overflow-hidden rounded-3xl border border-border/30 p-4 shadow-card sm:p-8">
+      <div className="rounded-3xl border border-border/30 p-4 shadow-card sm:p-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
           {/* Stepper vertical — desktop */}
           <aside className="hidden lg:block flex-1/2">
@@ -249,7 +249,7 @@ export default function DeclarerCasPage() {
                     {index < STEPS.length - 1 ? (
                       <span
                         className={cn(
-                          "absolute left-[25px] top-[73px] h-[calc(100%-52px)] w-1",
+                          "absolute left-[25px] top-[79px] h-[calc(100%-52px)] w-1",
                           current > index ? "bg-primary" : "bg-bg-muted",
                         )}
                         aria-hidden="true"
@@ -276,16 +276,16 @@ export default function DeclarerCasPage() {
                           <Icon className="size-6" />
                         )}
                       </span>
-                      <span className="pt-0.5">
+                      <span className="min-w-0 pt-0.5">
                         <span
                           className={cn(
-                            "block text-xl font-semibold",
+                            "block text-base font-semibold leading-6 tracking-tight",
                             state === "todo" ? "text-text-muted" : "text-primary",
                           )}
                         >
                           {step.title}
                         </span>
-                        <span className="block text-sm text-text-muted">
+                        <span className="mt-1 block text-sm leading-6 text-text-muted">
                           {step.description}
                         </span>
                       </span>
@@ -317,6 +317,7 @@ export default function DeclarerCasPage() {
                       }}
                       aria-label={`Afficher l'aide : ${step.title}`}
                       aria-expanded={isHelpOpen}
+                      aria-controls={isHelpOpen ? `declaration-help-${index}` : undefined}
                       className={cn(
                         "relative z-10 grid size-9 shrink-0 place-items-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
                         state === "todo"
@@ -332,14 +333,44 @@ export default function DeclarerCasPage() {
                     </button>
                     {isHelpOpen ? (
                       <div
-                        role="status"
+                        id={`declaration-help-${index}`}
+                        role="dialog"
+                        aria-label={`Aide : ${step.title}`}
                         className={cn(
-                          "absolute top-12 z-30 w-64 rounded-xl border border-primary/20 bg-bg-surface p-3 text-left text-xs leading-relaxed text-text-muted shadow-dropdown",
-                          index === STEPS.length - 1 ? "right-0" : "left-0",
+                          "absolute top-12 z-30 w-64 max-w-[calc(100vw-3rem)] rounded-2xl bg-primary p-4 text-left text-sm text-primary-foreground shadow-dropdown",
+                          index === 0
+                            ? "left-0"
+                            : index === STEPS.length - 1
+                              ? "right-0"
+                              : "left-[18px] -translate-x-1/2",
                         )}
                       >
-                        <p className="font-semibold text-text-main">{step.title}</p>
-                        <p className="mt-1">{step.description}</p>
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            "absolute -top-1.5 size-3 rotate-45 bg-primary",
+                            index === 0
+                              ? "left-3"
+                              : index === STEPS.length - 1
+                                ? "right-3"
+                                : "left-1/2 -translate-x-1/2",
+                          )}
+                        />
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-xs font-semibold leading-5 text-primary-foreground">
+                            Étape {index + 1} sur {STEPS.length}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setHelpStep(null)}
+                            aria-label="Fermer l’aide"
+                            className="-mr-1 -mt-1 grid size-7 shrink-0 place-items-center rounded-lg text-primary-foreground hover:bg-primary-foreground/10 focus-visible:outline-2 focus-visible:outline-primary-foreground"
+                          >
+                            <X className="size-4" />
+                          </button>
+                        </div>
+                        <p className="mt-2 font-semibold leading-5">{step.title}</p>
+                        <p className="mt-1.5 text-[13px] leading-5">{step.description}</p>
                       </div>
                     ) : null}
                     {index < STEPS.length - 1 ? (
@@ -368,10 +399,10 @@ export default function DeclarerCasPage() {
           {current === 0 ? (
             <section className="space-y-5">
               <div className="hidden lg:block">
-                <h2 className="text-xl font-semibold text-text-main">
+                <h2 className="text-xl font-semibold leading-7 tracking-tight text-text-main">
                   Informations du patient
                 </h2>
-                <p className="text-sm text-text-muted">
+                <p className="mt-2 text-sm leading-6 text-text-muted">
                   Créez un nouveau patient anonyme. Le code anonyme est généré
                   automatiquement à la déclaration.
                 </p>
@@ -426,7 +457,7 @@ export default function DeclarerCasPage() {
                       }
                       disabled
                     />
-                    <p className="text-sm text-text-muted">
+                    <p className="text-sm leading-5 text-text-muted">
                       Centre rattaché à votre compte.
                     </p>
                   </div>
@@ -444,7 +475,7 @@ export default function DeclarerCasPage() {
                 )}
               </div>
 
-              <p className="text-sm text-text-muted">
+              <p className="text-sm leading-6 text-text-muted">
                 Aucune donnée nominative n&apos;est stockée hors du nom saisi
                 ci-dessus ; le code anonyme sera généré automatiquement.
               </p>
@@ -454,10 +485,10 @@ export default function DeclarerCasPage() {
           {current === 1 ? (
             <section className="space-y-5">
               <div className="hidden lg:block">
-                <h2 className="text-lg font-semibold text-text-main">
+                <h2 className="text-xl font-semibold leading-7 tracking-tight text-text-main">
                   Détails cliniques
                 </h2>
-                <p className="text-sm text-text-muted">
+                <p className="mt-2 text-sm leading-6 text-text-muted">
                   Renseignez la maladie suspectée et les symptômes observés. Le
                   statut initial est fixé à « Suspect » et la date de diagnostic
                   est enregistrée automatiquement.
@@ -487,7 +518,7 @@ export default function DeclarerCasPage() {
                 />
               </div>
 
-              <div className="rounded-xl border border-dashed border-border p-3 text-sm text-text-muted">
+              <div className="rounded-xl border border-dashed border-border p-3 text-sm leading-6 text-text-muted">
                 Statut initial : <strong>Suspect</strong> (non modifiable).
                 Date du diagnostic : renseignée automatiquement au moment de la
                 déclaration.
@@ -498,10 +529,10 @@ export default function DeclarerCasPage() {
           {current === 2 ? (
             <section className="space-y-5">
               <div className="hidden lg:block">
-                <h2 className="text-lg font-semibold text-text-main">
+                <h2 className="text-xl font-semibold leading-7 tracking-tight text-text-main">
                   Analyses à réaliser
                 </h2>
-                <p className="text-sm text-text-muted">
+                <p className="mt-2 text-sm leading-6 text-text-muted">
                   Indiquez les analyses à effectuer pour confirmer le cas. Au
                   moins une analyse est requise.
                 </p>

@@ -109,7 +109,7 @@ export function Tabs({ tabs, value, onChange, className }: TabsProps) {
             {tab.badge !== undefined ? (
               <span
                 className={cn(
-                  "inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-bold tracking-tight transition-colors",
+                  "inline-flex items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold tracking-tight transition-colors",
                   isActive
                     ? "bg-primary/10 text-primary"
                     : "bg-bg-muted text-text-muted group-hover:text-text-main"

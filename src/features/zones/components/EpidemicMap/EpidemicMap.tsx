@@ -11,10 +11,10 @@ const EpidemicMapInner = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full w-full flex-col gap-3 p-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-full w-full flex-1 rounded-xl" />
-        <Skeleton className="h-10 w-56" />
+      <div className="flex h-full w-full flex-col gap-4 bg-bg-surface p-4 sm:p-6">
+        <Skeleton className="h-9 w-44 rounded-xl" />
+        <Skeleton className="h-full w-full flex-1 rounded-2xl" />
+        <Skeleton className="h-12 w-60 rounded-xl" />
       </div>
     ),
   },
@@ -22,7 +22,7 @@ const EpidemicMapInner = dynamic(
 
 export function EpidemicMap() {
   return (
-    <div className="relative isolate h-[calc(90vh-5rem)] w-full overflow-hidden rounded-2xl border border-border bg-bg-surface shadow-sm">
+    <div className="epidemic-map relative isolate h-[calc(100dvh-12rem)] min-h-[520px] max-h-[900px] w-full overflow-hidden rounded-3xl border border-border/80 bg-bg-surface shadow-card sm:h-[calc(100dvh-11rem)]">
       <EpidemicMapInner />
     </div>
   );

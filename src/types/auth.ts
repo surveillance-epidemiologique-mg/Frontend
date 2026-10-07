@@ -27,6 +27,7 @@ export interface User {
   email: string;
   phoneNumber: string | null;
   temporaryPassword: boolean;
+  invitationExpiresAt: string | null;
   isActive: boolean;
   roleId: number;
   centreId: number | null;

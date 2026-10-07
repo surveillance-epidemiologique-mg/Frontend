@@ -23,10 +23,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           sizes="(min-width: 1280px) 58vw, 56vw"
           className="object-cover object-[62%_center]"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#061d31]/95 via-[#082b45]/80 to-[#082b45]/35" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#061d31]/80 via-[#082b45]/50 to-[#082b45]/35" aria-hidden="true" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#061d31]/90 via-transparent to-[#061d31]/25" aria-hidden="true" />
 
-        <div className="relative z-10 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-sky-100/90">
+        <div className="relative z-10 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-sky-100/90">
           <span className="h-px w-7 bg-sky-300" aria-hidden="true" />
           Surveillance sanitaire · Madagascar
         </div>

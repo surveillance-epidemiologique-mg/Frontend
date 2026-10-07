@@ -410,7 +410,7 @@ export default function CasCliniquePage() {
             {STATUS_LABEL[c.diagnosticStatus] ?? c.diagnosticStatus}
           </Badge>
           {["Confirme", "Invalide"].includes(c.diagnosticStatus) && c.decisionAnalyse?.laboratory && (
-             <span className="text-[10px] text-text-muted max-w-[150px] truncate" title={`Confirmé par: ${c.decisionAnalyse.laboratory.centre?.name ?? c.decisionAnalyse.laboratory.name}`}>
+             <span className="text-xs text-text-muted max-w-[150px] truncate" title={`Confirmé par: ${c.decisionAnalyse.laboratory.centre?.name ?? c.decisionAnalyse.laboratory.name}`}>
                Labo: {c.decisionAnalyse.laboratory.centre?.name ?? c.decisionAnalyse.laboratory.name}
              </span>
           )}
@@ -493,7 +493,7 @@ export default function CasCliniquePage() {
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-4 sm:px-6">
           <div>
-            <h2 className="text-base font-semibold text-text-main">Dossiers cliniques</h2>
+            <h2 className="text-lg font-semibold text-text-main">Dossiers cliniques</h2>
             <p className="mt-1 text-xs text-text-muted">Retrouvez les cas déclarés dans votre périmètre.</p>
           </div>
           <Badge variant="info" className="px-3 py-1">
@@ -605,7 +605,7 @@ export default function CasCliniquePage() {
                     </h4>
                     <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 sm:gap-y-6">
                       <div className="sm:col-span-2">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                        <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
                           Nom et prénom(s)
                         </p>
                         <p className="mt-1.5 text-base font-semibold text-text-main break-words">
@@ -615,7 +615,7 @@ export default function CasCliniquePage() {
                       
                       <div className="grid grid-cols-2 gap-3 sm:gap-4">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                          <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
                             Âge
                           </p>
                           <p className="mt-1.5 text-sm font-semibold text-text-main">
@@ -623,7 +623,7 @@ export default function CasCliniquePage() {
                           </p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                          <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
                             Sexe
                           </p>
                           <p className="mt-1.5 text-sm font-semibold text-text-main">
@@ -634,7 +634,7 @@ export default function CasCliniquePage() {
 
                       <div className="grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-3 sm:gap-6">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                          <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
                             Zone de résidence
                           </p>
                             <p className="mt-1.5 break-words text-sm font-semibold text-text-main">
@@ -642,7 +642,7 @@ export default function CasCliniquePage() {
                           </p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                          <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
                             Centre de traitement
                           </p>
                             <p className="mt-1.5 break-words text-sm font-semibold text-text-main">
@@ -650,7 +650,7 @@ export default function CasCliniquePage() {
                           </p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                          <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
                             Statut du cas
                           </p>
                           <div className="mt-1.5">

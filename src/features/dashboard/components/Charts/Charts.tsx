@@ -98,7 +98,7 @@ function ChartCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <CardTitle className="text-base">{title}</CardTitle>
+            <CardTitle>{title}</CardTitle>
             {description ? (
               <CardDescription className="mt-0.5 text-[13px]">
                 {description}
@@ -126,7 +126,7 @@ function ChartLegend({
       {items.map((item) => (
         <span
           key={item.label}
-          className="inline-flex items-center gap-1.5 text-[11px] font-medium text-text-muted"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-text-muted"
         >
           <span
             className="size-2 shrink-0 rounded-full"
@@ -174,7 +174,7 @@ function ChartTooltip({
       )}
     >
       {label ? (
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
           {label}
         </p>
       ) : null}
@@ -425,7 +425,7 @@ function PieDonut({
           <span className="text-2xl font-bold tabular-nums tracking-tight text-text-main">
             {total.toLocaleString("fr-FR")}
           </span>
-          <span className="mt-0.5 text-[11px] font-medium text-text-muted">
+          <span className="mt-0.5 text-xs font-medium text-text-muted">
             {totalLabel}
           </span>
         </div>
@@ -441,10 +441,10 @@ function PieDonut({
                 className="size-2 shrink-0 rounded-full"
                 style={{ backgroundColor: slice.couleur }}
               />
-              <span className="min-w-0 flex-1 truncate text-[12px] text-text-muted">
+              <span className="min-w-0 flex-1 truncate text-xs text-text-muted">
                 {slice.nom}
               </span>
-              <span className="shrink-0 text-[12px] font-semibold tabular-nums text-text-main">
+              <span className="shrink-0 text-xs font-semibold tabular-nums text-text-main">
                 {pct}%
               </span>
             </div>

@@ -130,7 +130,7 @@ export function QrScanner({ open, onClose, onScanned }: QrScannerProps) {
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
               <div className="relative h-40 w-40 rounded-lg border-2 border-white/85 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]">
                 <ScanLine className="absolute -left-4 -top-4 size-5 text-white/80" />
-                <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] font-medium text-white/85">
+                <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium text-white/85">
                   Cadrez le QR code
                 </span>
               </div>

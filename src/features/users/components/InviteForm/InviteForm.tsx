@@ -129,7 +129,7 @@ export function InviteForm() {
             <p className="text-sm">
               Le compte est prêt pour sa première connexion. Transmettez à
               l&apos;utilisateur le lien d&apos;activation ci-dessous : il y
-              définira lui-même son mot de passe.
+              définira lui-même son mot de passe. Ce lien est valable 7 jours.
             </p>
           </div>
         </Alert>

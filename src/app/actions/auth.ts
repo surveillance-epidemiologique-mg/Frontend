@@ -8,6 +8,7 @@ import {
   forgotPassword,
   login,
   resetPassword,
+  resendExpiredInvitation,
 } from "@/services/auth";
 
 export interface ActionState {
@@ -193,4 +194,26 @@ export async function changePasswordAction(
 export async function logoutAction(): Promise<void> {
   await deleteSessionToken();
   redirect("/login");
+}
+
+export async function resendInvitationAction(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const token = String(formData.get("token") ?? "").trim();
+  if (!token) return { error: "Lien d'activation invalide." };
+
+  try {
+    const result = await resendExpiredInvitation(token);
+    return result.success
+      ? { success: result.message }
+      : { error: result.message };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Impossible de renvoyer l'invitation.",
+    };
+  }
 }

@@ -129,7 +129,7 @@ export function StatCard({
         <div className="flex items-start justify-between gap-2">
           <span
             className={cn(
-              "text-[11px] font-semibold uppercase tracking-wider text-text-muted",
+              "text-xs font-semibold uppercase tracking-wider text-text-muted",
               compact ? "leading-4" : "leading-4 pt-0.5",
             )}
           >
@@ -163,7 +163,7 @@ export function StatCard({
             <span
               className={cn(
                 "font-normal text-text-muted",
-                compact ? "text-[11px]" : "text-xs",
+                compact ? "text-xs" : "text-xs",
               )}
             >
               {unit}
@@ -176,7 +176,7 @@ export function StatCard({
           {trend !== undefined ? (
             <span
               className={cn(
-                "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold",
+                "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold",
                 trendIsNeutral
                   ? "bg-bg-muted text-text-muted"
                   : trendIsPositive
@@ -193,7 +193,7 @@ export function StatCard({
           {hint ? (
             <span
               className={cn(
-                "truncate rounded-full px-2 py-0.5 text-[11px] font-medium",
+                "truncate rounded-full px-2 py-0.5 text-xs font-medium",
                 t.hintPill,
               )}
             >

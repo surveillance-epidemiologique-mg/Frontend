@@ -19,6 +19,7 @@ import {
   fetchRoles,
   fetchUsers,
   fetchZones,
+  resendUserInvitation,
   setUserStatus,
   updateCentre,
   updateMaladie,
@@ -122,6 +123,11 @@ export function SettingsPage() {
     setUsers((prev) => prev.map((user) => (user.id === id ? updated : user)));
   }
 
+  async function handleResendInvitation(id: number) {
+    const updated = await resendUserInvitation(id);
+    setUsers((prev) => prev.map((user) => (user.id === id ? updated : user)));
+  }
+
   // ---- Maladies ----
   async function handleAddMaladie(values: MaladieFormValues) {
     const created = await createMaladie(values);
@@ -187,6 +193,7 @@ export function SettingsPage() {
           onAdd={handleAddUser}
           onUpdate={handleUpdateUser}
           onToggle={handleToggleUser}
+          onResendInvitation={handleResendInvitation}
         />
       ) : null}
 

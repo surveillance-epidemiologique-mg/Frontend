@@ -71,7 +71,7 @@ export function DataTable<T>({
                       key={column.key}
                       scope="col"
                       className={cn(
-                          "whitespace-nowrap px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted",
+                          "whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wider text-text-muted",
                           ALIGN_CLASSES[column.align ?? "left"],
                           column.headerClassName,
                       )}

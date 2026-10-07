@@ -240,7 +240,7 @@ export function DashboardAnalytics() {
             <FilterX className="size-4 text-text-muted" />
             <span className="text-sm font-semibold text-text-main">Filtres</span>
             {hasActive ? (
-              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
                 {activeCount} actif{activeCount > 1 ? "s" : ""}
               </span>
             ) : null}
@@ -268,7 +268,7 @@ export function DashboardAnalytics() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-12">
             {/* Période */}
             <div className="space-y-1.5 sm:col-span-2 xl:col-span-5">
-            <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+            <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-text-muted">
               <CalendarRange className="size-3" />
               Période
             </label>
@@ -298,7 +298,7 @@ export function DashboardAnalytics() {
             <div className="space-y-1.5 xl:col-span-3">
             <label
               htmlFor="filter-zone"
-              className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted"
+              className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-text-muted"
             >
               <MapPin className="size-3" />
               Région / District
@@ -319,7 +319,7 @@ export function DashboardAnalytics() {
             <div className="space-y-1.5 xl:col-span-2">
             <label
               htmlFor="filter-centre"
-              className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted"
+              className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-text-muted"
             >
               <MapPin className="size-3" />
               Centre de santé
@@ -343,7 +343,7 @@ export function DashboardAnalytics() {
             <div className="space-y-1.5 xl:col-span-2">
             <label
               htmlFor="filter-maladie"
-              className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted"
+              className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-text-muted"
             >
               <Activity className="size-3" />
               Maladie

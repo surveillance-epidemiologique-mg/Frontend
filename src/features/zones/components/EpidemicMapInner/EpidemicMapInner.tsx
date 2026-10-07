@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "@/services/api";
-import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
+import { GeoJSON, MapContainer, TileLayer, ZoomControl } from "react-leaflet";
 import L, { type GeoJSON as LeafletGeoJSON } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -98,6 +98,8 @@ export function EpidemicMapInner() {
   }, [maladie]);
 
   useEffect(() => {
+    // Le chargement est asynchrone ; les états sont mis à jour après la réponse API.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refreshMapLayers();
   }, [refreshMapLayers]);
 
@@ -371,15 +373,6 @@ export function EpidemicMapInner() {
   /* ── Rendu ────────────────────────────────────────────────────── */
   return (
     <div className="relative h-full w-full">
-      <style>{`
-        .leaflet-control-attribution {
-          font-size: 10px; line-height: 1.4; color: #64748b;
-          background: rgba(255,255,255,0.72); padding: 2px 6px;
-          border-radius: 6px 0 0 0; backdrop-filter: blur(2px);
-        }
-        .leaflet-control-attribution a { color: #0369A1; }
-      `}</style>
-
       <MapContainer
         center={CENTRE_MADAGASCAR}
         zoom={6}
@@ -388,8 +381,10 @@ export function EpidemicMapInner() {
         maxBounds={MADAGASCAR_BOUNDS}
         maxBoundsViscosity={1}
         scrollWheelZoom={false}
+        zoomControl={false}
         className="h-full w-full"
       >
+        <ZoomControl position="topright" />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

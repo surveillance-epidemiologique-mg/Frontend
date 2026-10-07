@@ -268,7 +268,7 @@ export function computeBounds(
 /* ================================================================== */
 
 export function popupHtml(html: string): string {
-  return `<div style="font-family:Montserrat,system-ui,sans-serif;font-size:12px;line-height:1.5;min-width:160px">${html}</div>`;
+  return `<div class="epidemic-map-popup">${html}</div>`;
 }
 
 export function statutDot(statut: string, label: string): string {

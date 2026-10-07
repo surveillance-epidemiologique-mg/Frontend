@@ -57,7 +57,7 @@ export function Input({
               className={cn(
                   "w-full rounded-xl border-[1.5px] border-border/60",
                   "bg-bg-surface px-3.5 py-2.5",
-                  "text-md text-text-main outline-none",
+                  "text-base text-text-main outline-none",
                   "placeholder:text-text-subtle/70",
                   "transition-all duration-200",
 

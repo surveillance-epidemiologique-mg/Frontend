@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Edit, Plus, Search, UserCheck, UserX, Users } from "lucide-react";
+import { Edit, Plus, RotateCw, Search, UserCheck, UserX, Users } from "lucide-react";
 import { ActionMenu } from "@/components/action-menu/component";
 import { Avatar } from "@/components/avatar/component";
 import { Badge } from "@/components/badge/component";
@@ -34,6 +34,7 @@ interface UsersTabProps {
   }>;
   onUpdate: (id: number, values: UserFormValues) => Promise<void>;
   onToggle: (id: number, isActive: boolean) => Promise<void>;
+  onResendInvitation: (id: number) => Promise<void>;
 }
 
 const ROLE_FILTER_OPTIONS = [
@@ -50,6 +51,7 @@ export function UsersTab({
   onAdd,
   onUpdate,
   onToggle,
+  onResendInvitation,
 }: UsersTabProps) {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
@@ -62,6 +64,7 @@ export function UsersTab({
     nextActive: boolean;
   } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [resendingUserId, setResendingUserId] = useState<number | null>(null);
 
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -108,7 +111,7 @@ export function UsersTab({
           description:
             `Le compte de ${created.user.name} est prêt pour sa première connexion. ` +
             `Transmettez-lui le lien d'activation : ${created.activationLink}. ` +
-            "Le mot de passe est défini par l'utilisateur lors de l'activation.",
+            "Le lien expire sous 7 jours ; le mot de passe est défini par l'utilisateur lors de l'activation.",
           variant: "success",
         });
       }
@@ -160,6 +163,28 @@ export function UsersTab({
     }
   }
 
+  async function handleResendInvitation(user: User) {
+    if (resendingUserId !== null) return;
+    setResendingUserId(user.id);
+    try {
+      await onResendInvitation(user.id);
+      toast({
+        title: "Invitation renvoyée",
+        description: `Un nouveau lien valable 7 jours a été envoyé à ${user.email}. L'ancien lien ne fonctionne plus.`,
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Envoi impossible",
+        description:
+          error instanceof Error ? error.message : "Impossible de renvoyer l'invitation.",
+        variant: "error",
+      });
+    } finally {
+      setResendingUserId(null);
+    }
+  }
+
   const columns: Column<User>[] = [
     {
       key: "user",
@@ -208,9 +233,11 @@ export function UsersTab({
             Désactivé
           </Badge>
         ) : row.temporaryPassword ? (
-          <Badge variant="warning" dot>
-            Invitation en attente
-          </Badge>
+          row.invitationExpiresAt && new Date(row.invitationExpiresAt).getTime() <= Date.now() ? (
+            <Badge variant="danger" dot>Invitation expirée</Badge>
+          ) : (
+            <Badge variant="warning" dot>Invitation en attente</Badge>
+          )
         ) : (
           <Badge variant="success" dot>
             Actif
@@ -239,6 +266,13 @@ export function UsersTab({
               icon: Edit,
               onClick: () => openEdit(row),
             },
+            ...(row.temporaryPassword && row.isActive
+              ? [{
+                  label: resendingUserId === row.id ? "Envoi en cours…" : "Renvoyer l'invitation",
+                  icon: RotateCw,
+                  onClick: () => void handleResendInvitation(row),
+                }]
+              : []),
             row.isActive
               ? {
                   label: "Désactiver",

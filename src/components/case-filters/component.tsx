@@ -146,7 +146,7 @@ export function CaseFilters({
             <ListFilter className="size-4" />
             Filtres
             {hasActive ? (
-              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[11px] font-bold text-primary">
+              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-bold text-primary">
                 {activeCount}
               </span>
             ) : null}

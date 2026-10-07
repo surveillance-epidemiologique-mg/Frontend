@@ -61,22 +61,22 @@ function ControlSection({
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <section className="overflow-hidden rounded-xl border border-border/80 bg-bg-app/40">
+    <section className="overflow-hidden rounded-xl border border-border/70 bg-bg-surface">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors hover:bg-bg-app/80"
+        className="flex w-full items-start gap-3 px-3.5 py-3 text-left transition-colors hover:bg-bg-app/70 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-primary"
       >
-        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="size-3.5" aria-hidden="true" />
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-light text-primary">
+          <Icon className="size-4" aria-hidden="true" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold leading-snug text-text-main">
+          <span className="block text-sm font-semibold leading-5 text-text-main">
             {title}
           </span>
           {description ? (
-            <span className="mt-0.5 block text-[11px] leading-relaxed text-text-muted">
+            <span className="mt-0.5 block text-xs leading-5 text-text-muted">
               {description}
             </span>
           ) : null}
@@ -90,7 +90,7 @@ function ControlSection({
         />
       </button>
       {open ? (
-        <div className="space-y-3 border-t border-border/60 px-3 py-3">
+        <div className="space-y-3 border-t border-border/60 bg-bg-app/30 px-3.5 py-3.5">
           {children}
         </div>
       ) : null}
@@ -100,9 +100,9 @@ function ControlSection({
 
 function LegendGroup({ title, children }: LegendGroupProps) {
   return (
-    <div className="rounded-lg border border-border/60 bg-bg-surface/80 p-2.5">
-      <p className="mb-2 text-xs font-semibold text-text-main">{title}</p>
-      <div className="space-y-1.5">{children}</div>
+    <div className="rounded-xl border border-border/60 bg-bg-surface p-3">
+      <p className="mb-2.5 text-[13px] font-semibold text-text-main">{title}</p>
+      <div className="space-y-2">{children}</div>
     </div>
   );
 }
@@ -115,15 +115,19 @@ function LegendItem({
 }: LegendItemProps) {
   return (
     <div className="flex items-center gap-2.5">
-      <span
-        className={cn(
-          "shrink-0 border",
-          shape === "dot" ? "size-2.5 rounded-full" : "size-3.5 rounded-[4px]",
-        )}
-        style={{ backgroundColor: fill, borderColor: stroke }}
-        aria-hidden="true"
-      />
-      <span className="text-xs leading-snug text-text-main">{label}</span>
+      {fill === "transparent" && stroke === "transparent" ? (
+        <span className="grid size-4 shrink-0 place-items-center text-sm text-text-muted" aria-hidden="true">—</span>
+      ) : (
+        <span
+          className={cn(
+            "shrink-0 border",
+            shape === "dot" ? "size-3 rounded-full" : "size-4 rounded-[5px]",
+          )}
+          style={{ backgroundColor: fill, borderColor: stroke }}
+          aria-hidden="true"
+        />
+      )}
+      <span className="text-xs leading-5 text-text-main">{label}</span>
     </div>
   );
 }
@@ -148,21 +152,21 @@ function LayerToggle({
       disabled={disabled}
       aria-pressed={active}
       className={cn(
-        "flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        "flex min-h-11 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50",
         active
           ? "bg-primary/8 ring-1 ring-inset ring-primary/25"
-          : "hover:bg-bg-surface/80",
+          : "hover:bg-bg-app",
       )}
     >
       <span
         className={cn(
-          "truncate text-sm",
+          "min-w-0 text-sm",
           active ? "font-medium text-text-main" : "text-text-muted",
         )}
       >
         {label}
         {description ? (
-          <span className="mt-0.5 block text-[11px] font-normal text-text-muted">
+          <span className="mt-0.5 block text-xs font-normal leading-4 text-text-muted">
             {description}
           </span>
         ) : null}
@@ -195,45 +199,53 @@ export function MapControlsPanel({
   onToggleStatut,
   onSetMaladie,
 }: MapControlsPanelProps) {
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const activeLayerCount = Object.values(layers).filter(Boolean).length;
   const diseaseLabel =
     maladieOptions.find((item) => String(item.id) === maladie)?.name ?? maladie;
   const alertMode = maladie ? `Filtré : ${diseaseLabel}` : "Toutes maladies";
 
   return (
-    <div className="absolute bottom-3 left-3 z-[1000] w-[min(100%,20rem)] max-w-[calc(100%-24px)] overflow-hidden rounded-2xl border border-border bg-bg-surface/95 shadow-card backdrop-blur-md">
+    <div
+      className={cn(
+        "absolute left-3 top-3 z-[1000] max-w-[calc(100%-24px)] overflow-hidden rounded-2xl border border-border/80 bg-bg-surface/95 shadow-dropdown backdrop-blur-xl sm:bottom-4 sm:left-4 sm:top-auto sm:w-[min(100%,21rem)] sm:max-w-[calc(100%-32px)]",
+        panelOpen ? "w-[min(100%,21rem)]" : "w-auto",
+      )}
+    >
       <button
         type="button"
         onClick={() => setPanelOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-3 border-b border-border/60 px-4 py-3 text-left transition-colors hover:bg-bg-app/50"
+        className={cn(
+          "flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-bg-app/60 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-primary",
+          panelOpen && "border-b border-border/60",
+        )}
         aria-expanded={panelOpen}
       >
         <span className="flex min-w-0 items-center gap-2.5">
-          <span className="flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <MapPin className="size-4" aria-hidden="true" />
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary">
+            <MapPin className="size-4.5" aria-hidden="true" />
           </span>
           <span className="min-w-0">
-            <span className="block text-sm font-semibold text-text-main">
-              Contrôles de la carte
+            <span className="block text-sm font-semibold leading-5 text-text-main">
+              Filtres et légende
             </span>
-            <span className="block text-[11px] text-text-muted">
+            <span className="hidden truncate text-xs leading-5 text-text-muted sm:block">
               {loading
                 ? "Chargement des données…"
-                : "Couches, légende et filtres"}
+                : `${activeLayerCount} couche${activeLayerCount > 1 ? "s" : ""} active${activeLayerCount > 1 ? "s" : ""} · ${alertMode}`}
             </span>
           </span>
         </span>
-        <ChevronDown
-          className={cn(
-            "size-4 shrink-0 text-text-muted transition-transform duration-200",
-            panelOpen && "rotate-180",
-          )}
-          aria-hidden="true"
-        />
+        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-bg-app text-text-muted">
+          <ChevronDown
+            className={cn("size-4 transition-transform duration-200", panelOpen && "rotate-180")}
+            aria-hidden="true"
+          />
+        </span>
       </button>
 
       {panelOpen ? (
-        <div className="max-h-[min(70vh,520px)] space-y-3 overflow-y-auto p-3">
+        <div className="max-h-[min(65dvh,420px)] space-y-2.5 overflow-y-auto p-3 sm:max-h-[min(72dvh,540px)]">
           <ControlSection
             icon={Filter}
             title="Filtres"
@@ -281,7 +293,7 @@ export function MapControlsPanel({
                   </button>
                 ))}
               </div>
-              <p className="mt-1.5 text-[11px] text-text-muted">
+              <p className="mt-1.5 text-xs text-text-muted">
                 Aucune sélection = tous les statuts. Les clusters regroupent
                 uniquement les cas confirmés.
               </p>
@@ -292,7 +304,7 @@ export function MapControlsPanel({
             icon={Layers}
             title="Couches affichées"
             description="Activez ou masquez chaque niveau de données sur la carte."
-            defaultOpen
+            defaultOpen={false}
           >
             <div className="space-y-1">
               {LAYER_DEFS.map((layer) => (
@@ -324,7 +336,7 @@ export function MapControlsPanel({
           >
             <LegendGroup title="Alertes par région">
               <p
-                className="mb-2 text-[11px] text-text-muted"
+                className="mb-2 text-xs text-text-muted"
                 aria-live="polite"
               >
                 {alertMode}

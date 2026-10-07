@@ -103,6 +103,12 @@ export function setUserStatus(id: number, isActive: boolean): Promise<User> {
   });
 }
 
+export function resendUserInvitation(id: number): Promise<User> {
+  return request<User>(`/api/users/${id}/resend-invitation`, {
+    method: "POST",
+  });
+}
+
 // ---- Maladies ----
 export function fetchMaladies(): Promise<Maladie[]> {
   return request<Maladie[]>("/api/maladies");

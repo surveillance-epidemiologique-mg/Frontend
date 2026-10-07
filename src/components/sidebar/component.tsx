@@ -243,10 +243,10 @@ export function Sidebar({
                 <span className="block truncate text-xs font-semibold text-text-main">
                   {user.name}
                 </span>
-                <span className="mt-0.5 block truncate text-[11px] text-text-muted">
+                <span className="mt-0.5 block truncate text-xs text-text-muted">
                   {user.email}
                 </span>
-                <span className="mt-0.5 block truncate text-[11px] font-medium capitalize text-primary">
+                <span className="mt-0.5 block truncate text-xs font-medium capitalize text-primary">
                   {user.role ?? "Utilisateur"}
                 </span>
               </span>
