@@ -76,19 +76,6 @@ export async function getMe(): Promise<User> {
   return apiFetch<User>("/auth/me");
 }
 
-export async function resendExpiredInvitation(
-  token: string,
-): Promise<{ success: boolean; message: string }> {
-  return apiFetch<{ success: boolean; message: string }>(
-    "/auth/resend-invitation",
-    {
-      method: "POST",
-      body: JSON.stringify({ token }),
-    },
-    { withAuth: false },
-  );
-}
-
 export interface AuthPermissions {
   laboratoryCanDeclareCases: boolean;
 }

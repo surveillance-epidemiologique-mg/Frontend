@@ -2,11 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import {
-  activateAction,
-  resendInvitationAction,
-  type ActionState,
-} from "@/app/actions/auth";
+import { activateAction, type ActionState } from "@/app/actions/auth";
 import { Alert } from "@/components/alert/component";
 import { Button } from "@/components/button/component";
 import { Input } from "@/components/input/component";
@@ -20,10 +16,6 @@ interface ActivateFormProps {
 export function ActivateForm({ token }: ActivateFormProps) {
   const [state, formAction, pending] = useActionState(
     activateAction,
-    initialState,
-  );
-  const [resendState, resendFormAction, resendPending] = useActionState(
-    resendInvitationAction,
     initialState,
   );
 
@@ -67,23 +59,6 @@ export function ActivateForm({ token }: ActivateFormProps) {
     );
   }
 
-  if (resendState.success) {
-    return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-semibold tracking-tight text-primary">
-          Vérifiez votre boîte e-mail
-        </h2>
-        <Alert variant="success">{resendState.success}</Alert>
-        <p className="text-sm text-text-muted">
-          Si cette invitation est encore en attente, le nouveau lien sera valable 7 jours. Vérifiez également vos courriers indésirables.
-        </p>
-        <Button asChild variant="secondary" className="w-full">
-          <Link href="/login">Retour à la connexion</Link>
-        </Button>
-      </div>
-    );
-  }
-
   if (state.error?.includes("expiré")) {
     return (
       <div className="space-y-6">
@@ -91,13 +66,12 @@ export function ActivateForm({ token }: ActivateFormProps) {
           Lien d&apos;invitation expiré
         </h2>
         <Alert variant="error">{state.error}</Alert>
-        <form action={resendFormAction} className="space-y-3">
-          <input type="hidden" name="token" value={token} />
-          <Button type="submit" variant="secondary" className="w-full" loading={resendPending}>
-            {resendPending ? "Envoi en cours…" : "Renvoyer le lien d'invitation"}
-          </Button>
-          {resendState.error ? <Alert variant="error">{resendState.error}</Alert> : null}
-        </form>
+        <p className="text-sm text-text-muted">
+          Seul un administrateur peut renvoyer une invitation depuis Paramètres &gt; Utilisateurs. Le nouveau lien sera valable 7 jours.
+        </p>
+        <Button asChild variant="secondary" className="w-full">
+          <Link href="/login">Retour à la connexion</Link>
+        </Button>
       </div>
     );
   }
@@ -139,14 +113,8 @@ export function ActivateForm({ token }: ActivateFormProps) {
           {pending ? "Activation..." : "Activer mon compte"}
         </Button>
       </form>
-      <div className="border-t border-border pt-4">
-        <form action={resendFormAction} className="space-y-2">
-          <input type="hidden" name="token" value={token} />
-          <Button type="submit" variant="ghost" className="w-full" loading={resendPending}>
-            {resendPending ? "Envoi en cours…" : "Lien expiré ? Renvoyer l'invitation"}
-          </Button>
-          {resendState.error ? <Alert variant="info">{resendState.error}</Alert> : null}
-        </form>
+      <div className="border-t border-border pt-4 text-center text-sm text-text-muted">
+        Lien expiré ? Contactez un administrateur pour demander une nouvelle invitation.
       </div>
     </div>
   );
