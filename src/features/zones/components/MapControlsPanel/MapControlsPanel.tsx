@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { Select } from "@/components/select/component";
 
 interface MapControlsPanelProps {
+  canViewCaseLayers: boolean;
   layers: Record<LayerKey, boolean>;
   statuts: Set<string>;
   maladie: string;
@@ -190,6 +191,7 @@ function LayerToggle({
 }
 
 export function MapControlsPanel({
+  canViewCaseLayers,
   layers,
   statuts,
   maladie,
@@ -200,7 +202,10 @@ export function MapControlsPanel({
   onSetMaladie,
 }: MapControlsPanelProps) {
   const [panelOpen, setPanelOpen] = useState(false);
-  const activeLayerCount = Object.values(layers).filter(Boolean).length;
+  const visibleLayers = LAYER_DEFS.filter(
+    (layer) => canViewCaseLayers || (layer.key !== "cas" && layer.key !== "clusters"),
+  );
+  const activeLayerCount = visibleLayers.filter((layer) => layers[layer.key]).length;
   const diseaseLabel =
     maladieOptions.find((item) => String(item.id) === maladie)?.name ?? maladie;
   const alertMode = maladie ? `Filtré : ${diseaseLabel}` : "Toutes maladies";
@@ -249,7 +254,9 @@ export function MapControlsPanel({
           <ControlSection
             icon={Filter}
             title="Filtres"
-            description="La maladie filtre les alertes régionales, les cas et les clusters."
+            description={canViewCaseLayers
+              ? "La maladie filtre les alertes régionales, les cas et les clusters."
+              : "La maladie filtre les alertes régionales."}
             defaultOpen
           >
             <div>
@@ -270,7 +277,7 @@ export function MapControlsPanel({
                 className="w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
-            <div className="mt-3">
+            {canViewCaseLayers ? <div className="mt-3">
               <p className="mb-2 text-xs font-medium text-text-muted">
                 Statut diagnostique — couche Cas
               </p>
@@ -297,7 +304,7 @@ export function MapControlsPanel({
                 Aucune sélection = tous les statuts. Les clusters regroupent
                 uniquement les cas confirmés.
               </p>
-            </div>
+            </div> : null}
           </ControlSection>
 
           <ControlSection
@@ -307,7 +314,7 @@ export function MapControlsPanel({
             defaultOpen={false}
           >
             <div className="space-y-1">
-              {LAYER_DEFS.map((layer) => (
+              {visibleLayers.map((layer) => (
                 <LayerToggle
                   key={layer.key}
                   label={layer.label}
@@ -321,7 +328,7 @@ export function MapControlsPanel({
                 />
               ))}
             </div>
-            {!maladie ? (
+            {canViewCaseLayers && !maladie ? (
               <p className="mt-2 px-2 text-xs text-text-muted">
                 Sélectionnez une maladie pour afficher les cas et les clusters.
               </p>
@@ -351,7 +358,7 @@ export function MapControlsPanel({
               ))}
             </LegendGroup>
 
-            <LegendGroup title="Statut des cas">
+            {canViewCaseLayers ? <LegendGroup title="Statut des cas">
               <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
                 {STATUTS.map((s) => (
                   <LegendItem
@@ -362,7 +369,7 @@ export function MapControlsPanel({
                   />
                 ))}
               </div>
-            </LegendGroup>
+            </LegendGroup> : null}
           </ControlSection>
         </div>
       ) : null}

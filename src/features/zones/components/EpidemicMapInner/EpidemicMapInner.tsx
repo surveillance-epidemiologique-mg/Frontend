@@ -38,7 +38,7 @@ import { MAP_DATA_CHANGED_EVENT } from "@/services/live-events";
 /*  EpidemicMapInner — Orchestrateur                                  */
 /* ================================================================== */
 
-export function EpidemicMapInner() {
+export function EpidemicMapInner({ canViewCaseLayers }: { canViewCaseLayers: boolean }) {
   /* ── State : couches & filtres ────────────────────────────────── */
   // Seule la couche « Alertes » (choroplèthe par zone) est activée
   // au chargement initial, conformément au cahier des charges.
@@ -80,6 +80,7 @@ export function EpidemicMapInner() {
       const data = await fetchAllMapLayers(
         selectedMaladie ? Number(selectedMaladie) : undefined,
         true,
+        canViewCaseLayers,
       );
       if (requestId !== layersRequestRef.current) return;
       setRegions(data.regions);
@@ -95,7 +96,7 @@ export function EpidemicMapInner() {
         setLoadedMaladie(selectedMaladie);
       }
     }
-  }, [maladie]);
+  }, [maladie, canViewCaseLayers]);
 
   useEffect(() => {
     // Le chargement est asynchrone ; les états sont mis à jour après la réponse API.
@@ -137,7 +138,7 @@ export function EpidemicMapInner() {
   const zoneName = focusZone?.name ?? "";
 
   const filteredCas = useMemo(() => {
-    if (!cas || !maladie || loading || (focusZone && !zoneInfo)) return null;
+    if (!canViewCaseLayers || !cas || !maladie || loading || (focusZone && !zoneInfo)) return null;
     return {
       type: "FeatureCollection" as const,
       features: cas.features.filter((f) => {
@@ -156,7 +157,7 @@ export function EpidemicMapInner() {
         return true;
       }),
     };
-  }, [cas, statuts, maladie, loading, focusZone, zoneInfo]);
+  }, [canViewCaseLayers, cas, statuts, maladie, loading, focusZone, zoneInfo]);
 
   const filteredCentres = useMemo(() => {
     if (!centres || (focusZone && !zoneInfo)) return null;
@@ -171,6 +172,7 @@ export function EpidemicMapInner() {
 
   /* ── Handlers ─────────────────────────────────────────────────── */
   function toggleLayer(key: LayerKey) {
+    if (!canViewCaseLayers && (key === "cas" || key === "clusters")) return;
     if ((key === "cas" || key === "clusters") && !maladie) return;
     setLayers((prev) => ({ ...prev, [key]: !prev[key] }));
   }
@@ -420,7 +422,7 @@ export function EpidemicMapInner() {
             onEachFeature={centreEach}
           />
         ) : null}
-        {layers.cas && filteredCas ? (
+        {canViewCaseLayers && layers.cas && filteredCas ? (
           <GeoJSON
             key={`cas-${Array.from(statuts).sort().join("|")}-${maladie}-${zoneName}-${mapVersion}`}
             data={filteredCas}
@@ -428,7 +430,7 @@ export function EpidemicMapInner() {
             onEachFeature={casEach}
           />
         ) : null}
-        {layers.clusters && maladie && !loading && clusters && !focusZone ? (
+        {canViewCaseLayers && layers.clusters && maladie && !loading && clusters && !focusZone ? (
           <GeoJSON
             key={`clusters-${loadedMaladie}-${mapVersion}`}
             data={clusters}
@@ -447,6 +449,7 @@ export function EpidemicMapInner() {
       />
 
       <MapControlsPanel
+        canViewCaseLayers={canViewCaseLayers}
         layers={{
           ...layers,
           cas: Boolean(maladie) && layers.cas,

@@ -25,10 +25,18 @@ import {
   type TrendPoint,
 } from "@/features/dashboard/components/Charts/Charts";
 import { cn } from "@/lib/utils";
+import { ROLES } from "@/config/navigation";
+import type { User } from "@/types/auth";
 
 interface Option {
   id: number;
   name: string;
+}
+
+interface DashboardAnalyticsProps {
+  role: string;
+  ownCentreId: number | null;
+  ownCentreName: string | null;
 }
 
 interface KpiData {
@@ -86,13 +94,17 @@ function buildQuery(f: Filters): string {
 
 /* ── Composant ─────────────────────────────────────────────────────────── */
 
-export function DashboardAnalytics() {
+export function DashboardAnalytics({ role, ownCentreId, ownCentreName }: DashboardAnalyticsProps) {
+  const ownCentreOnly = role === ROLES.MEDECIN || role === ROLES.LABORATOIRE;
+  const [assignedCentre, setAssignedCentre] = useState({ id: ownCentreId, name: ownCentreName });
+  const [profileReady, setProfileReady] = useState(!ownCentreOnly || (ownCentreId != null && ownCentreName != null));
+  const [centreNotice, setCentreNotice] = useState<string | null>(null);
+  const centreChangedByUser = useRef(false);
+  const defaultCentreId = ownCentreOnly && assignedCentre.id != null ? String(assignedCentre.id) : "all";
   const [zones,    setZones]    = useState<Option[]>([]);
   const [centres,  setCentres]  = useState<Option[]>([]);
   const [maladies, setMaladies] = useState<Option[]>([]);
-  const [filters,  setFilters]  = useState<Filters>(EMPTY_FILTERS);
-  const [defaultCentreId, setDefaultCentreId] = useState("all");
-  const defaultsApplied = useRef(false);
+  const [filters,  setFilters]  = useState<Filters>(() => ({ ...EMPTY_FILTERS, centreId: defaultCentreId }));
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [loading,  setLoading]  = useState(true);
 
@@ -102,28 +114,47 @@ export function DashboardAnalytics() {
   const [byDisease, setByDisease] = useState<SlicePoint[]>([]);
   const [byStatus,  setByStatus]  = useState<SlicePoint[]>([]);
 
+  /* Le rendu serveur peut ne pas avoir accès à l'API ; le navigateur récupère alors le centre du profil. */
+  useEffect(() => {
+    if (!ownCentreOnly || (ownCentreId != null && ownCentreName != null)) return;
+    let active = true;
+    void (async () => {
+      try {
+        const response = await fetch("/api/auth/me", { cache: "no-store" });
+        if (!response.ok) {
+          if (active) setCentreNotice("Impossible de récupérer votre centre de santé pour le moment.");
+          return;
+        }
+        const me = (await response.json()) as User;
+        if (!active) return;
+        const centreId = me.centreId ?? me.centre?.id ?? null;
+        setAssignedCentre({ id: centreId, name: me.centre?.name ?? null });
+        setCentreNotice(centreId == null ? "Aucun centre de santé n'est associé à votre profil. Contactez un administrateur." : null);
+        if (centreId != null && !centreChangedByUser.current) {
+          setFilters((previous) => ({ ...previous, centreId: String(centreId) }));
+        }
+      } catch {
+        if (active) setCentreNotice("Impossible de récupérer votre centre de santé pour le moment.");
+      } finally {
+        if (active) setProfileReady(true);
+      }
+    })();
+    return () => { active = false; };
+  }, [ownCentreOnly, ownCentreId, ownCentreName]);
+
   /* Chargement listes de sélection */
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const [me, z, c, m] = await Promise.all([
-          fetch("/api/auth/me").then((r) => (r.ok ? r.json() : null)),
+        const [z, c, m] = await Promise.all([
           fetch("/api/centres/zones").then((r) => (r.ok ? r.json() : [])),
-          fetch("/api/centres").then((r) => (r.ok ? r.json() : [])),
+          ownCentreOnly
+            ? Promise.resolve([])
+            : fetch("/api/centres").then((r) => (r.ok ? r.json() : [])),
           fetch("/api/maladies").then((r) => (r.ok ? r.json() : [])),
         ]);
         if (!active) return;
-        const role = me?.role?.name;
-        const ownCentreId = me?.centreId != null ? String(me.centreId) : "all";
-        const initialCentreId =
-          role === "Medecin" || role === "Laboratoire" ? ownCentreId : "all";
-        setDefaultCentreId(initialCentreId);
-        setFilters((previous) => {
-          if (defaultsApplied.current) return previous;
-          defaultsApplied.current = true;
-          return { ...previous, centreId: initialCentreId };
-        });
         setZones(z);
         setCentres(c);
         setMaladies(m);
@@ -132,10 +163,11 @@ export function DashboardAnalytics() {
       }
     })();
     return () => { active = false; };
-  }, []);
+  }, [ownCentreOnly]);
 
   /* Chargement KPI + graphiques */
   useEffect(() => {
+    if (!profileReady) return;
     const id = setTimeout(() => {
       void (async () => {
         const qs = buildQuery(filters);
@@ -164,9 +196,10 @@ export function DashboardAnalytics() {
       })();
     }, 300);
     return () => clearTimeout(id);
-  }, [filters]);
+  }, [filters, profileReady]);
 
   function update<K extends keyof Filters>(key: K, value: string) {
+    if (key === "centreId") centreChangedByUser.current = true;
     setFilters((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -328,15 +361,23 @@ export function DashboardAnalytics() {
               id="filter-centre"
               options={[
                 { value: "all", label: "Tous les centres" },
-                ...centres.map((centre) => ({
-                  value: String(centre.id),
-                  label: centre.name,
-                })),
+                ...(ownCentreOnly
+                  ? assignedCentre.id == null
+                    ? []
+                    : [{ value: String(assignedCentre.id), label: assignedCentre.name ?? "Mon centre de santé" }]
+                  : centres.map((centre) => ({
+                      value: String(centre.id),
+                      label: centre.name,
+                    }))),
               ]}
               value={filters.centreId}
               onChange={(e) => update("centreId", e.target.value)}
+              disabled={!profileReady}
               className={FIELD}
             />
+            {ownCentreOnly && centreNotice ? (
+              <p className="text-xs text-warning" role="status">{centreNotice}</p>
+            ) : null}
             </div>
 
             {/* Maladie */}

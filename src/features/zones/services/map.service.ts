@@ -34,6 +34,7 @@ async function fetchGeoLayer(path: string): Promise<GeojsonCollection> {
 export async function fetchAllMapLayers(
   maladieId?: number,
   refresh = false,
+  includeCaseLayers = true,
 ): Promise<{
   regions: GeojsonCollection;
   zones: GeojsonCollection;
@@ -50,10 +51,10 @@ export async function fetchAllMapLayers(
     fetchGeoLayer(`/carte/regions${query}`),
     fetchGeoLayer(`/carte/zones${query}`),
     fetchGeoLayer("/carte/centres"),
-    maladieId === undefined
+    maladieId === undefined || !includeCaseLayers
       ? EMPTY_COLLECTION
       : fetchGeoLayer(`/carte/clusters${query}`),
-    maladieId === undefined
+    maladieId === undefined || !includeCaseLayers
       ? EMPTY_COLLECTION
       : fetchGeoLayer(`/carte/cas${query}`),
   ]);

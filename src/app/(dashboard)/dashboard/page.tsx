@@ -28,9 +28,13 @@ export default async function DashboardPage() {
   }
 
   let name = session.email.split("@")[0] ?? "Utilisateur";
+  let ownCentreId: number | null = null;
+  let ownCentreName: string | null = null;
   try {
     const me = await getMe();
     name = me.name;
+    ownCentreId = me.centreId;
+    ownCentreName = me.centre?.name ?? null;
   } catch {
     // API indisponible : on garde le nom dérivé de la session
   }
@@ -92,7 +96,11 @@ export default async function DashboardPage() {
       />
 
       {/* DASH-01 / DASH-02 · KPI, graphiques et filtres (données mockées) */}
-      <DashboardAnalytics />
+      <DashboardAnalytics
+        role={role}
+        ownCentreId={ownCentreId}
+        ownCentreName={ownCentreName}
+      />
 
     </div>
   );

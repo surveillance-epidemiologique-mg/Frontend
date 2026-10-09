@@ -20,10 +20,10 @@ const EpidemicMapInner = dynamic(
   },
 );
 
-export function EpidemicMap() {
+export function EpidemicMap({ canViewCaseLayers }: { canViewCaseLayers: boolean }) {
   return (
     <div className="epidemic-map relative isolate h-[calc(100dvh-12rem)] min-h-[520px] max-h-[900px] w-full overflow-hidden rounded-3xl border border-border/80 bg-bg-surface shadow-card sm:h-[calc(100dvh-11rem)]">
-      <EpidemicMapInner />
+      <EpidemicMapInner canViewCaseLayers={canViewCaseLayers} />
     </div>
   );
 }

@@ -10,5 +10,22 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = { args: {} as any };
+const baseArgs = {
+  layers: { regions: true, cas: false, centres: false, limites: false, clusters: false },
+  statuts: new Set<string>(),
+  maladie: "",
+  maladieOptions: [],
+  loading: false,
+  onToggleLayer: () => {},
+  onToggleStatut: () => {},
+  onSetMaladie: () => {},
+};
+
+export const Default: Story = {
+  args: { ...baseArgs, canViewCaseLayers: true },
+};
+
+export const RegionalAlertsOnly: Story = {
+  args: { ...baseArgs, canViewCaseLayers: false },
+};
 
