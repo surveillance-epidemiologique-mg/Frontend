@@ -173,7 +173,7 @@ export function DashboardAnalytics({ role, ownCentreId, ownCentreName }: Dashboa
         const qs = buildQuery(filters);
         try {
           const [k, mo, ev, bd, bs] = await Promise.all([
-            fetch(`/api/dashboard/kpi${qs}`).then((r) => (r.ok ? r.json() : null)),
+            fetch(`/api/dashboard/kpi${qs}`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)),
             fetch(`/api/dashboard/monthly${qs}`).then((r) => (r.ok ? r.json() : [])),
             fetch(`/api/dashboard/evolution${qs}`).then((r) => (r.ok ? r.json() : [])),
             fetch(`/api/dashboard/repartition${qs}&dimension=maladie`).then((r) =>

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { FlaskConical, QrCode, Stethoscope, Calendar, Building2, Activity } from "lucide-react";
+import { FlaskConical, QrCode, Stethoscope, Calendar, Building2, Activity, CircleCheck, CircleX } from "lucide-react";
 import type { ScanResult } from "@/features/laboratoire/components/QrScanner/QrScanner";
 
 const QrScanner = dynamic(
@@ -722,26 +722,32 @@ export default function LaboratoirePage() {
             )}
 
             {/* Validation du cas */}
-            <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">
-              <p className="text-xs text-text-muted sm:mr-auto sm:self-center">
+            <div className="space-y-3 border-t border-border pt-4">
+              <p className="text-xs leading-relaxed text-text-muted">
                 {realisedCount > 0
                   ? `${realisedCount} analyse(s) réalisée(s) — le cas peut être validé.`
                   : "Validation possible dès qu'une analyse est réalisée."}
               </p>
-              <Button
-                variant="primary"
-                disabled={realisedCount === 0}
-                onClick={() => setValidateAction({ casId: selectedCas.id, status: "Confirme" })}
-              >
-                Confirmer le cas
-              </Button>
-              <Button
-                variant="danger"
-                disabled={realisedCount === 0}
-                onClick={() => setValidateAction({ casId: selectedCas.id, status: "Invalide" })}
-              >
-                Invalider le cas
-              </Button>
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  variant="primary"
+                  disabled={realisedCount === 0}
+                  onClick={() => setValidateAction({ casId: selectedCas.id, status: "Confirme" })}
+                  className="min-h-11 w-full shrink-0 whitespace-nowrap rounded-xl px-4 sm:w-auto sm:min-w-44"
+                >
+                  <CircleCheck className="size-4 shrink-0" aria-hidden="true" />
+                  Confirmer le cas
+                </Button>
+                <Button
+                  variant="danger"
+                  disabled={realisedCount === 0}
+                  onClick={() => setValidateAction({ casId: selectedCas.id, status: "Invalide" })}
+                  className="min-h-11 w-full shrink-0 whitespace-nowrap rounded-xl px-4 sm:w-auto sm:min-w-44"
+                >
+                  <CircleX className="size-4 shrink-0" aria-hidden="true" />
+                  Invalider le cas
+                </Button>
+              </div>
             </div>
           </div>
         ) : null}

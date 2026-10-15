@@ -59,6 +59,7 @@ interface PatientCas {
   centre: { name: string };
   diagnosticStatus: string;
   clinicalOutcome: string;
+  outcomeDate: string | null;
   declarationDate: string;
   decisionAnalyse?: {
     id: number;
@@ -114,6 +115,20 @@ const STATUS_LABEL: Record<string, string> = {
   Invalide: "Invalidé",
 };
 
+const OUTCOME_LABEL: Record<string, string> = {
+  EnCours: "En cours",
+  Gueri: "Guéri",
+  Deces: "Décédé",
+  PerduDeVue: "Perdu de vue",
+};
+
+const OUTCOME_BADGE: Record<string, "secondary" | "recovered" | "deceased" | "warning"> = {
+  EnCours: "secondary",
+  Gueri: "recovered",
+  Deces: "deceased",
+  PerduDeVue: "warning",
+};
+
 function statusBadge(statut: string) {
   return STATUS_BADGE[statut] ?? "secondary";
 }
@@ -149,6 +164,8 @@ export default function CasCliniquePage() {
     maladie: string;
     centre: string;
   } | null>(null);
+  const [outcomeDraft, setOutcomeDraft] = useState("EnCours");
+  const [outcomeSubmitting, setOutcomeSubmitting] = useState(false);
   const [editPatient, setEditPatient] = useState<PatientLight | null>(null);
   const [editForm, setEditForm] = useState({
     namePatient: "",
@@ -197,7 +214,6 @@ export default function CasCliniquePage() {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
     const id = setTimeout(() => {
       void (async () => {
         try {
@@ -214,6 +230,11 @@ export default function CasCliniquePage() {
     }, 300);
     return () => clearTimeout(id);
   }, [filters]);
+
+  function changeFilters(next: CaseFiltersValues) {
+    setLoading(true);
+    setFilters(next);
+  }
 
   const isMedecin = me?.role === ROLES.MEDECIN;
   const isLabo = me?.role === ROLES.LABORATOIRE;
@@ -258,7 +279,9 @@ export default function CasCliniquePage() {
             : "Impossible de charger le patient.",
         );
       }
-      setViewPatient(await res.json());
+      const patient: PatientDetail = await res.json();
+      setViewPatient(patient);
+      setOutcomeDraft(patient.cas.find((item) => item.id === cas.id)?.clinicalOutcome ?? "EnCours");
       try {
         const { qrDataUrl } = await import("@/lib/qr");
         const qr = await qrDataUrl(cas.patient.anonymousCode, cas.id);
@@ -274,6 +297,38 @@ export default function CasCliniquePage() {
       });
     } finally {
       setViewLoading(false);
+    }
+  }
+
+  async function submitOutcome(event: React.FormEvent) {
+    event.preventDefault();
+    if (!viewCas || !viewPatient || !OUTCOME_LABEL[outcomeDraft]) return;
+
+    setOutcomeSubmitting(true);
+    try {
+      const res = await fetch(`/api/cas/${viewCas.id}/issue`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clinicalOutcome: outcomeDraft }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(typeof body?.message === "string" ? body.message : "Impossible de mettre à jour l’issue clinique.");
+      }
+      setViewPatient((patient) => patient && ({
+        ...patient,
+        cas: patient.cas.map((item) => item.id === viewCas.id
+          ? { ...item, clinicalOutcome: body.clinicalOutcome, outcomeDate: body.outcomeDate }
+          : item),
+      }));
+      setCasList((cases) => cases.map((item) => item.id === viewCas.id
+        ? { ...item, clinicalOutcome: body.clinicalOutcome }
+        : item));
+      toast({ title: "Issue clinique mise à jour", description: `${viewPatient.anonymousCode} : ${OUTCOME_LABEL[body.clinicalOutcome]}.`, variant: "success" });
+    } catch (error) {
+      toast({ title: "Erreur", description: error instanceof Error ? error.message : "Mise à jour impossible.", variant: "error" });
+    } finally {
+      setOutcomeSubmitting(false);
     }
   }
 
@@ -418,6 +473,15 @@ export default function CasCliniquePage() {
       ),
     },
     {
+      key: "issue",
+      header: "Issue clinique",
+      cell: (c) => c.diagnosticStatus === "Confirme" ? (
+        <Badge variant={OUTCOME_BADGE[c.clinicalOutcome] ?? "secondary"} dot>
+          {OUTCOME_LABEL[c.clinicalOutcome] ?? "En cours"}
+        </Badge>
+      ) : <span className="text-text-muted">—</span>,
+    },
+    {
       key: "medecin",
       header: "Médecin",
       cell: (c) => <span className="text-text-muted">{c.agent.name}</span>,
@@ -480,7 +544,7 @@ export default function CasCliniquePage() {
       <Card className="overflow-hidden rounded-3xl border border-border/70 bg-bg-surface shadow-card">
         <CaseFilters
           values={filters}
-          onChange={setFilters}
+          onChange={changeFilters}
           years={years}
           centres={centres}
           maladies={maladies}
@@ -518,7 +582,7 @@ export default function CasCliniquePage() {
                 : "Aucun cas n'a encore été déclaré."}
             >
               {hasActiveFilters ? (
-                <Button variant="outline" onClick={() => setFilters(EMPTY_FILTERS)}>
+                <Button variant="outline" onClick={() => changeFilters(EMPTY_FILTERS)}>
                   Réinitialiser les filtres
                 </Button>
               ) : null}
@@ -663,7 +727,43 @@ export default function CasCliniquePage() {
                     </div>
                   </div>
 
-                  {/* BLOC 3: ANALYSES & LABORATOIRE */}
+                  {/* BLOC 3: SUIVI DE L'ISSUE CLINIQUE */}
+                  {currentCas.diagnosticStatus === "Confirme" ? (
+                    <form onSubmit={submitOutcome} className="rounded-xl border border-border bg-bg-surface p-4 shadow-sm sm:p-5">
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+                        <div>
+                          <h4 className="text-sm font-bold uppercase tracking-wide text-primary">Issue clinique</h4>
+                          <p className="mt-1 text-xs text-text-muted">Suivi du cas confirmé, utilisé pour calculer le taux de létalité.</p>
+                        </div>
+                        <Badge variant={OUTCOME_BADGE[currentCas.clinicalOutcome] ?? "secondary"} dot>
+                          {OUTCOME_LABEL[currentCas.clinicalOutcome] ?? "En cours"}
+                        </Badge>
+                      </div>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                        <div className="min-w-0 flex-1">
+                          <Select
+                            label="État du patient"
+                            value={outcomeDraft}
+                            onChange={(event) => setOutcomeDraft(event.target.value)}
+                            options={[
+                              { value: "EnCours", label: "En cours" },
+                              { value: "Gueri", label: "Guéri" },
+                              { value: "Deces", label: "Décédé" },
+                              { value: "PerduDeVue", label: "Perdu de vue" },
+                            ]}
+                          />
+                        </div>
+                        <Button type="submit" className="w-full sm:w-auto" loading={outcomeSubmitting} disabled={outcomeDraft === currentCas.clinicalOutcome}>
+                          Enregistrer l’issue
+                        </Button>
+                      </div>
+                      {currentCas.outcomeDate && currentCas.clinicalOutcome !== "EnCours" ? (
+                        <p className="mt-3 text-xs text-text-muted">Enregistrée le {formatDate(currentCas.outcomeDate)}</p>
+                      ) : null}
+                    </form>
+                  ) : null}
+
+                  {/* BLOC 4: ANALYSES & LABORATOIRE */}
                   <div className="min-w-0">
                     <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-text-muted sm:mb-4">
                       Analyses & Laboratoire
@@ -786,23 +886,6 @@ export default function CasCliniquePage() {
         confirmLabel="Supprimer"
         loading={deleteSubmitting}
       />
-    </div>
-  );
-}
-
-function DetailItem({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
-  return (
-    <div>
-      <dt className="text-xs font-medium uppercase tracking-wider text-text-muted">
-        {label}
-      </dt>
-      <dd className="mt-0.5 text-sm text-text-main">{value}</dd>
     </div>
   );
 }
